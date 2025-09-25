@@ -18,6 +18,15 @@ export type Product = {
   fetchToStore?: boolean;
 };
 
+export type Chapter = {
+  _id: string;
+  title: string;
+  image: string;
+  description?: string;
+  href?: string;
+  products?: Product[];
+};
+
 export type User = {
   clerkId: string;
   wishlist: string[];

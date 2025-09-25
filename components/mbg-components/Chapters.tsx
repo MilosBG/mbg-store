@@ -13,7 +13,7 @@ const Chapters = async () => {
         <p>No Chapters Found</p>
       ) : (
         <div className="grid justify-items-center grid-cols-2 md:grid-cols-5 gap-4">
-          {chapters.map((chapter: ChapterType) => (
+          {chapters.map((chapter) => (
             <Link
               href={`/chapters/${chapter._id}`}
               key={chapter._id}
@@ -42,8 +42,3 @@ const Chapters = async () => {
 };
 
 export default Chapters;
-
-
-
-  
-        

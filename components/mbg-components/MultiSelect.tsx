@@ -14,10 +14,11 @@ import {
 } from "@/components/ui/command";
 import { Badge } from "../ui/badge";
 import { X } from "lucide-react";
+import type { Chapter } from "@/lib/types";
 
 interface MultiSelectProps {
   placeholder: string;
-  chapters: ChapterType[];
+  chapters: Chapter[];
   value: string[];
   onChange: (value: string) => void;
   onRemove: (value: string) => void;
@@ -33,17 +34,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   const [inputValue, setInputValue] = useState("");
   const [open, setOpen] = useState(false);
 
-  let selected: ChapterType[];
-
-  if (value.length === 0) {
-    selected = [];
-  } else {
-    selected = value.map((id) =>
-      chapters.find((chapter) => chapter._id === id),
-    ) as ChapterType[];
-  }
-
-    const selectables = chapters.filter((chapter) => !selected.includes(chapter) )
+  const selected = chapters.filter((chapter) => value.includes(chapter._id));
+  const selectables = chapters.filter((chapter) => !value.includes(chapter._id));
 
   return (
     <Command className="overflow-visible rounded-xs bg-transparent">
@@ -78,8 +70,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                 key={chapter._id}
                 onMouseDown={(e) => e.preventDefault()}
                 onSelect={() => {
-                    onChange(chapter._id);
-                    setInputValue("");
+                  onChange(chapter._id);
+                  setInputValue("");
                 }}
                 className="mbg-hover-bg"
               >
