@@ -106,7 +106,7 @@ const ChapterDetails = async ({ params }: PageProps) => {
                   </p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-10">
-          {chapterDetails.products.map((product: Product) => (
+          {(chapterDetails.products ?? []).map((product: Product) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
