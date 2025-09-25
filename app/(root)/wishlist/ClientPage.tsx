@@ -9,13 +9,13 @@ import Separator from "@/components/mbg-components/Separator";
 import { getProductById } from "@/lib/admin";
 import { useUser } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
-import type { Product } from "@/lib/types";
+import type { Product, User } from "@/lib/types";
 
 const Wishlist = () => {
   const { user } = useUser();
 
   const [loading, setLoading] = useState(true);
-  const [signedInUser, setSignedInUser] = useState<UserType | null>(null);
+  const [signedInUser, setSignedInUser] = useState<User | null>(null);
   const [wishlist, setWishlist] = useState<Product[]>([]);
 
   const getUser = async () => {
@@ -54,7 +54,7 @@ const Wishlist = () => {
     }
   }, [signedInUser]);
     
-    const updateSignedInUser = (updatedUser: UserType) => {
+    const updateSignedInUser = (updatedUser: User) => {
         setSignedInUser(updatedUser)
     }
 
