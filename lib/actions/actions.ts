@@ -119,7 +119,7 @@ async function fetchJSON<T = any>(url: string, init?: RequestInit): Promise<T> {
 // Build API URL that tolerates base values that already include '/api'
 function withApi(base: string | undefined, path: string): string {
   if (!base) throw new Error("Missing NEXT_PUBLIC_ADMIN_API or NEXT_PUBLIC_API_URL");
-  let b = base.trim().replace(/\/+$/, "");
+  const b = base.trim().replace(/\/+$/, "");
   const root = /\/api$/i.test(b) ? b : `${b}/api`;
   const sep = path.startsWith("/") ? "" : "/";
   return `${root}${sep}${path}`;

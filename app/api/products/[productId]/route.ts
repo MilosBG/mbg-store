@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Build API URL that tolerates base values that already include '/api'
 function withApi(base: string, path: string): string {
-  let b = base.trim().replace(/\/+$/, "");
+  const b = base.trim().replace(/\/+$/, "");
   const root = /\/api$/i.test(b) ? b : `${b}/api`;
   const sep = path.startsWith("/") ? "" : "/";
   return `${root}${sep}${path}`;
