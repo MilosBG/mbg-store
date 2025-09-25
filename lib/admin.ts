@@ -16,17 +16,33 @@ export async function getProducts(
 ): Promise<Product[]> {
   const url = adminUrl(`products?availableOnly=${availableOnly ? "true" : "false"}`);
   const res = await fetch(url, {
-    // Keep fresh results; admin will still call our webhook for instant UI revalidation
     cache: "no-store",
+    headers: { Accept: "application/json" },
     next: { tags: ["products"] },
   });
+  const raw = await res.text().catch(() => "");
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Admin products fetch failed: ${res.status} ${text}`);
+    console.error(`Admin products fetch failed: ${res.status} ${raw}`);
+    return [];
   }
-  const data = (await res.json()) as Product[];
+  const contentType = res.headers.get("content-type")?.toLowerCase() ?? "";
+  if (!contentType.includes("application/json")) {
+    console.error(
+      `Admin products fetch returned non-JSON (content-type: ${contentType || "unknown"}). Snippet: ${raw.slice(0, 200)}`
+    );
+    return [];
+  }
+  let data: Product[] = [];
+  try {
+    data = JSON.parse(raw) as Product[];
+  } catch (error) {
+    console.error(`Admin products JSON parse failed: ${String(error)}. Snippet: ${raw.slice(0, 200)}`);
+    return [];
+  }
   const filtered = (data || []).filter((p) => p?.fetchToStore === true);
-  if (typeof limit === "number" && isFinite(limit) && limit > 0) return filtered.slice(0, limit);
+  if (typeof limit === "number" && isFinite(limit) && limit > 0) {
+    return filtered.slice(0, limit);
+  }
   return filtered;
 }
 
@@ -51,14 +67,29 @@ export async function getProductById(id: string): Promise<Product | null> {
   const url = adminUrl(`products/${encodeURIComponent(id)}`);
   const res = await fetch(url, {
     cache: "no-store",
+    headers: { Accept: "application/json" },
     next: { tags: [`product:${id}`] },
   });
+  const raw = await res.text().catch(() => "");
   if (res.status === 404) return null;
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Admin product fetch failed: ${res.status} ${text}`);
+    console.error(`Admin product fetch failed: ${res.status} ${raw}`);
+    return null;
   }
-  const data = (await res.json()) as Product;
+  const contentType = res.headers.get("content-type")?.toLowerCase() ?? "";
+  if (!contentType.includes("application/json")) {
+    console.error(
+      `Admin product fetch returned non-JSON (content-type: ${contentType || "unknown"}). Snippet: ${raw.slice(0, 200)}`
+    );
+    return null;
+  }
+  let data: Product;
+  try {
+    data = JSON.parse(raw) as Product;
+  } catch (error) {
+    console.error(`Admin product JSON parse failed: ${String(error)}. Snippet: ${raw.slice(0, 200)}`);
+    return null;
+  }
   if (!data?.fetchToStore) return null;
   return data;
 }

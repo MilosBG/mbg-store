@@ -1,6 +1,4 @@
 import React from "react";
-import Link from "next/link";
-
 import { H1 } from "@/components/mbg-components/H1";
 
 const HomeBanner = () => {
@@ -11,9 +9,6 @@ const HomeBanner = () => {
           Basketball <br />
           Grind
         </H1>
-        <Link href={"/"} className="mbg-prime hoveEffect">
-          Grind
-        </Link>
       </div>
       <div>
 

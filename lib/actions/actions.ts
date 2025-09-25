@@ -69,7 +69,7 @@ export const getProductDetails = async (productId: string) => {
   const base = process.env.NEXT_PUBLIC_ADMIN_API || process.env.NEXT_PUBLIC_API_URL;
   if (!base) throw new Error("Missing NEXT_PUBLIC_ADMIN_API or NEXT_PUBLIC_API_URL for product details");
   const url = withApi(base, `products/${encodeURIComponent(productId)}`);
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
   if (!res.ok) {
     if (res.status === 404) return null as any;
     const text = await res.text().catch(() => "");
@@ -155,7 +155,7 @@ export const getOrders = async (customerId: string): Promise<OrderType[]> => {
 
   for (const url of candidates) {
     try {
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
       if (!res.ok) continue;
       const raw: OrdersApiResponse = await res.json();
       const arr = Array.isArray(raw) ? raw : (raw as any)?.orders ?? [];
