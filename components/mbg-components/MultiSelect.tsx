@@ -68,7 +68,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             {selectables.map((chapter) => (
               <CommandItem
                 key={chapter._id}
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => e.preventDefault()}
                 onSelect={() => {
                   onChange(chapter._id);
                   setInputValue("");
