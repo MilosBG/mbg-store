@@ -3,6 +3,7 @@ import "../globals.css";
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { SITE_METADATA } from "@/lib/seo";
+import { kanit } from "../fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_METADATA.url),
@@ -24,8 +25,8 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className="font-kanit text-sm antialiased">{children}</body>
+      <html lang="en" className={kanit.variable}>
+        <body className={`${kanit.className} font-kanit text-sm antialiased`}>{children}</body>
       </html>
     </ClerkProvider>
   );

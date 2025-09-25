@@ -33,7 +33,7 @@ body,
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-kanit: Kanit, sans-serif;
+  --font-kanit: var(--font-kanit-base, "Kanit"), sans-serif;
   --shadow-mbg-bx-shadow: 1px -3px 7px -1px rgba(0, 0, 0, 0.12);
   --color-mbg-white: #ffffff;
   --color-mbg-black: #000000;
@@ -56,7 +56,7 @@ body,
 /* SELECTION */
 
 body {
-  font-family: Kanit, sans-serif;
+  font-family: var(--font-kanit-base, "Kanit"), sans-serif;
 }
 
 @layer base {

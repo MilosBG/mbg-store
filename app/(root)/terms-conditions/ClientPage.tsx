@@ -160,23 +160,15 @@ const Section: React.FC<{
   const open = typeof forceOpen === "boolean" ? forceOpen : defaultOpen;
   return (
     <section id={id} className="print:break-before-page text-xs scroll-mt-20">
-      <details
-        className="group rounded-xs border border-mbg-black/7 bg-mbg-white open:bg-mbg-rgbablank transition"
-        open={open}
-      >
+      <details className="group rounded-xs border border-mbg-black/7 bg-mbg-white open:bg-mbg-rgbablank transition" open={open}>
         <summary className="flex w-full cursor-pointer select-none items-center justify-between gap-3 px-4 py-3">
           <H3 className="text-base text-mbg-green m-0">{title}</H3>
-          <span
-            aria-hidden
-            className="ml-auto text-mbg-darkgrey text-[10px] font-semibold uppercase group-open:rotate-180 transition"
-          >
+          <span aria-hidden className="ml-auto text-mbg-darkgrey text-[10px] font-semibold uppercase group-open:rotate-180 transition">
             <BiSolidBasketball className="mbg-icon" />
           </span>
         </summary>
         <Separator className="bg-mbg-black/10" />
-        <div className="px-4 py-4 flex flex-col items-start gap-2 text-mbg-black/95">
-          {children}
-        </div>
+        <div className="px-4 py-4 flex flex-col items-start gap-2 text-mbg-black/95">{children}</div>
       </details>
     </section>
   );

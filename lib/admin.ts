@@ -1,95 +1,115 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { Product } from "./types";
+import { Decimal128, ObjectId } from "mongodb";
 
-const base = process.env.ADMIN_BASE_URL || process.env.NEXT_PUBLIC_ADMIN_API || process.env.NEXT_PUBLIC_API_URL;
+import { getAdminDb } from "./adminDb";
+import type { Product } from "./types";
 
-function adminUrl(path: string) {
-  if (!base) throw new Error("Missing ADMIN_BASE_URL (or NEXT_PUBLIC_ADMIN_API/NEXT_PUBLIC_API_URL) for admin calls");
-  const b = String(base).trim().replace(/\/+$/, "");
-  const root = /\/api$/i.test(b) ? b : `${b}/api`;
-  const sep = path.startsWith("/") ? "" : "/";
-  return `${root}${sep}${path}`;
+type ProductDocument = {
+  _id: ObjectId;
+  title: string;
+  description?: string;
+  media?: string[];
+  category?: string;
+  chapters?: Array<ObjectId | string>;
+  tags?: string[];
+  price?: Decimal128 | number | string;
+  expense?: Decimal128 | number | string;
+  sizes?: string[];
+  colors?: string[];
+  variants?: Array<{ color?: string; size?: string; stock?: number | string }>;
+  countInStock?: number;
+  fetchToStore?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+function decimalToNumber(value?: Decimal128 | number | string | null): number | undefined {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
+  const str = value instanceof Decimal128 ? value.toString() : String(value);
+  const numeric = Number(str);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
+
+function ensureStringId(value: ObjectId | string | undefined): string | undefined {
+  if (!value) return undefined;
+  return typeof value === "string" ? value : value.toHexString();
+}
+
+function serializeProduct(doc: ProductDocument): Product {
+  return {
+    _id: doc._id.toHexString(),
+    title: doc.title,
+    description: doc.description ?? undefined,
+    media: doc.media ?? undefined,
+    category: doc.category ?? undefined,
+    chapters: doc.chapters?.map((id) => ensureStringId(id)).filter(Boolean) as string[] | undefined,
+    tags: doc.tags ?? undefined,
+    price: decimalToNumber(doc.price),
+    cost: decimalToNumber(doc.expense),
+    sizes: doc.sizes ?? undefined,
+    colors: doc.colors ?? undefined,
+    variants: doc.variants?.map((variant) => ({
+      color: variant.color,
+      size: variant.size,
+      stock: typeof variant.stock === "number" ? variant.stock : Number(variant.stock ?? 0),
+    })),
+    countInStock: typeof doc.countInStock === "number" ? doc.countInStock : undefined,
+    createdAt: doc.createdAt ? doc.createdAt.toISOString() : undefined,
+    updatedAt: doc.updatedAt ? doc.updatedAt.toISOString() : undefined,
+    fetchToStore: doc.fetchToStore ?? false,
+  };
 }
 
 export async function getProducts(
-  { availableOnly = true, limit }: { availableOnly?: boolean; limit?: number } = {}
+  { availableOnly = true, limit }: { availableOnly?: boolean; limit?: number } = {},
 ): Promise<Product[]> {
-  const url = adminUrl(`products?availableOnly=${availableOnly ? "true" : "false"}`);
-  const res = await fetch(url, {
-    cache: "no-store",
-    headers: { Accept: "application/json" },
-    next: { tags: ["products"] },
-  });
-  const raw = await res.text().catch(() => "");
-  if (!res.ok) {
-    console.error(`Admin products fetch failed: ${res.status} ${raw}`);
+  const db = await getAdminDb();
+  const filter: Record<string, unknown> = {};
+  if (availableOnly) {
+    filter.fetchToStore = true;
+  }
+
+  const cursor = db
+    .collection<ProductDocument>("products")
+    .find(filter)
+    .sort({ createdAt: -1 });
+
+  if (typeof limit === "number" && Number.isFinite(limit) && limit > 0) {
+    cursor.limit(Math.trunc(limit));
+  }
+
+  const docs = await cursor.toArray();
+  return docs.map(serializeProduct);
+}
+
+export async function getProductsByIds(
+  ids: string[],
+  { includeHidden = false }: { includeHidden?: boolean } = {},
+): Promise<Product[]> {
+  const validIds = ids.filter((id) => ObjectId.isValid(id));
+  if (validIds.length === 0) {
     return [];
   }
-  const contentType = res.headers.get("content-type")?.toLowerCase() ?? "";
-  if (!contentType.includes("application/json")) {
-    console.error(
-      `Admin products fetch returned non-JSON (content-type: ${contentType || "unknown"}). Snippet: ${raw.slice(0, 200)}`
-    );
-    return [];
+
+  const db = await getAdminDb();
+  const mongoIds = validIds.map((id) => new ObjectId(id));
+  const filter: Record<string, unknown> = { _id: { $in: mongoIds } };
+  if (!includeHidden) {
+    filter.fetchToStore = true;
   }
-  let data: Product[] = [];
-  try {
-    data = JSON.parse(raw) as Product[];
-  } catch (error) {
-    console.error(`Admin products JSON parse failed: ${String(error)}. Snippet: ${raw.slice(0, 200)}`);
-    return [];
-  }
-  const filtered = (data || []).filter((p) => p?.fetchToStore === true);
-  if (typeof limit === "number" && isFinite(limit) && limit > 0) {
-    return filtered.slice(0, limit);
-  }
-  return filtered;
+
+  const docs = await db.collection<ProductDocument>("products").find(filter).toArray();
+  const order = new Map(validIds.map((id, index) => [id, index]));
+  return docs
+    .map(serializeProduct)
+    .sort((a, b) => (order.get(a._id) ?? 0) - (order.get(b._id) ?? 0));
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  // On the client, use our proxy API to avoid CORS and leaking admin origin
-  if (typeof window !== "undefined") {
-    const res = await fetch(`/api/products/${encodeURIComponent(id)}`, {
-      cache: "no-store",
-      next: { tags: [`product:${id}`] },
-    });
-    if (res.status === 404) return null;
-    if (!res.ok) {
-      const _ = await res.text().catch(() => "");
-      // Gracefully return null on failures when reading from wishlist
-      return null;
-    }
-    const data = (await res.json()) as Product;
-    if (!data?.fetchToStore) return null;
-    return data;
+  if (!ObjectId.isValid(id)) {
+    return null;
   }
 
-  const url = adminUrl(`products/${encodeURIComponent(id)}`);
-  const res = await fetch(url, {
-    cache: "no-store",
-    headers: { Accept: "application/json" },
-    next: { tags: [`product:${id}`] },
-  });
-  const raw = await res.text().catch(() => "");
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    console.error(`Admin product fetch failed: ${res.status} ${raw}`);
-    return null;
-  }
-  const contentType = res.headers.get("content-type")?.toLowerCase() ?? "";
-  if (!contentType.includes("application/json")) {
-    console.error(
-      `Admin product fetch returned non-JSON (content-type: ${contentType || "unknown"}). Snippet: ${raw.slice(0, 200)}`
-    );
-    return null;
-  }
-  let data: Product;
-  try {
-    data = JSON.parse(raw) as Product;
-  } catch (error) {
-    console.error(`Admin product JSON parse failed: ${String(error)}. Snippet: ${raw.slice(0, 200)}`);
-    return null;
-  }
-  if (!data?.fetchToStore) return null;
-  return data;
+  const [product] = await getProductsByIds([id]);
+  return product ?? null;
 }

@@ -8,6 +8,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import ToasterProvider from "@/lib/providers/ToasterProvider";
 import CookieConsent from "@/components/privacy/CookieConsent";
 import { buildMetadata, SITE_METADATA } from "@/lib/seo";
+import { kanit } from "../fonts";
 
 
 const BASE_DESCRIPTION = "MAKE IT YOUR LIKED OUTFITS";
@@ -356,8 +357,8 @@ export default async function RootLayout({
   const maintenanceState = await getMaintenanceState();
 
   return (
-    <html lang="en">
-      <body className="font-kanit text-sm antialiased">
+    <html lang="en" className={kanit.variable}>
+      <body className={`${kanit.className} font-kanit text-sm antialiased`}>
         <ClerkProvider>
           <MaintenanceGate
             isOnline={maintenanceState.isOnline}
