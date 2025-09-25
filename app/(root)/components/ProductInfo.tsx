@@ -7,7 +7,6 @@ import useCart from "@/lib/hooks/useCart";
 import React, { useEffect, useRef, useState } from "react";
 import type { Product } from "@/lib/types";
 import Link from "next/link";
-import { getProductDetails } from "@/lib/actions/actions";
 
 const ProductInfo = ({ productInfo }: { productInfo: Product }) => {
   // Live copy of the product for real-time stock updates
@@ -28,7 +27,20 @@ const ProductInfo = ({ productInfo }: { productInfo: Product }) => {
 
     const fetchLatest = async () => {
       try {
-        const fresh = await getProductDetails(productInfo._id);
+        const res = await fetch(`/api/products/${encodeURIComponent(productInfo._id)}`, {
+          cache: "no-store",
+        });
+        if (!mounted) return;
+        if (res.status === 404) {
+          return;
+        }
+        if (!res.ok) {
+          if (res.status >= 500 && mounted) {
+            console.warn(`[ProductInfo] refresh failed (${res.status})`);
+          }
+          return;
+        }
+        const fresh = (await res.json()) as Product;
         if (!mounted || !fresh) return;
         setProduct((prev) => {
           const prevKey = JSON.stringify({
@@ -46,8 +58,10 @@ const ProductInfo = ({ productInfo }: { productInfo: Product }) => {
           if (prevKey !== nextKey) return { ...prev, ...fresh } as Product;
           return prev;
         });
-      } catch {
-        // ignore transient errors
+      } catch (error) {
+        if (mounted) {
+          console.warn("[ProductInfo] refresh error", error);
+        }
       }
     };
 
@@ -412,3 +426,7 @@ const ProductInfo = ({ productInfo }: { productInfo: Product }) => {
 };
 
 export default ProductInfo;
+
+
+
+
