@@ -7,12 +7,25 @@ import MaintenanceGate from "./components/MaintenanceGate";
 import { ClerkProvider } from "@clerk/nextjs";
 import ToasterProvider from "@/lib/providers/ToasterProvider";
 import CookieConsent from "@/components/privacy/CookieConsent";
+import { buildMetadata, SITE_METADATA } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+
+const BASE_DESCRIPTION = "MAKE IT YOUR LIKED OUTFITS";
+
+const baseMetadata = buildMetadata({
+  title: SITE_METADATA.name,
+  description: BASE_DESCRIPTION,
+  path: "/",
+  image: "/Grinder.png",
+});
 
 export const metadata: Metadata = {
-  title: "Milos BG",
-  description: "MAKE IT YOUR LIKED OUTFITS",
+  ...baseMetadata,
+  metadataBase: new URL(SITE_METADATA.url),
+  title: {
+    default: SITE_METADATA.name,
+    template: `%s | ${SITE_METADATA.name}`,
+  },
 };
 
 type MaintenanceState = {

@@ -7,8 +7,18 @@ import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { buildMetadata } from "@/lib/seo";
 import { StatusBadge, STATUS_MESSAGES } from "@/components/orders/StatusBadge";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
+
+export const metadata = buildMetadata({
+  title: "Orders",
+  description: "Review your recent Milos BG orders and track delivery steps.",
+  path: "/orders",
+  image: "/Grinder.png",
+  keywords: ["orders", "purchase history", "Milos BG"],
+  robotsIndex: false,
+});
 
 export default async function Orders() {
   const { userId } = await auth();

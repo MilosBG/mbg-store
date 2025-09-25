@@ -1,4 +1,5 @@
 "use client";
+
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import { H3 } from "@/components/mbg-components/H3";
@@ -6,6 +7,17 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { BiSolidBasketball } from "react-icons/bi";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Legal Notice",
+  description: "Access the official company details, hosting information, and legal notices for Milos BG.",
+  path: "/legal-notice",
+  image: "/Grinder.png",
+  keywords: ["legal notice", "company information", "Milos BG"],
+});
+
+
 
 // -----------------------------------------------------------------------------
 // Language helpers (persist to URL & localStorage, default to EN)

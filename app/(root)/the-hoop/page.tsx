@@ -11,6 +11,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Cart",
+  description: "Review your Milos BG bag, update quantities, and proceed securely to checkout.",
+  path: "/the-hoop",
+  image: "/Grinder.png",
+  keywords: ["shopping cart", "checkout", "Milos BG"],
+  robotsIndex: false,
+});
+
+
 
 const Cart = () => {
   const router = useRouter();

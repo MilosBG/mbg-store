@@ -1,14 +1,40 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 export const getChapters = async () => {
-  const chapters = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chapters`);
-  return await chapters.json();
+  const base = process.env.NEXT_PUBLIC_API_URL;
+  if (!base) throw new Error("Missing NEXT_PUBLIC_API_URL for chapters");
+  const trimmed = base.trim();
+  let normalized = trimmed;
+  while (normalized.endsWith('/')) {
+    normalized = normalized.slice(0, -1);
+  }
+  const url = `${normalized}/chapters`;
+  const res = await fetch(url, { next: { revalidate: 3600 } });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`HTTP ${res.status} for ${url}: ${body.slice(0, 120)}`);
+  }
+  return res.json();
 };
 
 export const getChapterDetails = async (chapterId: string) => {
-  const chapter = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/chapters/${encodeURIComponent(chapterId)}`
-  );
-  return await chapter.json()
+  const base = process.env.NEXT_PUBLIC_API_URL;
+  if (!base) throw new Error("Missing NEXT_PUBLIC_API_URL for chapter details");
+  const trimmed = base.trim();
+  let normalized = trimmed;
+  while (normalized.endsWith('/')) {
+    normalized = normalized.slice(0, -1);
+  }
+  const url = `${normalized}/chapters/${encodeURIComponent(chapterId)}`;
+  const res = await fetch(url, { next: { revalidate: 3600 } });
+  if (res.status === 404) {
+    return null as any;
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`HTTP ${res.status} for ${url}: ${body.slice(0, 120)}`);
+  }
+  return res.json();
 };
 
 export const getProducts = async () => {

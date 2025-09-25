@@ -1,6 +1,4 @@
-// ✅ Must be the very first line
-export const dynamic = "force-dynamic";
-
+import type { Metadata } from "next";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import Container from "@/components/mbg-components/Container";
@@ -8,6 +6,20 @@ import { H2 } from "@/components/mbg-components/H2";
 import ProductCard from "@/components/mbg-components/ProductCard";
 import Separator from "@/components/mbg-components/Separator";
 import { getSearchedProducts } from "@/lib/actions/actions";
+import { buildMetadata } from "@/lib/seo";
+
+export async function generateMetadata({ params }: { params: Promise<{ query: string }> }): Promise<Metadata> {
+  const { query } = await params;
+  const decoded = decodeURIComponent(query);
+  const encoded = encodeURIComponent(decoded);
+  return buildMetadata({
+    title: `Search: ${decoded}`,
+    description: `Browse Milos BG apparel and accessories related to "${decoded}".`,
+    path: `/search/${encoded}`,
+    image: "/Grinder.png",
+    keywords: ["Milos BG", "search", decoded],
+  });
+}
 
 // Next.js (edge/runtime) exposes params as an async value in this setup
 const SearchPage = async (props: { params: Promise<{ query: string }> }) => {

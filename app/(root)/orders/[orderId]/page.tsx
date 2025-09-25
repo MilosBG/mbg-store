@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
@@ -5,12 +6,26 @@ import Separator from "@/components/mbg-components/Separator";
 import { StatusBadge, STATUS_MESSAGES } from "@/components/orders/StatusBadge";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
 import { getOrderDetails } from "@/lib/actions/actions";
+import { buildMetadata } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
 
 type PageProps = {
   params: Promise<{ orderId: string }>;
 };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { orderId } = await params;
+  const encodedId = encodeURIComponent(orderId);
+  return buildMetadata({
+    title: `Order ${orderId}`,
+    description: "Securely review the timeline and fulfillment status for your Milos BG order.",
+    path: `/orders/${encodedId}`,
+    image: "/Grinder.png",
+    keywords: ["orders", "order status", "Milos BG"],
+    robotsIndex: false,
+  });
+}
 
 export default async function OrderDetailsPage({ params }: PageProps) {
   const { orderId } = await params;

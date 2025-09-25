@@ -1,19 +1,66 @@
+import type { Metadata } from "next";
 import ChaptersTitle from "@/components/mbg-components/ChaptersTitle";
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import ProductCard from "@/components/mbg-components/ProductCard";
 import type { Product } from "@/lib/types";
 import { getChapterDetails } from "@/lib/actions/actions";
+import { buildMetadata } from "@/lib/seo";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import React from "react";
+
+export const revalidate = 3600;
 
 type PageProps = {
   params: Promise<{ chapterId: string }>;
 };
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { chapterId } = await params;
+  const encodedId = encodeURIComponent(chapterId);
+  const path = `/chapters/${encodedId}`;
+
+  try {
+    const details = await getChapterDetails(chapterId);
+
+    if (details?.title) {
+      const rawDescription = typeof details.description === "string" ? details.description : "";
+      const cleanDescription = rawDescription.replace(/\s+/g, " ").trim();
+      const summary = cleanDescription
+        ? cleanDescription.slice(0, 155) + (cleanDescription.length > 155 ? "..." : "")
+        : "Discover curated looks for every Milos BG chapter.";
+      const image = typeof details.image === "string" && details.image ? details.image : "/Grinder.png";
+
+      return buildMetadata({
+        title: `${details.title} Chapter`,
+        description: summary,
+        path,
+        image,
+        keywords: ["Milos BG", details.title, "chapters"],
+      });
+    }
+  } catch (error) {
+    console.error("Failed to build chapter metadata", error);
+  }
+
+  return buildMetadata({
+    title: "Chapter",
+    description: "Explore Milos BG chapter collections and curated looks.",
+    path,
+    image: "/Grinder.png",
+    keywords: ["Milos BG", "chapters"],
+    robotsIndex: false,
+  });
+}
+
 const ChapterDetails = async ({ params }: PageProps) => {
   const { chapterId } = await params; // 👈 await params
   const chapterDetails = await getChapterDetails(chapterId);
+
+  if (!chapterDetails) {
+    return notFound();
+  }
 
   type ChapterTitle = "Grind" | "Resilience" | "Consistency" | "Focus" | "Achieve";
 
@@ -69,5 +116,3 @@ const ChapterDetails = async ({ params }: PageProps) => {
 };
 
 export default ChapterDetails;
-
-export const dynamic = "force-dynamic";

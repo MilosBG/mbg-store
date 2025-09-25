@@ -1,9 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import useCart from "@/lib/hooks/useCart"; // <-- import your cart hook
 import Button from "@/components/mbg-components/Button";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Payment Success",
+  description: "Your Milos BG payment was received successfully. Review what happens next with your order.",
+  path: "/payment_success",
+  image: "/Grinder.png",
+  keywords: ["order confirmation", "payment success", "Milos BG"],
+  robotsIndex: false,
+});
 
 
 export default function PaymentSuccess() {

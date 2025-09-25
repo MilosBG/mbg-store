@@ -1,4 +1,5 @@
 "use client";
+
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import { H3 } from "@/components/mbg-components/H3";
@@ -7,6 +8,17 @@ import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { BiSolidBasketball } from "react-icons/bi";
 import { FiPhone, FiMail } from "react-icons/fi";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Contact",
+  description: "Reach the Milos BG support team for questions about orders, returns, or partnerships.",
+  path: "/contact",
+  image: "/Grinder.png",
+  keywords: ["contact", "customer support", "Milos BG"],
+});
+
+
 
 // -----------------------------------------------------------------------------
 // Language helpers (persist to URL & localStorage, default to EN)

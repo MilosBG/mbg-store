@@ -1,9 +1,21 @@
 "use client";
+
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import { Grinder } from "@/images";
 import Image from "next/image";
 import React, { useState } from "react";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Size Guide",
+  description: "Find the right Milos BG fit with detailed measurements and sizing tips for every collection.",
+  path: "/size-guide",
+  image: "/Grinder.png",
+  keywords: ["size guide", "fit guide", "Milos BG"],
+});
+
+
 
 // ------------------------------------------------------------
 // Men’s Size Guide Page (TSX)

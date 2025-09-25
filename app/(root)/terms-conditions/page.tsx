@@ -1,4 +1,5 @@
 "use client";
+
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import { H3 } from "@/components/mbg-components/H3";
@@ -6,6 +7,16 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { BiSolidBasketball } from "react-icons/bi";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Terms & Conditions",
+  description: "Review the Milos BG terms of sale, delivery conditions, and customer obligations before ordering.",
+  path: "/terms-conditions",
+  image: "/Grinder.png",
+  keywords: ["terms and conditions", "Milos BG policies", "online store terms"],
+});
+
 
 // -----------------------------------------------------------------------------
 // Language helpers (persist to URL & localStorage, default to EN)

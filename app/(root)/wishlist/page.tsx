@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
+
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import Loader from "@/components/mbg-components/Loader";
@@ -9,6 +10,17 @@ import { getProductById } from "@/lib/admin";
 import { useUser } from "@clerk/nextjs";
 import React, { useEffect, useState } from "react";
 import type { Product } from "@/lib/types";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Wishlist",
+  description: "Track your saved Milos BG styles and check availability when you're ready to purchase.",
+  path: "/wishlist",
+  image: "/Grinder.png",
+  keywords: ["wishlist", "saved items", "Milos BG"],
+  robotsIndex: false,
+});
+
 
 const Wishlist = () => {
   const { user } = useUser();

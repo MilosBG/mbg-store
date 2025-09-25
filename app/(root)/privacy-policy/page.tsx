@@ -1,4 +1,5 @@
 "use client";
+
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import { H3 } from "@/components/mbg-components/H3";
@@ -6,6 +7,17 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { BiSolidBasketball } from "react-icons/bi";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Privacy Policy",
+  description: "Understand how Milos BG collects, protects, and uses your personal data across the store.",
+  path: "/privacy-policy",
+  image: "/Grinder.png",
+  keywords: ["privacy policy", "data protection", "Milos BG"],
+});
+
+
 
 // -----------------------------------------------------------------------------
 // Language helpers (persist to URL & localStorage, default to EN)

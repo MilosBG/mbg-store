@@ -3,8 +3,17 @@ import Container from "@/components/mbg-components/Container";
 import HomeBanner from "./components/HomeBanner";
 import Chapters from "@/components/mbg-components/Chapters";
 import ProductList from "@/components/mbg-components/ProductList";
+import { buildMetadata } from "@/lib/seo";
 import { Suspense } from "react";
 import ProductCardSkeleton from "@/components/mbg-components/ProductCardSkeleton";
+
+export const metadata = buildMetadata({
+  title: "Home",
+  description: "Discover basketball-inspired apparel, accessories, and stories from Milos BG.",
+  path: "/",
+  image: "/Grinder.png",
+  keywords: ["basketball apparel", "streetwear", "Milos BG"],
+});
 
 export default function Home() {
   return (

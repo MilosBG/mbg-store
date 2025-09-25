@@ -1,10 +1,19 @@
-"use client";
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import { H3 } from "@/components/mbg-components/H3";
 import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
-import React from "react";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "The Background",
+  description: "Discover the inspiration and commitment driving Milos BG's basketball culture collections.",
+  path: "/the-background",
+  image: "/Grinder.png",
+  keywords: ["brand story", "Milos BG", "basketball culture"],
+});
+
+
 
 const VIDEO_ID = "vaeio3idHzU"; // ← replace with your YouTube ID (e.g. "dQw4w9WgXcQ")
 

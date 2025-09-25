@@ -2,15 +2,19 @@ import type { Metadata } from "next";
 import "../globals.css";
 
 import { ClerkProvider } from "@clerk/nextjs";
-
-export const dynamic = "force-dynamic";
+import { SITE_METADATA } from "@/lib/seo";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_METADATA.url),
   title: {
-    template: "%s | Milos BG - STORE AUTH",
-    default: "Milos BG - STORE AUTH",
+    default: "Account",
+    template: `%s | ${SITE_METADATA.name}`,
   },
-  description: "Milos BG Ecommerce store",
+  description: "Sign in to manage Milos BG orders, wishlist, and account preferences.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
