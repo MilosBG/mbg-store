@@ -96,10 +96,39 @@ function serializeChapter(doc: ChapterDocument, products?: Product[]): Chapter {
   };
 }
 
-export const getOrders = async (_customerId: string): Promise<any[]> => {
+
+// Temporary storefront order types while real order APIs are wired up.
+type StorefrontOrderProduct = {
+  _id?: string;
+  quantity: number;
+  color?: string;
+  size?: string;
+  product?: {
+    _id?: string;
+    title?: string;
+    price?: number;
+    media?: string[];
+  };
+};
+
+type StorefrontOrder = {
+  _id: string;
+  totalAmount: number;
+  fulfillmentStatus?: string;
+  products?: StorefrontOrderProduct[];
+  processingAt?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
+};
+
+export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> => {
+  void customerId;
   return [];
 };
 
-export const getOrderDetails = async (_orderId: string): Promise<any | null> => {
+export const getOrderDetails = async (orderId: string): Promise<StorefrontOrder | null> => {
+  void orderId;
   return null;
 };
