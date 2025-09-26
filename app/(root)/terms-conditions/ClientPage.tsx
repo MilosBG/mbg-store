@@ -1372,13 +1372,19 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="16. Intellectual property"
     >
       <p>
-        All elements of the Milos BG site (visuals, sounds, underlying
-        technologies) are protected (copyrights, trademarks, databases, patents)
-        and are the property of Milos BG or its partners. Any
-        reproduction/representation/translation/adaptation/transformation and/or
-        exploitation without prior consent constitutes an infringement subject
-        to legal action. Framing, deep‑linking, in‑line linking or deep links
-        are prohibited. Any link, even tacitly authorized, must be removed upon
+        All elements of the Milos BG site
+        (visuals, sounds, underlying technologies)
+        are protected
+        (copyrights, trademarks, databases, patents)
+        and are the property of Milos BG or its partners.
+        Any reproduction/representation/
+        translation/adaptation/transformation and/or
+        exploitation without prior consent constitutes
+        an infringement subject
+        to legal action. Framing, deep‑linking,
+        in‑line linking or deep links
+        are prohibited. Any link, even tacitly authorized,
+        must be removed upon
         simple request from Milos BG.
       </p>
     </Section>
