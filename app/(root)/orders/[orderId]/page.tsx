@@ -14,6 +14,9 @@ type PageProps = {
   params: Promise<{ orderId: string }>;
 };
 
+type ResolvedOrder = NonNullable<Awaited<ReturnType<typeof getOrderDetails>>>;
+type OrderLine = NonNullable<ResolvedOrder["products"]>[number];
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { orderId } = await params;
   const encodedId = encodeURIComponent(orderId);
@@ -30,8 +33,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function OrderDetailsPage({ params }: PageProps) {
   const { orderId } = await params;
   const baseData = await getOrderDetails(orderId);
-  const orderDetails = baseData?.orderDetails ?? baseData; // support both shapes
-  const status = String(orderDetails?.fulfillmentStatus || "PENDING").toUpperCase();
+  const fallbackOrder: ResolvedOrder = {
+    _id: orderId,
+    totalAmount: 0,
+    fulfillmentStatus: "PENDING",
+    products: [],
+  };
+  const orderDetails = baseData ?? fallbackOrder;
+  const status = String(orderDetails.fulfillmentStatus || "PENDING").toUpperCase();
 
   return (
     <Container className="mt-4 min-h-[50vh]">
@@ -51,8 +60,8 @@ export default async function OrderDetailsPage({ params }: PageProps) {
       </div>
 
       <div className="flex flex-col gap-5 mt-6">
-        {(orderDetails?.products ?? []).map((orderItem: any) => (
-          <div key={orderItem._id} className="flex gap-4">
+        {(orderDetails.products ?? []).map((orderItem: OrderLine) => (
+          <div key={orderItem._id ?? `${orderItem.product?._id ?? "item"}-${orderItem.size ?? ""}-${orderItem.color ?? ""}`} className="flex gap-4">
             <Image
               src={orderItem.product?.media?.[0] || "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="}
               alt={orderItem.product?.title || "Product"}
@@ -75,7 +84,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                 </p>
               )}
               <p className="font-bold tracking-widest text-[9.5px] uppercase">
-                Unit Price <span className="font-bold tracking-widest text-[9.5px] uppercase text-mbg-green ml-2">€{" "}{Number(orderItem.product?.price ?? 0).toFixed(2)}</span>
+                Unit Price <span className="font-bold tracking-widest text-[9.5px] uppercase text-mbg-green ml-2">? {Number(orderItem.product?.price ?? 0).toFixed(2)}</span>
               </p>
               <p className="font-bold tracking-widest text-[9.5px] uppercase">
                 Quantity <span className="font-bold tracking-widest text-[9.5px] uppercase text-mbg-green ml-2">{orderItem.quantity}</span>
@@ -87,4 +96,3 @@ export default async function OrderDetailsPage({ params }: PageProps) {
     </Container>
   );
 }
-
