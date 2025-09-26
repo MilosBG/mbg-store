@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import Separator from "@/components/mbg-components/Separator";
@@ -96,3 +95,4 @@ export default async function OrderDetailsPage({ params }: PageProps) {
     </Container>
   );
 }
+

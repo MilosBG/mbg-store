@@ -1,10 +1,12 @@
 import "server-only";
 
-const uri = process.env.MONGODB_URL;
+const connectionUri = process.env.MONGODB_URL;
 
-if (!uri) {
+if (!connectionUri) {
   throw new Error("MONGODB_URL environment variable is not defined");
 }
+
+const uri: string = connectionUri;
 
 let clientPromise: Promise<import("mongodb").MongoClient> | null = null;
 
