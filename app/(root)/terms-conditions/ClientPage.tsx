@@ -1365,7 +1365,6 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
         in the event of death or personal injury due to its negligence.
       </p>
     </Section>
-
     {/* 16 */}
     <Section
       id="propriete-intellectuelle"
