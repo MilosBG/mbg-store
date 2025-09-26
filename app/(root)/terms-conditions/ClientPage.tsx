@@ -1427,7 +1427,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <ul className="list-disc space-y-1 pl-6">
         <li>
           {" "}
-          Phone (standard rate) Monday–Friday, 9am–12pm and 2pm–5pm:{" "}
+          Phone (standard rate) Monday–Friday, 9am–12pm and 2pm–5pm :{" "}
           <a className="mbg-link" href="tel:+33783150791">
             07 83 15 07 91
           </a>
@@ -1444,7 +1444,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>
         Milos BG is a member of the FEVAD Consumer Mediator Service. After prior
         written contact with Milos BG, the Mediator may be referred any
-        unresolved consumer dispute. Details:{" "}
+        unresolved consumer dispute. Details :{" "}
         <a
           className="mbg-link"
           href="https://www.fevad.com"

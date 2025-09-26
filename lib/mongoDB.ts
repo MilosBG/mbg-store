@@ -1,8 +1,17 @@
-import mongoose from "mongoose";
+import "server-only";
 
-let isConnected: boolean = false;
+let isConnected = false;
+let mongooseModulePromise: Promise<typeof import("mongoose")> | null = null;
+
+async function loadMongoose() {
+  if (!mongooseModulePromise) {
+    mongooseModulePromise = import("mongoose");
+  }
+  return mongooseModulePromise;
+}
 
 export const connectToDB = async (): Promise<void> => {
+  const mongoose = await loadMongoose();
   mongoose.set("strictQuery", true);
 
   if (isConnected) {
@@ -10,8 +19,13 @@ export const connectToDB = async (): Promise<void> => {
     return;
   }
 
+  const uri = process.env.MONGODB_URL;
+  if (!uri) {
+    throw new Error("MONGODB_URL environment variable is not defined");
+  }
+
   try {
-    await mongoose.connect(process.env.MONGODB_URL || "", {
+    await mongoose.connect(uri, {
       dbName: "Mbg_Store",
     });
 

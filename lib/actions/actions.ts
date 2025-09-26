@@ -1,12 +1,22 @@
-import { ObjectId } from "mongodb";
+import "server-only";
 
 import { getAdminDb } from "../adminDb";
 import { getProductById, getProducts, getProductsByIds } from "../admin";
 import type { Chapter, Product } from "../types";
+import type { ObjectId } from "mongodb";
 
 export { getProducts } from "../admin";
 
 const MAX_SEARCH_RESULTS = 50;
+
+type MongoModule = typeof import("mongodb");
+let mongoModulePromise: Promise<MongoModule> | null = null;
+async function loadMongoModule(): Promise<MongoModule> {
+  if (!mongoModulePromise) {
+    mongoModulePromise = import("mongodb");
+  }
+  return mongoModulePromise;
+}
 
 export const getChapters = async (): Promise<Chapter[]> => {
   const db = await getAdminDb();
@@ -20,12 +30,14 @@ export const getChapters = async (): Promise<Chapter[]> => {
 };
 
 export const getChapterDetails = async (chapterId: string): Promise<Chapter | null> => {
+  const { ObjectId } = await loadMongoModule();
   if (!ObjectId.isValid(chapterId)) {
     return null;
   }
 
   const db = await getAdminDb();
-  const chapter = await db.collection<ChapterDocument>("chapters").findOne({ _id: new ObjectId(chapterId) });
+  const mongoId = new ObjectId(chapterId);
+  const chapter = await db.collection<ChapterDocument>("chapters").findOne({ _id: mongoId });
   if (!chapter) {
     return null;
   }
@@ -91,4 +103,3 @@ export const getOrders = async (_customerId: string): Promise<any[]> => {
 export const getOrderDetails = async (_orderId: string): Promise<any | null> => {
   return null;
 };
-

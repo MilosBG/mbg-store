@@ -1,4 +1,4 @@
-import User from "@/lib/models/User";
+import { getUserModel } from "@/lib/models/User";
 import { connectToDB } from "@/lib/mongoDB";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -11,7 +11,8 @@ export const POST = async (req: NextRequest) => {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-      await connectToDB()
+    await connectToDB();
+    const User = await getUserModel();
     const user = await User.findOne({ clerkId: userId });
 
     if (!user) {
