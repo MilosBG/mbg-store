@@ -4,7 +4,7 @@ import Link from "next/link";
 import { MilosBG } from "@/images";
 import Container from "@/components/mbg-components/Container";
 import { GiBasketballBasket, GiFamilyHouse } from "react-icons/gi";
-import { CiBasketball } from "react-icons/ci";
+import { FaUserCircle } from "react-icons/fa";
 import { IoMdBasketball } from "react-icons/io";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
@@ -113,7 +113,7 @@ const Header = () => {
                     <UserButton afterSwitchSessionUrl="/sign-in" />
                   ) : (
                     <Link href={"/sign-in"}>
-                      <CiBasketball className="mbg-icons-style hoverEffect" />
+                      <FaUserCircle className="mbg-icons-style hoverEffect" />
                     </Link>
                   )}
                 </div>

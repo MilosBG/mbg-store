@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/milos-bg(.*)",
+  "/api/checkout(.*)",
 ]);
 
 const isMaintenanceRoute = createRouteMatcher(["/api/milos-bg(.*)"]);
@@ -61,3 +62,4 @@ export const config = {
     "/(api|trpc)(.*)",
   ],
 };
+

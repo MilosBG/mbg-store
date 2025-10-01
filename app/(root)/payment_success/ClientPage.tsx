@@ -24,7 +24,7 @@ export default function PaymentSuccess() {
         return;
       }
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/paypal/capture`, {
+        const res = await fetch(`/api/paypal/capture`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ orderId: token }),
@@ -77,3 +77,4 @@ export default function PaymentSuccess() {
     </main>
   );
 }
+

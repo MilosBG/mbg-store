@@ -70,10 +70,7 @@ const AboutUs = () => {
       </section>
 
       {/* Our Story */}
-      <section className="mt-10">
-        <H3 className="text-mbg-black font-black tracking-wider text-2xl">
-          Milos BG
-        </H3>
+      <section className="mt-5">
         <p className="mt-2 text-xs text-mbg-green">
           Born in a modest studio, the brand has always stood by a simple
           principle : quality and craftsmanship above all else. Each piece is

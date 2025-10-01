@@ -5,7 +5,9 @@ import Button from "@/components/mbg-components/Button";
 import Container from "@/components/mbg-components/Container";
 import { Grinder } from "@/images";
 import useCart from "@/lib/hooks/useCart";
+import { createPayPalCheckout } from "@/lib/checkoutClient";
 import { useUser } from "@clerk/nextjs";
+import { toast } from "react-hot-toast";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,47 +46,57 @@ const Cart = () => {
   };
   const stockIssues = cart.cartItems.some((ci) => lineStock(ci) < ci.quantity);
 
-  const customer = {
-    clerkId: user?.id,
-    email: user?.emailAddresses[0]?.emailAddress,
-    name: user?.fullName,
-  };
-
   const handleCheckout = async () => {
+    if (!agreeTC) {
+      setTcError("Please accept the Terms & Conditions to continue.");
+      return;
+    }
+    setTcError(null);
+
+    if (stockIssues) {
+      toast.error("Please adjust your cart. Some items exceed the available stock.");
+      return;
+    }
+
+    if (!user) {
+      toast.error("Please sign in to checkout.");
+      router.push("/sign-in");
+      return;
+    }
+
+    const lines = cart.cartItems
+      .map((cartItem) => ({
+        productId: cartItem.item._id,
+        quantity: cartItem.quantity,
+        unitPrice: Number(cartItem.item.price ?? 0),
+        color: cartItem.color ?? null,
+        size: cartItem.size ?? null,
+        title: cartItem.item.title ?? null,
+        image: cartItem.item.media?.[0] ?? null,
+      }))
+      .filter((line) => line.productId && line.quantity > 0);
+
+    if (lines.length === 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      // Guard: must accept T&C
-      if (!agreeTC) {
-        setTcError("Please accept the Terms & Conditions to continue.");
-        return;
-      }
-      setTcError(null);
-
-      if (!user) {
-        router.push("/sign-in");
-        return;
-      }
-      setLoading(true);
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cartItems: cart.cartItems,
-          customer,
-          shippingOption, // "FREE" | "EXPRESS"
-        }),
+      const result = await createPayPalCheckout({
+        lines,
+        customer: {
+          clerkId: user.id,
+          email: user.emailAddresses[0]?.emailAddress ?? null,
+          name: user.fullName ?? null,
+        },
+        shippingOption,
       });
-
-      if (!res.ok) throw new Error("Checkout failed");
-
-      const data = await res.json();
-      if (data?.approveUrl) {
-        window.location.href = data.approveUrl;
-      } else {
-        console.error("Missing approveUrl in response", data);
-      }
-    } catch (err) {
-      console.log("[checkout_POST]", err);
+      window.location.href = result.approveUrl;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Checkout failed.";
+      toast.error(message);
+      console.error("[checkout] start failed", error);
     } finally {
       setLoading(false);
     }
@@ -135,24 +147,15 @@ const Cart = () => {
                         />
                       </div>
 
-                      <div className="flex flex-col gap-3 ml-4">
-                        <p className="text-xs font-bold uppercase text-mbg-black">
-                          {title}
+                      <div className="ml-4">
+                        <Link href={`/products/${_id}`}>
+                          <p className="font-bold tracking-widest text-[10px] uppercase">
+                            {title}
+                          </p>
+                        </Link>
+                        <p className="text-[10px] text-mbg-black/60 uppercase">
+                          {cartItem.color || ""} {cartItem.size || ""}
                         </p>
-                        {(cartItem.color || cartItem.size) && (
-                          <div className="flex gap-2">
-                            {cartItem.color && (
-                              <p className="uppercase text-[9px] font-semibold text-mbg-black/46">
-                                {cartItem.color}
-                              </p>
-                            )}
-                            {cartItem.size && (
-                              <p className="uppercase text-[9px] font-semibold text-mbg-black/46">
-                                {cartItem.size}
-                              </p>
-                            )}
-                          </div>
-                        )}
                         <p className="uppercase text-[11px] font-semibold text-mbg-green">
                           € {price}
                         </p>
@@ -280,3 +283,4 @@ const Cart = () => {
 };
 
 export default Cart;
+
