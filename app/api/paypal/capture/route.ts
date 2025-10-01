@@ -8,7 +8,7 @@ const ADMIN_API_BASE = (() => {
   }
   return base;
 })();
-const ADMIN_SERVICE_TOKEN = process.env.ADMIN_SERVICE_TOKEN;
+const ADMIN_SERVICE_TOKEN = process.env.ADMIN_SERVICE_TOKEN || process.env.STOREFRONT_SERVICE_TOKEN;
 
 export async function POST(req: NextRequest) {
   if (!ADMIN_SERVICE_TOKEN) {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   let payload: unknown;
   try {
     payload = await req.json();
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
   }
 
