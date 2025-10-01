@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 
-const ADMIN_API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+const ADMIN_API_BASE = (() => {
+  const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  if (!base) {
+    throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+  }
+  return base;
+})();
 const ADMIN_SERVICE_TOKEN = process.env.ADMIN_SERVICE_TOKEN;
-
-if (!ADMIN_API_BASE) {
-  throw new Error("NEXT_PUBLIC_API_URL is not configured.");
-}
 
 export async function POST(req: NextRequest) {
   if (!ADMIN_SERVICE_TOKEN) {
