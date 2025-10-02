@@ -120,7 +120,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           <FiMail className="mt-0.5" />
           <div>
             <p className="m-0 text-[12px] font-semibold uppercase text-mbg-darkgrey">Email</p>
-                   <a className="mbg-link" href="mailto:support@milos-bg.com">support@milos-bg.com</a>
+                   <a className="mbg-link" href="mailto:contact@milos-bg.com">contact@milos-bg.com</a>
           </div>
         </div>
       </div>
@@ -170,7 +170,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           <FiMail className="mt-0.5" />
           <div>
             <p className="m-0 text-[12px] font-semibold uppercase text-mbg-darkgrey">Courriel</p>
-            <a className="mbg-link" href="mailto:support@milos-bg.com">support@milos-bg.com</a>
+            <a className="mbg-link" href="mailto:contact@milos-bg.com">contact@milos-bg.com</a>
           </div>
         </div>
       </div>
