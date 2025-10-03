@@ -53,9 +53,9 @@ export default async function OrderDetailsPage({ params }: PageProps) {
       <Container className="mt-4 min-h-[50vh]">
         <H2>Order</H2>
         <Separator className="bg-mbg-black mt-2 mb-4" />
-        <p className="uppercase text-[11px] tracking-widest font-bold text-mbg-green py-3">
-          We couldn't find that order.
-        </p>
+          <p className="uppercase text-[11px] tracking-widest font-bold text-mbg-green py-3">
+            We couldn&apos;t find that order.
+          </p>
       </Container>
     );
   }
