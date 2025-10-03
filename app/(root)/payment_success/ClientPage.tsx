@@ -58,7 +58,7 @@ export default function PaymentSuccess() {
       {status === "loading" && <p className="text-[10px] font-medium uppercase text-mbg-black tracking-wide">Finalizing your payment…</p>}
       {status === "ok" && (
         <>
-          <h1 className="text-3xl font-bold text-mbg-green">Order Placed Successfully</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-mbg-green">Order Placed Successfully</h1>
           <p className="mt-2 text-[10px] font-medium uppercase tracking-wide">{message}</p>
           <Button mbg="prime" className="mt-2" onClick={() => router.push("/")}>
             Keep shooting
