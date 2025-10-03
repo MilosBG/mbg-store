@@ -8,6 +8,7 @@ import { getOrderDetails } from "@/lib/actions/actions";
 import { buildMetadata } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
 
 type PageProps = {
   params: Promise<{ orderId: string }>;
@@ -31,14 +32,34 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function OrderDetailsPage({ params }: PageProps) {
   const { orderId } = await params;
-  const baseData = await getOrderDetails(orderId);
-  const fallbackOrder: ResolvedOrder = {
-    _id: orderId,
-    totalAmount: 0,
-    fulfillmentStatus: "PENDING",
-    products: [],
-  };
-  const orderDetails = baseData ?? fallbackOrder;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return (
+      <Container className="mt-4 min-h-[50vh]">
+        <H2>Order</H2>
+        <Separator className="bg-mbg-black mt-2 mb-4" />
+        <p className="uppercase text-[11px] tracking-widest font-bold text-mbg-green py-3">
+          Please sign in to view your orders.
+        </p>
+      </Container>
+    );
+  }
+
+  const orderDetails = await getOrderDetails(orderId, { customerId: userId });
+
+  if (!orderDetails) {
+    return (
+      <Container className="mt-4 min-h-[50vh]">
+        <H2>Order</H2>
+        <Separator className="bg-mbg-black mt-2 mb-4" />
+        <p className="uppercase text-[11px] tracking-widest font-bold text-mbg-green py-3">
+          We couldn't find that order.
+        </p>
+      </Container>
+    );
+  }
+
   const status = String(orderDetails.fulfillmentStatus || "PENDING").toUpperCase();
 
   return (

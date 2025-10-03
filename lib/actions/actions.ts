@@ -135,6 +135,7 @@ export type StorefrontOrder = {
   trackingNumber?: string;
   trackingUrl?: string;
   placedAt?: string;
+  customerClerkId?: string;
 };
 
 export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> => {
@@ -149,23 +150,8 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
     );
   }
 
-  if (!STOREFRONT_SERVICE_TOKEN) {
-    throw createOrdersError(
-      "STOREFRONT service token is missing.",
-      500,
-    );
-  }
-
+  const headers = buildOrdersHeaders();
   const endpoint = `${ADMIN_API_BASE}/orders/customers/${encodeURIComponent(customerId)}`;
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${STOREFRONT_SERVICE_TOKEN}`,
-    Accept: "application/json",
-  };
-
-  if (STOREFRONT_ORIGIN) {
-    headers.Origin = STOREFRONT_ORIGIN;
-  }
 
   let response: Response;
   try {
@@ -234,9 +220,98 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
     .filter((order) => Boolean(order._id));
 };
 
-export const getOrderDetails = async (orderId: string): Promise<StorefrontOrder | null> => {
-  void orderId;
-  return null;
+export const getOrderDetails = async (
+  orderId: string,
+  options?: { customerId?: string },
+): Promise<StorefrontOrder | null> => {
+  if (!orderId) {
+    return null;
+  }
+
+  if (!ADMIN_API_BASE) {
+    throw createOrdersError(
+      "Order details endpoint is not configured.",
+      500,
+    );
+  }
+
+  const headers = buildOrdersHeaders();
+  const endpoint = `${ADMIN_API_BASE}/orders/${encodeURIComponent(orderId)}`;
+
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      headers,
+      next: { revalidate: ORDERS_REVALIDATE_SECONDS },
+    });
+  } catch (error) {
+    throw createOrdersError(
+      "Failed to reach the order details service.",
+      undefined,
+      error,
+    );
+  }
+
+  const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+  const rawBody = await response.text();
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (response.status === 401) {
+    throw createOrdersError(
+      "Order details request unauthorized.",
+      401,
+      rawBody ? safeParse(rawBody) : undefined,
+    );
+  }
+
+  if (!response.ok) {
+    throw createOrdersError(
+      "Order details request failed.",
+      response.status,
+      rawBody ? safeParse(rawBody) : undefined,
+    );
+  }
+
+  if (!contentType.includes("application/json")) {
+    throw createOrdersError(
+      "Unexpected order details response format.",
+      502,
+      rawBody,
+    );
+  }
+
+  let payload: unknown;
+  try {
+    payload = rawBody ? JSON.parse(rawBody) : null;
+  } catch {
+    throw createOrdersError(
+      "Unable to parse order details response.",
+      502,
+      { raw: rawBody },
+    );
+  }
+
+  const container = (payload as { orderDetails?: unknown; order?: unknown }) || {};
+  const orderPayload = container.orderDetails ?? container.order ?? payload;
+
+  const normalized = orderPayload ? normalizeOrder(orderPayload) : null;
+
+  if (!normalized || !normalized._id) {
+    return null;
+  }
+
+  if (
+    options?.customerId &&
+    normalized.customerClerkId &&
+    normalized.customerClerkId !== options.customerId
+  ) {
+    return null;
+  }
+
+  return normalized;
 };
 
 interface OrdersApiError extends Error {
@@ -293,20 +368,37 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
   const totalAmountSource =
     source.totalAmount ?? source.amount ?? source.total ?? 0;
 
+  const processingAtSource =
+    (source.processingAt ?? source.placedAt ?? source.createdAt) as unknown;
+  const shippedAtSource = (source.shippedAt ?? (source as { shipped_at?: unknown }).shipped_at) as unknown;
+  const deliveredAtSource = (source.deliveredAt ?? (source as { delivered_at?: unknown }).delivered_at) as unknown;
+  const completedAtSource = (source.completedAt ?? (source as { completed_at?: unknown }).completed_at) as unknown;
+  const cancelledAtSource = (source.cancelledAt ?? (source as { cancelled_at?: unknown }).cancelled_at) as unknown;
+  const placedAtSource = (source.placedAt ?? source.createdAt) as unknown;
+
+  const customerClerkId = toStringSafe(
+    (source.customerClerkId ??
+      (source as { customerClerk?: unknown }).customerClerk ??
+      source.customerId ??
+      source.customer_id ??
+      (source as { customer?: unknown }).customer) as unknown,
+  );
+
   const order: StorefrontOrder = {
     _id: toStringSafe(source._id) ?? toStringSafe(source.id) ?? "",
     totalAmount: numberFromUnknown(totalAmountSource),
     fulfillmentStatus,
     products,
-    processingAt: toIsoString(source.processingAt),
-    shippedAt: toIsoString(source.shippedAt),
-    deliveredAt: toIsoString(source.deliveredAt),
-    completedAt: toIsoString(source.completedAt),
-    cancelledAt: toIsoString(source.cancelledAt),
+    processingAt: toIsoString(processingAtSource),
+    shippedAt: toIsoString(shippedAtSource),
+    deliveredAt: toIsoString(deliveredAtSource),
+    completedAt: toIsoString(completedAtSource),
+    cancelledAt: toIsoString(cancelledAtSource),
     shippingMethod: toStringSafe(source.shippingMethod),
     trackingNumber: toStringSafe(source.trackingNumber),
     trackingUrl: toStringSafe(source.trackingUrl),
-    placedAt: toIsoString(source.createdAt ?? source.placedAt),
+    placedAt: toIsoString(placedAtSource),
+    customerClerkId,
   };
 
   return order;
@@ -393,3 +485,29 @@ function normalizeOrigin(value: string | undefined): string | undefined {
   }
   return undefined;
 }
+
+
+
+function buildOrdersHeaders(forceToken = false): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  const token = STOREFRONT_SERVICE_TOKEN;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  } else if (forceToken || Boolean(ADMIN_API_BASE)) {
+    throw createOrdersError(
+      "STOREFRONT service token is missing.",
+      500,
+    );
+  }
+
+  if (STOREFRONT_ORIGIN) {
+    headers.Origin = STOREFRONT_ORIGIN;
+  }
+
+  return headers;
+}
+
+
