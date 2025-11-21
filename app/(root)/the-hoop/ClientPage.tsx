@@ -11,11 +11,12 @@ import { toast } from "react-hot-toast";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
 
 const Cart = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useUser();
   const cart = useCart();
 
@@ -25,6 +26,7 @@ const Cart = () => {
   // NEW: T&C agreement state
   const [agreeTC, setAgreeTC] = useState(false);
   const [tcError, setTcError] = useState<string | null>(null);
+  const cancelToastShown = useRef(false);
 
   const subtotal = cart.cartItems.reduce(
     (acc, cartItem) => acc + cartItem.item.price * cartItem.quantity,
@@ -45,6 +47,15 @@ const Cart = () => {
     return Number(ci?.item?.countInStock ?? 0);
   };
   const stockIssues = cart.cartItems.some((ci) => lineStock(ci) < ci.quantity);
+
+  useEffect(() => {
+    if (!searchParams) return;
+    const canceled = searchParams.get("canceled");
+    if (canceled && !cancelToastShown.current) {
+      cancelToastShown.current = true;
+      toast.error("Payment canceled. Your cart is ready when you are.");
+    }
+  }, [searchParams]);
 
   const handleCheckout = async () => {
     if (!agreeTC) {
@@ -92,7 +103,27 @@ const Cart = () => {
         },
         shippingOption,
       });
-      window.location.href = result.approveUrl;
+      if (typeof window !== "undefined") {
+        if (result.orderId) {
+          try {
+            window.sessionStorage.setItem("mbg-last-paypal-order", result.orderId);
+          } catch {
+            // ignore quota/security errors
+          }
+        }
+
+        if (result.approveUrl && typeof result.approveUrl === "string") {
+          window.location.assign(result.approveUrl);
+          return;
+        }
+      }
+
+      if (result.approveUrl) {
+        router.push(result.approveUrl);
+        return;
+      }
+
+      toast.error("Unable to start PayPal checkout.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Checkout failed.";
       toast.error(message);
@@ -250,7 +281,7 @@ const Cart = () => {
                 setAgreeTC(e.target.checked);
                 if (e.target.checked) setTcError(null);
               }}
-              className="mt-0.5 h-3 w-3 rounded-xs border-mbg-black/30 text-mbg-green focus:ring-mbg-green"
+              className="mt-0.5 h-3 w-3 accent-mbg-black rounded-xs border-mbg-green text-mbg-green focus:ring-mbg-green"
             />
             <label htmlFor="agree-tc" className="text-[11px] leading-5 uppercase">
               I have read and agree to the{" "}
@@ -274,7 +305,7 @@ const Cart = () => {
             aria-disabled={cart.cartItems.length === 0 || loading || !agreeTC || stockIssues}
             aria-describedby={!agreeTC ? "agree-tc" : undefined}
           >
-            {loading ? "Redirecting…" : "Checkout with PayPal"}
+            {loading ? "Redirecting..." : "Checkout with PayPal"}
           </Button>
         </div>
       </div>

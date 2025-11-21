@@ -217,7 +217,8 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
 
   return payload
     .map(normalizeOrder)
-    .filter((order) => Boolean(order._id));
+    .filter((order) => Boolean(order._id))
+    .sort((a, b) => resolveOrderTimestamp(b) - resolveOrderTimestamp(a));
 };
 
 export const getOrderDetails = async (
@@ -402,6 +403,34 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
   };
 
   return order;
+}
+
+function resolveOrderTimestamp(order: StorefrontOrder): number {
+  const candidates = [
+    order.placedAt,
+    order.processingAt,
+    order.completedAt,
+    order.cancelledAt,
+    order.deliveredAt,
+    order.shippedAt,
+  ];
+
+  for (const value of candidates) {
+    if (!value) continue;
+    const timestamp = Date.parse(value);
+    if (!Number.isNaN(timestamp)) {
+      return timestamp;
+    }
+  }
+
+  if (typeof order._id === "string" && /^[a-fA-F0-9]{24}$/.test(order._id)) {
+    const seconds = parseInt(order._id.substring(0, 8), 16);
+    if (Number.isFinite(seconds)) {
+      return seconds * 1000;
+    }
+  }
+
+  return 0;
 }
 
 function normalizeOrderProduct(entry: unknown): StorefrontOrderProduct {
