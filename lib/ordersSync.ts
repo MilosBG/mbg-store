@@ -340,13 +340,13 @@ function normalizeCheckoutPayload(payload: unknown): NormalizedCheckoutPayload |
 }
 
 function resolveCartItems(source: RawCheckoutPayload): NormalizedCartItem[] {
-  const candidateArrays: Array<unknown> = [
+  const candidateArrays: unknown[][] = [
     Array.isArray(source.lines) ? source.lines : null,
     Array.isArray(source.cartItems) ? source.cartItems : null,
     Array.isArray(source.items) ? source.items : null,
   ].filter((candidate): candidate is unknown[] => Array.isArray(candidate) && candidate.length > 0);
 
-  const baseEntries = candidateArrays[0] ?? [];
+  const baseEntries: unknown[] = candidateArrays[0] ?? [];
   if (baseEntries.length === 0) {
     return [];
   }
