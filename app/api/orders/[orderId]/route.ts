@@ -33,7 +33,8 @@ export async function GET(
   const encodedOrderId = encodeURIComponent(rawOrderId);
   const candidateEndpoints = buildAdminOrderEndpoints(ADMIN_API_BASE, encodedOrderId);
 
-  let lastError: { status: number; message: string } | null = null;
+  type ProxyError = { status: number; message: string };
+  let lastError: ProxyError | undefined;
 
   for (const endpoint of candidateEndpoints) {
     try {
@@ -85,8 +86,9 @@ export async function GET(
         headers: { "content-type": contentType || "text/plain" },
       });
     } catch (error) {
+      const status = lastError?.status ?? 502;
       lastError = {
-        status: lastError?.status ?? 502,
+        status,
         message: `Order verification proxy failed: ${String(error)}`,
       };
     }
