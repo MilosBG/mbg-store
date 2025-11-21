@@ -1,8 +1,7 @@
 import "server-only";
 
 import { getAdminDb, getAdminMongoClient } from "./adminDb";
-import type { ClientSession, Db, ObjectId } from "mongodb";
-import { ObjectId } from "mongodb";
+import { ObjectId, type ClientSession, type Db } from "mongodb";
 
 type RawCartItem = {
   productId?: unknown;
