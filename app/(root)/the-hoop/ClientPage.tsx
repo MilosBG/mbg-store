@@ -1,39 +1,91 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import Button from "@/components/mbg-components/Button";
 import Container from "@/components/mbg-components/Container";
 import { Grinder } from "@/images";
+import { createCheckoutOrder } from "@/lib/checkoutClient";
+import type { CheckoutLine } from "@/lib/checkoutClient";
 import useCart from "@/lib/hooks/useCart";
-import { createPayPalCheckout } from "@/lib/checkoutClient";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+
+type CheckoutFormState = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  phone: string;
+};
+
+type CheckoutFormErrors = Partial<Record<keyof CheckoutFormState, string>>;
+
+const FIELD_LABELS: Record<keyof CheckoutFormState, string> = {
+  email: "Email",
+  firstName: "First name",
+  lastName: "Last name",
+  address: "Address",
+  city: "City",
+  postalCode: "Postal code",
+  country: "Country",
+  phone: "Phone",
+};
 
 const Cart = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useUser();
   const cart = useCart();
+  const clearCart = cart.clearCart;
 
-  const [loading, setLoading] = useState(false);
   const [shippingOption, setShippingOption] = useState<"FREE" | "EXPRESS">("FREE");
 
+  // Checkout form state
+  const [formData, setFormData] = useState<CheckoutFormState>({
+    email: "",
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    country: "",
+    phone: "",
+  });
+  const [formErrors, setFormErrors] = useState<CheckoutFormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // NEW: T&C agreement state
   const [agreeTC, setAgreeTC] = useState(false);
   const [tcError, setTcError] = useState<string | null>(null);
-  const cancelToastShown = useRef(false);
+
+  const primaryEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
+  const defaultFirstName = user?.firstName ?? "";
+  const defaultLastName = user?.lastName ?? "";
+  const defaultPhone =
+    user?.primaryPhoneNumber?.phoneNumber ?? user?.phoneNumbers?.[0]?.phoneNumber ?? "";
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      email: prev.email || primaryEmail,
+      firstName: prev.firstName || defaultFirstName,
+      lastName: prev.lastName || defaultLastName,
+      phone: prev.phone || defaultPhone,
+    }));
+  }, [primaryEmail, defaultFirstName, defaultLastName, defaultPhone]);
 
   const subtotal = cart.cartItems.reduce(
     (acc, cartItem) => acc + cartItem.item.price * cartItem.quantity,
     0
   );
   const subtotalRounded = Number(subtotal.toFixed(2));
-  const shippingFee = shippingOption === "EXPRESS" ? 20 : 0;
+  const shippingFee = shippingOption === "EXPRESS" ? 10 : 0;
   const finalTotal = Number((subtotal + shippingFee).toFixed(2));
   // Variant-aware stock check per line
   const lineStock = (ci: { item: any; color?: string; size?: string }) => {
@@ -47,91 +99,152 @@ const Cart = () => {
     return Number(ci?.item?.countInStock ?? 0);
   };
   const stockIssues = cart.cartItems.some((ci) => lineStock(ci) < ci.quantity);
+  const checkoutLines = useMemo<CheckoutLine[]>(() => {
+    return cart.cartItems
+      .map((cartItem) => ({
+        productId: cartItem.item?._id ?? "",
+        quantity: Number(cartItem.quantity ?? 0),
+        unitPrice: Number(cartItem.item?.price ?? 0),
+        color: cartItem.color ?? null,
+        size: cartItem.size ?? null,
+        title: cartItem.item?.title ?? null,
+        image: cartItem.item?.media?.[0] ?? null,
+      }))
+      .filter((line) => line.productId && line.quantity > 0);
+  }, [cart.cartItems]);
 
-  useEffect(() => {
-    if (!searchParams) return;
-    const canceled = searchParams.get("canceled");
-    if (canceled && !cancelToastShown.current) {
-      cancelToastShown.current = true;
-      toast.error("Payment canceled. Your cart is ready when you are.");
-    }
-  }, [searchParams]);
+  const checkoutCustomer = useMemo(
+    () => ({
+      clerkId: user?.id ?? "",
+      email: user?.emailAddresses?.[0]?.emailAddress ?? null,
+      name: user?.fullName ?? null,
+    }),
+    [user],
+  );
 
-  const handleCheckout = async () => {
+  const ensureCheckoutReady = useCallback(() => {
     if (!agreeTC) {
       setTcError("Please accept the Terms & Conditions to continue.");
-      return;
+      return false;
     }
     setTcError(null);
 
     if (stockIssues) {
       toast.error("Please adjust your cart. Some items exceed the available stock.");
-      return;
+      return false;
     }
 
     if (!user) {
       toast.error("Please sign in to checkout.");
       router.push("/sign-in");
-      return;
+      return false;
     }
 
-    const lines = cart.cartItems
-      .map((cartItem) => ({
-        productId: cartItem.item._id,
-        quantity: cartItem.quantity,
-        unitPrice: Number(cartItem.item.price ?? 0),
-        color: cartItem.color ?? null,
-        size: cartItem.size ?? null,
-        title: cartItem.item.title ?? null,
-        image: cartItem.item.media?.[0] ?? null,
-      }))
-      .filter((line) => line.productId && line.quantity > 0);
-
-    if (lines.length === 0) {
+    if (checkoutLines.length === 0) {
       toast.error("Your cart is empty.");
-      return;
+      return false;
     }
 
-    setLoading(true);
-    try {
-      const result = await createPayPalCheckout({
-        lines,
-        customer: {
-          clerkId: user.id,
-          email: user.emailAddresses[0]?.emailAddress ?? null,
-          name: user.fullName ?? null,
-        },
-        shippingOption,
-      });
-      if (typeof window !== "undefined") {
-        if (result.orderId) {
-          try {
-            window.sessionStorage.setItem("mbg-last-paypal-order", result.orderId);
-          } catch {
-            // ignore quota/security errors
-          }
-        }
+    return true;
+  }, [agreeTC, checkoutLines, router, stockIssues, user]);
 
-        if (result.approveUrl && typeof result.approveUrl === "string") {
-          window.location.assign(result.approveUrl);
-          return;
-        }
+  const inputClass = useCallback(
+    (field: keyof CheckoutFormState) =>
+      [
+        "w-full rounded-xs border bg-mbg-rgbablank px-3 py-2 text-xs uppercase tracking-widest text-mbg-black transition duration-200 focus:outline-none focus:ring-2",
+        formErrors[field] ? "border-red-500 focus:ring-red-500" : "border-mbg-green focus:ring-mbg-green",
+      ].join(" "),
+    [formErrors],
+  );
+
+  const handleFieldChange = useCallback((field: keyof CheckoutFormState, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }, []);
+
+  const validateForm = useCallback((): CheckoutFormErrors => {
+    const errors: CheckoutFormErrors = {};
+    const trimmedEmail = formData.email.trim();
+    if (!trimmedEmail) {
+      errors.email = `${FIELD_LABELS.email} is required.`;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      errors.email = "Enter a valid email address.";
+    }
+
+    (["firstName", "lastName", "address", "city", "postalCode", "country", "phone"] as Array<
+      keyof CheckoutFormState
+    >).forEach((field) => {
+      const value = formData[field].trim();
+      if (!value) {
+        errors[field] = `${FIELD_LABELS[field]} is required.`;
       }
+    });
 
-      if (result.approveUrl) {
-        router.push(result.approveUrl);
+    return errors;
+  }, [formData]);
+
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (!ensureCheckoutReady()) {
         return;
       }
 
-      toast.error("Unable to start PayPal checkout.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Checkout failed.";
-      toast.error(message);
-      console.error("[checkout] start failed", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const validationErrors = validateForm();
+      if (Object.keys(validationErrors).length > 0) {
+        setFormErrors(validationErrors);
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const result = await createCheckoutOrder({
+          lines: checkoutLines,
+          shippingOption,
+          customer: checkoutCustomer,
+          contact: {
+            email: formData.email.trim(),
+            phone: formData.phone.trim() ? formData.phone.trim() : null,
+          },
+          shippingAddress: {
+            firstName: formData.firstName.trim(),
+            lastName: formData.lastName.trim(),
+            address: formData.address.trim(),
+            city: formData.city.trim(),
+            postalCode: formData.postalCode.trim(),
+            country: formData.country.trim(),
+            phone: formData.phone.trim() ? formData.phone.trim() : null,
+          },
+        });
+
+        setFormErrors({});
+        clearCart();
+        toast.success(
+       "Order created. We will reach out with payment instructions.",
+        );
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unable to create order. Please try again.";
+        toast.error(message);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      checkoutCustomer,
+      checkoutLines,
+      clearCart,
+      ensureCheckoutReady,
+      formData,
+      shippingOption,
+      validateForm,
+    ],
+  );
 
   return (
     <Container className="min-h-screen">
@@ -254,7 +367,7 @@ const Cart = () => {
               className="text-mbg-green bg-mbg-rgbablank focus:ring-mbg-green focus:border-mbg-green rounded-xs border px-3 py-1 text-xs transition duration-200 focus:ring-2 focus:outline-none"
             >
               <option value="FREE">FREE DELIVERY (0€)</option>
-              <option value="EXPRESS">EXPRESS DELIVERY (+20€)</option>
+              <option value="EXPRESS">EXPRESS DELIVERY (10€)</option>
             </select>
           </div>
 
@@ -296,17 +409,203 @@ const Cart = () => {
               {tcError}
             </p>
           )}
+          <form className="mt-3 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+            <div>
+              <p className="text-xs uppercase font-bold text-mbg-black/46">Contact Details</p>
+              <div className="mt-2 flex flex-col gap-2">
+                <label
+                  htmlFor="checkout-email"
+                  className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
+                >
+                  {FIELD_LABELS.email}
+                </label>
+                <input
+                  id="checkout-email"
+                  type="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  placeholder="admin@example.com"
+                  onChange={(event) => handleFieldChange("email", event.target.value)}
+                  className={inputClass("email")}
+                />
+                {formErrors.email && (
+                  <p className="text-[10px] text-red-600" role="alert">
+                    {formErrors.email}
+                  </p>
+                )}
+              </div>
+            </div>
 
-          <Button
-            onClick={handleCheckout}
-            className="mt-2.5"
-            mbg="primefull"
-            disabled={cart.cartItems.length === 0 || loading || !agreeTC || stockIssues}
-            aria-disabled={cart.cartItems.length === 0 || loading || !agreeTC || stockIssues}
-            aria-describedby={!agreeTC ? "agree-tc" : undefined}
-          >
-            {loading ? "Redirecting..." : "Checkout with PayPal"}
-          </Button>
+            <div>
+              <p className="text-xs uppercase font-bold text-mbg-black/46">Delivery</p>
+              <div className="mt-2 grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="checkout-first-name"
+                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
+                    >
+                      {FIELD_LABELS.firstName}
+                    </label>
+                    <input
+                      id="checkout-first-name"
+                      type="text"
+                      autoComplete="given-name"
+                      value={formData.firstName}
+                      onChange={(event) => handleFieldChange("firstName", event.target.value)}
+                      className={inputClass("firstName")}
+                    />
+                    {formErrors.firstName && (
+                      <p className="text-[10px] text-red-600" role="alert">
+                        {formErrors.firstName}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="checkout-last-name"
+                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
+                    >
+                      {FIELD_LABELS.lastName}
+                    </label>
+                    <input
+                      id="checkout-last-name"
+                      type="text"
+                      autoComplete="family-name"
+                      value={formData.lastName}
+                      onChange={(event) => handleFieldChange("lastName", event.target.value)}
+                      className={inputClass("lastName")}
+                    />
+                    {formErrors.lastName && (
+                      <p className="text-[10px] text-red-600" role="alert">
+                        {formErrors.lastName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="checkout-address"
+                    className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
+                  >
+                    {FIELD_LABELS.address}
+                  </label>
+                  <input
+                    id="checkout-address"
+                    type="text"
+                    autoComplete="street-address"
+                    value={formData.address}
+                    onChange={(event) => handleFieldChange("address", event.target.value)}
+                    className={inputClass("address")}
+                  />
+                  {formErrors.address && (
+                    <p className="text-[10px] text-red-600" role="alert">
+                      {formErrors.address}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="checkout-city"
+                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
+                    >
+                      {FIELD_LABELS.city}
+                    </label>
+                    <input
+                      id="checkout-city"
+                      type="text"
+                      autoComplete="address-level2"
+                      value={formData.city}
+                      onChange={(event) => handleFieldChange("city", event.target.value)}
+                      className={inputClass("city")}
+                    />
+                    {formErrors.city && (
+                      <p className="text-[10px] text-red-600" role="alert">
+                        {formErrors.city}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="checkout-postal-code"
+                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
+                    >
+                      {FIELD_LABELS.postalCode}
+                    </label>
+                    <input
+                      id="checkout-postal-code"
+                      type="text"
+                      autoComplete="postal-code"
+                      value={formData.postalCode}
+                      onChange={(event) => handleFieldChange("postalCode", event.target.value)}
+                      className={inputClass("postalCode")}
+                    />
+                    {formErrors.postalCode && (
+                      <p className="text-[10px] text-red-600" role="alert">
+                        {formErrors.postalCode}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="checkout-country"
+                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
+                    >
+                      {FIELD_LABELS.country}
+                    </label>
+                    <input
+                      id="checkout-country"
+                      type="text"
+                      autoComplete="country-name"
+                      value={formData.country}
+                      onChange={(event) => handleFieldChange("country", event.target.value)}
+                      className={inputClass("country")}
+                    />
+                    {formErrors.country && (
+                      <p className="text-[10px] text-red-600" role="alert">
+                        {formErrors.country}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="checkout-phone"
+                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
+                    >
+                      {FIELD_LABELS.phone}
+                    </label>
+                    <input
+                      id="checkout-phone"
+                      type="tel"
+                      autoComplete="tel"
+                      value={formData.phone}
+                      onChange={(event) => handleFieldChange("phone", event.target.value)}
+                      className={inputClass("phone")}
+                    />
+                    {formErrors.phone && (
+                      <p className="text-[10px] text-red-600" role="alert">
+                        {formErrors.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="mbg-prime-full mbg-p-center mt-1 w-full disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Processing..." : "Submit order"}
+            </button>
+          </form>
         </div>
       </div>
     </Container>
@@ -314,4 +613,3 @@ const Cart = () => {
 };
 
 export default Cart;
-

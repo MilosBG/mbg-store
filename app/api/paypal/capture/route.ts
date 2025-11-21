@@ -69,10 +69,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (!adminResponse.ok) {
-        return NextResponse.json(
-          data ?? { error: "PayPal capture failed." },
-          { status: adminResponse.status },
-        );
+        return NextResponse.json(data ?? { error: "PayPal capture failed." }, { status: adminResponse.status });
       }
 
       if (!contentType.includes("application/json")) {

@@ -80,7 +80,11 @@ export default async function OrderDetailsPage({ params }: PageProps) {
       </div>
 
       <div className="flex flex-col gap-5 mt-6">
-        {(orderDetails.products ?? []).map((orderItem: OrderLine) => (
+        {(orderDetails.products ?? []).map((orderItem: OrderLine) => {
+          const unitPrice =
+            orderItem.unitPrice ?? orderItem.product?.price ?? 0;
+
+          return (
           <div key={orderItem._id ?? `${orderItem.product?._id ?? "item"}-${orderItem.size ?? ""}-${orderItem.color ?? ""}`} className="flex gap-4">
             <Image
               src={orderItem.product?.media?.[0] || "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="}
@@ -104,16 +108,24 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                 </p>
               )}
               <p className="font-bold tracking-widest text-[9.5px] uppercase">
-                Unit Price <span className="font-bold tracking-widest text-[9.5px] uppercase text-mbg-green ml-2">? {Number(orderItem.product?.price ?? 0).toFixed(2)}</span>
+                Unit Price <span className="font-bold tracking-widest text-[9.5px] uppercase text-mbg-green ml-2">€ {formatAmount(unitPrice)}</span>
               </p>
               <p className="font-bold tracking-widest text-[9.5px] uppercase">
                 Quantity <span className="font-bold tracking-widest text-[9.5px] uppercase text-mbg-green ml-2">{orderItem.quantity}</span>
               </p>
             </div>
           </div>
-        ))}
+        );})}
       </div>
     </Container>
   );
+}
+
+function formatAmount(value: unknown): string {
+  const numeric = typeof value === "number" ? value : Number(value ?? 0);
+  if (!Number.isFinite(numeric)) {
+    return "0.00";
+  }
+  return numeric.toFixed(2);
 }
 

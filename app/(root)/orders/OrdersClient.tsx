@@ -147,6 +147,7 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
 
 function OrderProduct({ product }: { product: StorefrontOrderProduct }) {
   const imageSrc = product.product?.media?.[0] || FALLBACK_IMAGE;
+  const unitPrice = product.unitPrice ?? product.product?.price ?? 0;
 
   return (
     <div className="flex gap-4">
@@ -184,7 +185,7 @@ function OrderProduct({ product }: { product: StorefrontOrderProduct }) {
           Unit Price{" "}
           <span className="font-bold tracking-widest text-[9.5px] uppercase text-mbg-green ml-2">
             €{" "}
-            {formatAmount(product.product?.price ?? 0)}
+            {formatAmount(unitPrice)}
           </span>
         </p>
         <p className="font-bold tracking-widest text-[9.5px] uppercase">

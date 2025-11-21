@@ -1,18 +1,20 @@
 import React from "react";
-import { H1 } from "@/components/mbg-components/H1";
+import Image from "next/image";
+import { GrindUntilAchieve } from "@/images";
 
 const HomeBanner = () => {
   return (
-    <div className="py-16 h-[260px] md:py-0 mbg-gradient  rounded-xs px-10 lg:px-24 mbg-p-between">
+    <div className="py-16 h-[300px] md:py-0 bg-mbg-white/50  rounded-xs px-10 lg:px-24 mbg-p-center">
       <div className="space-y-5">
-        <H1 className="text-5xl md:text-7xl font-black tracking-tighter"  >
-          Basketball <br />
-          Grind
-        </H1>
       </div>
       <div>
-
+        <Image
+          src={GrindUntilAchieve}
+          alt="Grind Until Achieve"
+          className="max-h-[140px] w-auto object-contain"
+        />
       </div>
+      <div></div>
     </div>
   );
 };

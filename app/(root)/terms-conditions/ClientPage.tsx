@@ -456,9 +456,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
       <p className="font-medium">PayPal</p>
       <p>
-        Avec PayPal, les informations financières ne sont jamais communiquées à
-        Milos BG. Le paiement s’effectue via l’adresse email et le mot de passe
-        PayPal.
+        Avec PayPal, les informations financières ne sont jamais communiquées à Milos BG.
       </p>
       <H3 className="mt-3 text-mbg-black/96">8.2&nbsp;: Défaut de paiement</H3>
       <p>
@@ -485,9 +483,9 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="9. Sécurité des paiements"
     >
       <p>
-        Le site Milos BG utilise le service de paiement sécurisé de PayPal. Le
-        gestionnaire de télépaiement délivre un certificat électronique valant
-        preuve du montant et de la date de la transaction.
+        Le site Milos BG utilise le service de paiement sécurisé de PayPal. Le gestionnaire de
+        télépaiement délivre un certificat électronique valant preuve du montant et de la date de la
+        transaction.
       </p>
     </Section>
 
@@ -1107,7 +1105,6 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p className="font-medium">PayPal</p>
       <p>
         With PayPal, financial information is never communicated to Milos BG.
-        Payment is made via the PayPal email address and password.
       </p>
       <H3 className="mt-3 text-mbg-black/96">8.2: Payment default</H3>
       <p>
@@ -1727,3 +1724,4 @@ const TermsAndConditions: React.FC = () => {
 };
 
 export default TermsAndConditions;
+

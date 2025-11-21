@@ -113,6 +113,7 @@ export type StorefrontOrderProduct = {
   quantity: number;
   color?: string;
   size?: string;
+  unitPrice?: number;
   product?: {
     _id?: string;
     title?: string;
@@ -448,18 +449,25 @@ function normalizeOrderProduct(entry: unknown): StorefrontOrderProduct {
     ? productSource?.media.filter((item: unknown): item is string => typeof item === "string")
     : undefined;
 
+  const resolvedUnitPrice = numberFromUnknown(
+    (source as { unitPrice?: unknown; unit_price?: unknown }).unitPrice ??
+      (source as { unit_price?: unknown }).unit_price ??
+      productSource?.price,
+  );
+
   return {
     _id: toStringSafe(source._id),
     quantity: numberFromUnknown(source.quantity),
     color: toStringSafe(source.color),
     size: toStringSafe(source.size),
+    unitPrice: resolvedUnitPrice,
     product: productSource
       ? {
           _id: toStringSafe(productSource._id),
           title: toStringSafe(productSource.title),
           price:
             productSource.price === undefined
-              ? undefined
+              ? resolvedUnitPrice || undefined
               : numberFromUnknown(productSource.price),
           media: productMedia,
         }
@@ -492,9 +500,28 @@ function numberFromUnknown(value: unknown): number {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
   }
+  if (typeof value === "bigint") {
+    return Number(value);
+  }
   if (typeof value === "string") {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : 0;
+  }
+  if (value && typeof value === "object") {
+    const maybeToString = (value as { toString?: () => string }).toString;
+    if (typeof maybeToString === "function" && maybeToString !== Object.prototype.toString) {
+      try {
+        const stringified = maybeToString.call(value);
+        if (typeof stringified === "string") {
+          const parsed = Number(stringified);
+          if (Number.isFinite(parsed)) {
+            return parsed;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
   }
   return 0;
 }

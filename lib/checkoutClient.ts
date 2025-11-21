@@ -15,31 +15,99 @@ export type CheckoutCustomer = {
   name?: string | null;
 };
 
+export type ContactDetails = {
+  email: string;
+  phone?: string | null;
+};
+
+export type ShippingAddress = {
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  phone?: string | null;
+};
+
 export type CheckoutPayload = {
   lines: CheckoutLine[];
   customer: CheckoutCustomer;
   shippingOption: "FREE" | "EXPRESS";
+  contact: ContactDetails;
+  shippingAddress: ShippingAddress;
+  notes?: string | null;
 };
 
-export type CheckoutSuccess = {
-  approveUrl: string;
-  orderId?: string | null;
+export type CheckoutOrderResult = {
+  orderId: string | null;
+  reference?: string | null;
+  approveUrl?: string | null;
+  message?: string | null;
+  raw?: unknown;
 };
 
-const ADMIN_API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+function resolveAdminBase() {
+  const explicit = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (explicit && explicit.length > 0) {
+    return explicit.replace(/\/$/, "");
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    const fallback = "http://localhost:3000/api";
+    console.warn(
+      "[checkout] NEXT_PUBLIC_API_URL missing – falling back to",
+      fallback,
+    );
+    return fallback;
+  }
+
+  return "";
+}
+
+const ADMIN_API_BASE = resolveAdminBase();
 const STOREFRONT_SERVICE_TOKEN = process.env.NEXT_PUBLIC_STOREFRONT_SERVICE_TOKEN?.trim();
 
-export async function createPayPalCheckout({
+export async function createCheckoutOrder({
   lines,
   customer,
   shippingOption,
-}: CheckoutPayload): Promise<CheckoutSuccess> {
+  contact,
+  shippingAddress,
+  notes,
+}: CheckoutPayload): Promise<CheckoutOrderResult> {
   if (!Array.isArray(lines) || lines.length === 0) {
     throw new Error("Your cart is empty.");
   }
 
   if (!customer?.clerkId) {
     throw new Error("You must be signed in to checkout.");
+  }
+
+  if (!contact?.email) {
+    throw new Error("Contact email is required.");
+  }
+
+  if (!shippingAddress) {
+    throw new Error("Shipping details are required.");
+  }
+
+  const essentialShippingFields: Array<keyof ShippingAddress> = [
+    "firstName",
+    "lastName",
+    "address",
+    "city",
+    "postalCode",
+    "country",
+  ];
+
+  const missingShippingField = essentialShippingFields.find((field) => {
+    const value = shippingAddress?.[field];
+    return typeof value !== "string" || value.trim().length === 0;
+  });
+
+  if (missingShippingField) {
+    throw new Error("Shipping details are incomplete. Please fill out all required fields.");
   }
 
   if (!ADMIN_API_BASE) {
@@ -58,11 +126,30 @@ export async function createPayPalCheckout({
     image: line.image ?? null,
   }));
 
+  const normalizedContact = {
+    email: contact.email.trim(),
+    phone: contact.phone?.toString().trim() || null,
+  };
+
+  const normalizedShipping = {
+    firstName: shippingAddress.firstName.trim(),
+    lastName: shippingAddress.lastName.trim(),
+    address: shippingAddress.address.trim(),
+    city: shippingAddress.city.trim(),
+    postalCode: shippingAddress.postalCode.trim(),
+    country: shippingAddress.country.trim(),
+    phone: shippingAddress.phone?.toString().trim() || null,
+  };
+
   const payload = {
     cartItems,
     customer,
     shippingOption,
+    lines: cartItems,
     items: cartItems,
+    contact: normalizedContact,
+    shippingAddress: normalizedShipping,
+    notes: typeof notes === "string" && notes.trim().length > 0 ? notes.trim() : undefined,
     metadata: {
       origin,
       generatedAt: Date.now(),
@@ -129,14 +216,15 @@ export async function createPayPalCheckout({
         continue;
       }
 
-      const approveUrl = body?.approveUrl;
-      if (typeof approveUrl !== "string" || approveUrl.length === 0) {
-        throw new Error("PayPal did not return an approval link.");
-      }
-
       return {
-        approveUrl,
         orderId: typeof body?.orderId === "string" ? body.orderId : null,
+        reference: typeof body?.reference === "string" ? body.reference : null,
+        approveUrl:
+          typeof body?.approveUrl === "string" && body.approveUrl.length > 0
+            ? body.approveUrl
+            : null,
+        message: typeof body?.message === "string" ? body.message : null,
+        raw: body,
       };
     } catch (error) {
       lastError = {

@@ -1,13 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
+import { persistCheckoutOrder } from "@/lib/ordersSync";
 
-const ADMIN_API_BASE = (() => {
-  const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-  if (!base) {
-    throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+function resolveAdminBase() {
+  const explicit = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (explicit && explicit.length > 0) {
+    return explicit.replace(/\/$/, "");
   }
-  return base;
-})();
+  if (process.env.NODE_ENV !== "production") {
+    const fallback = "http://localhost:3000/api";
+    console.warn("[api/checkout] NEXT_PUBLIC_API_URL missing – falling back to", fallback);
+    return fallback;
+  }
+  throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+}
+
+const ADMIN_API_BASE = resolveAdminBase();
 const ADMIN_SERVICE_TOKEN = process.env.ADMIN_SERVICE_TOKEN || process.env.STOREFRONT_SERVICE_TOKEN;
 
 export async function POST(req: NextRequest) {
@@ -17,7 +25,7 @@ export async function POST(req: NextRequest) {
         error:
           "ADMIN_SERVICE_TOKEN is missing. Please set it so the storefront can authenticate with mbg-admin.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -25,10 +33,7 @@ export async function POST(req: NextRequest) {
   try {
     payload = await req.json();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid request payload." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
   }
 
   const candidateEndpoints = buildAdminCheckoutEndpoints(ADMIN_API_BASE);
@@ -47,8 +52,7 @@ export async function POST(req: NextRequest) {
         cache: "no-store",
       });
 
-      const contentType =
-        adminResponse.headers.get("content-type")?.toLowerCase() ?? "";
+      const contentType = adminResponse.headers.get("content-type")?.toLowerCase() ?? "";
       const text = await adminResponse.text();
       let data: any = null;
       if (text) {
@@ -61,14 +65,9 @@ export async function POST(req: NextRequest) {
 
       const looksLikeClerk =
         adminResponse.url?.includes("sign-in") ||
-        (typeof data?.raw === "string" &&
-          data.raw.toLowerCase().includes("clerk"));
+        (typeof data?.raw === "string" && data.raw.toLowerCase().includes("clerk"));
 
-      if (
-        looksLikeClerk ||
-        adminResponse.status === 401 ||
-        adminResponse.status === 403
-      ) {
+      if (looksLikeClerk || adminResponse.status === 401 || adminResponse.status === 403) {
         lastError = {
           status: adminResponse.status,
           message:
@@ -78,10 +77,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (!adminResponse.ok) {
-        return NextResponse.json(
-          data ?? { error: "Checkout request failed." },
-          { status: adminResponse.status }
-        );
+        return NextResponse.json(data ?? { error: "Checkout request failed." }, { status: adminResponse.status });
       }
 
       if (!contentType.includes("application/json")) {
@@ -90,6 +86,16 @@ export async function POST(req: NextRequest) {
           message: "Unexpected checkout response format.",
         };
         continue;
+      }
+
+      try {
+        await persistCheckoutOrder(payload, data);
+      } catch (error) {
+        throw new Error(
+          error instanceof Error
+            ? `Failed to sync order with mbg-admin: ${error.message}`
+            : "Failed to sync order with mbg-admin.",
+        );
       }
 
       return NextResponse.json(data ?? { approveUrl: null });
@@ -108,7 +114,7 @@ export async function POST(req: NextRequest) {
         "Checkout service is unreachable. Please try again later or verify mbg-admin storefront integration.",
       details: lastError,
     },
-    { status: lastError?.status ?? 502 }
+    { status: lastError?.status ?? 502 },
   );
 }
 

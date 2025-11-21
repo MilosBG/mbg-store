@@ -235,8 +235,8 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     <Section id="mesure-daudience-analytics" forceOpen={allOpen ?? undefined} title="9. Analytics & measurement">
       <p>We measure site performance (page views, conversions, paths). Tools that set non‑essential trackers run only with your consent via the CMP.</p>
     </Section>
-    <Section id="paiement-et-lutte-contre-la-fraude" forceOpen={allOpen ?? undefined} title="10. Payments & anti‑fraud">
-      <p>Payments are handled by secure providers (e.g., Stripe, PayPal, bank). We never store card numbers. Anti‑fraud checks may be performed (IP checks, inconsistencies, 3‑D Secure).</p>
+    <Section id="paiement-et-lutte-contre-la-fraude" forceOpen={allOpen ?? undefined} title="10. Payments & anti-fraud">
+      <p>Payments are handled by secure providers (e.g., PayPal). We never store card numbers. Anti-fraud checks may be performed (IP checks, inconsistencies, 3-D Secure).</p>
     </Section>
     <Section id="compte-client-et-service-client" forceOpen={allOpen ?? undefined} title="11. Account & customer support">
       <p>Your account keeps order history, addresses, preferences. Support handles your requests and may access necessary info (order, logistics status, payments). Interactions may be logged.</p>
@@ -401,7 +401,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
 
           {/* 10 */}
           <Section id="paiement-et-lutte-contre-la-fraude" forceOpen={allOpen ?? undefined} title="10. Paiement & anti‑fraude">
-            <p>Le paiement est confié à des prestataires sécurisés (ex. Stripe, PayPal, prestataire bancaire). Nous ne stockons jamais vos numéros de carte. Des contrôles anti‑fraude peuvent être réalisés (vérification IP, incohérences, 3‑D Secure).</p>
+            <p>Le paiement est confié à des prestataires sécurisés (ex. PayPal). Nous ne stockons jamais vos numéros de carte. Des contrôles anti-fraude peuvent être réalisés (vérification IP, incohérences, 3-D Secure).</p>
           </Section>
 
           {/* 11 */}

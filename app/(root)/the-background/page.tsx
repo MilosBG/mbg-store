@@ -15,7 +15,7 @@ export const metadata = buildMetadata({
 
 
 
-const VIDEO_ID = "vaeio3idHzU"; // ← replace with your YouTube ID (e.g. "dQw4w9WgXcQ")
+const VIDEO_ID = "xXFQgvUs08s"; // ← replace with your YouTube ID (e.g. "dQw4w9WgXcQ")
 
 const AboutUs = () => {
   return (
