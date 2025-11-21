@@ -14,9 +14,10 @@ const STOREFRONT_SERVICE_TOKEN =
 
 export async function GET(
   _req: NextRequest,
-  context: { params: { orderId?: string } },
+  context: { params: Promise<{ orderId: string }> },
 ) {
-  const rawOrderId = context.params?.orderId?.trim();
+  const { orderId } = await context.params;
+  const rawOrderId = orderId?.trim();
 
   if (!rawOrderId) {
     return NextResponse.json({ error: "Order id is required." }, { status: 400 });
