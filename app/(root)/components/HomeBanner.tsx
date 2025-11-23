@@ -4,8 +4,8 @@ import { GrindUntilAchieve } from "@/images";
 
 const HomeBanner = () => {
   return (
-    <div className="py-16 mt-5 h-[300px] md:py-0 bg-mbg-white/50  rounded-xs px-10 lg:px-24 mbg-p-center">
-      <div className="space-y-5">
+    <div className=" mt-5 h-[300px]  bg-mbg-black p-4 mbg-p-center">
+      <div className="">
       </div>
       <div>
         <Image
