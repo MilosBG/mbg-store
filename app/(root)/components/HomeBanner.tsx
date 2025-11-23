@@ -11,7 +11,7 @@ const HomeBanner = () => {
         <Image
           src={GrindUntilAchieve}
           alt="Grind Until Achieve"
-          className="max-h-[140px] w-auto object-contain"
+          className="max-h-[120px] md:max-h-[140px] w-auto object-contain"
         />
       </div>
       <div></div>
