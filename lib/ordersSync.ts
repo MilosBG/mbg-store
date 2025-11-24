@@ -144,6 +144,10 @@ type OrderDocument = {
   totalAmount: number;
   subtotalAmount: number;
   shippingAmount: number;
+  amount?: number;
+  totalPaid?: number;
+  subtotal?: number;
+  shippingFee?: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -334,6 +338,11 @@ export async function persistCheckoutOrder(
         subtotalAmount: roundCurrency(subtotal),
         shippingAmount: roundCurrency(shippingAmount),
         totalAmount: roundCurrency(total),
+        // Redundant aliases to align with admin UI expectations
+        amount: roundCurrency(total),
+        totalPaid: roundCurrency(total),
+        subtotal: roundCurrency(subtotal),
+        shippingFee: roundCurrency(shippingAmount),
         createdAt: now,
         updatedAt: now,
       };
