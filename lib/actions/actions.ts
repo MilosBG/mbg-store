@@ -127,6 +127,7 @@ export type StorefrontOrder = {
   totalAmount: number;
   fulfillmentStatus?: string;
   products?: StorefrontOrderProduct[];
+  shippingAmount?: number;
   processingAt?: string;
   shippedAt?: string;
   deliveredAt?: string;
@@ -369,6 +370,13 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
 
   const totalAmountSource =
     source.totalAmount ?? source.amount ?? source.total ?? 0;
+  const shippingAmountSource =
+    (source as { shippingAmount?: unknown }).shippingAmount ??
+    (source as { shipping_amount?: unknown }).shipping_amount ??
+    (source as { shippingFee?: unknown }).shippingFee ??
+    (source as { shipping_fee?: unknown }).shipping_fee ??
+    (source as { shipping_cost?: unknown }).shipping_cost ??
+    0;
 
   const processingAtSource =
     (source.processingAt ?? source.placedAt ?? source.createdAt) as unknown;
@@ -396,6 +404,7 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
     totalAmount: numberFromUnknown(totalAmountSource),
     fulfillmentStatus,
     products,
+    shippingAmount: numberFromUnknown(shippingAmountSource),
     processingAt: toIsoString(processingAtSource),
     shippedAt: toIsoString(shippedAtSource),
     deliveredAt: toIsoString(deliveredAtSource),
