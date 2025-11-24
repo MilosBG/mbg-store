@@ -377,6 +377,11 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
   const completedAtSource = (source.completedAt ?? (source as { completed_at?: unknown }).completed_at) as unknown;
   const cancelledAtSource = (source.cancelledAt ?? (source as { cancelled_at?: unknown }).cancelled_at) as unknown;
   const placedAtSource = (source.placedAt ?? source.createdAt) as unknown;
+  const shippingMethodSource =
+    source.shippingMethod ??
+    (source as { shipping_method?: unknown }).shipping_method ??
+    (source as { shippingRate?: unknown }).shippingRate ??
+    (source as { shipping_rate?: unknown }).shipping_rate;
 
   const customerClerkId = toStringSafe(
     (source.customerClerkId ??
@@ -396,7 +401,7 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
     deliveredAt: toIsoString(deliveredAtSource),
     completedAt: toIsoString(completedAtSource),
     cancelledAt: toIsoString(cancelledAtSource),
-    shippingMethod: toStringSafe(source.shippingMethod),
+    shippingMethod: toStringSafe(shippingMethodSource),
     trackingNumber: toStringSafe(source.trackingNumber),
     trackingUrl: toStringSafe(source.trackingUrl),
     placedAt: toIsoString(placedAtSource),

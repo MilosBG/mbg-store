@@ -13,6 +13,13 @@ import type { StorefrontOrder, StorefrontOrderProduct } from "@/lib/actions/acti
 const FALLBACK_IMAGE =
   "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const FOCUS_REFRESH_THROTTLE_MS = 5000;
+const SHIPPING_LABELS = {
+  EXPRESS: "Express Delivery",
+  EXPRESS_DELIVERY: "Express Delivery",
+  FREE: "Free Delivery",
+  FREE_DELIVERY: "Free Delivery",
+  STANDARD: "Standard Delivery",
+};
 
 export type OrdersClientError = {
   type: "unauthorized" | "network" | "unknown";
@@ -120,6 +127,12 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
                 {formatAmount(order.totalAmount)}
               </p>
             </div>
+            <div className="mbg-p-between space-x-2">
+              <label className="font-bold uppercase text-xs">Shipping</label>
+              <p className="text-mbg-green font-bold uppercase text-xs tracking-widest">
+                {formatShippingMethod(order.shippingMethod)}
+              </p>
+            </div>
             <StatusBadge
               status={String(order.fulfillmentStatus || "PENDING").toUpperCase()}
             />
@@ -205,4 +218,15 @@ function formatAmount(value: unknown): string {
     return "0.00";
   }
   return numeric.toFixed(2);
+}
+
+function formatShippingMethod(value: string | undefined | null): string {
+  if (!value) return "Standard Delivery";
+  const normalized = value.trim().toUpperCase();
+  if (SHIPPING_LABELS[normalized as keyof typeof SHIPPING_LABELS]) {
+    return SHIPPING_LABELS[normalized as keyof typeof SHIPPING_LABELS];
+  }
+  if (normalized.includes("EXPRESS")) return "Express Delivery";
+  if (normalized.includes("FREE")) return "Free Delivery";
+  return value;
 }
