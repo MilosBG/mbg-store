@@ -92,8 +92,8 @@ const ChapterDetails = async ({ params }: PageProps) => {
           <H2 className={`text-mbg-green text-4xl ${txtClass}`}>{chapterDetails.title}</H2>
         </div>
         
-        <div className="bg-mbg-green/10 p-5">
-          <p className="uppercase text-[11px] tracking-widest font-bold text-mbg-green py-3 max-w-[900px]">
+        <div className="self-stretch w-full border-t border-mbg-green bg-mbg-green/10 px-6 py-4 mt-3">
+          <p className="uppercase text-[11px] tracking-widest font-bold text-mbg-green py-1 max-w-[1100px] text-left">
             {chapterDetails.description}
           </p>
         </div>
