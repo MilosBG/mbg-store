@@ -224,7 +224,7 @@ export async function persistCheckoutOrder(
         });
       }
 
-      const shippingAmount = normalized.shippingOption === "EXPRESS" ? 20 : 0;
+      const shippingAmount = normalized.shippingOption === "EXPRESS" ? 10 : 0;
       const total = subtotal + shippingAmount;
 
       for (const item of normalized.items) {
