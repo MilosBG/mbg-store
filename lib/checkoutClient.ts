@@ -126,6 +126,12 @@ export async function createCheckoutOrder({
     image: line.image ?? null,
   }));
 
+  const subtotalAmount = Number(
+    cartItems.reduce((sum, line) => sum + (Number(line.unitPrice) || 0) * line.quantity, 0).toFixed(2),
+  );
+  const shippingAmount = shippingOption === "EXPRESS" ? 10 : 0;
+  const totalAmount = Number((subtotalAmount + shippingAmount).toFixed(2));
+
   const normalizedContact = {
     email: contact.email.trim(),
     phone: contact.phone?.toString().trim() || null,
@@ -155,6 +161,11 @@ export async function createCheckoutOrder({
       generatedAt: Date.now(),
       source: "storefront",
     },
+    shippingAmount,
+    subtotalAmount,
+    totalAmount,
+    amount: totalAmount,
+    shippingRate: shippingOption === "EXPRESS" ? "EXPRESS_DELIVERY" : "FREE_DELIVERY",
   };
 
   const candidateEndpoints = buildCheckoutEndpoints(ADMIN_API_BASE);

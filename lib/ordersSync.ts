@@ -44,6 +44,10 @@ type RawCheckoutPayload = {
     generatedAt?: unknown;
     [key: string]: unknown;
   };
+  shippingAmount?: unknown;
+  subtotalAmount?: unknown;
+  totalAmount?: unknown;
+  amount?: unknown;
 };
 
 type NormalizedCartItem = {
@@ -82,6 +86,9 @@ type NormalizedCheckoutPayload = {
     generatedAt: number | null;
     [key: string]: unknown;
   };
+  shippingAmount?: number | null;
+  subtotalAmount?: number | null;
+  totalAmount?: number | null;
 };
 
 type ProductDocument = {
@@ -230,8 +237,14 @@ export async function persistCheckoutOrder(
         });
       }
 
-      const shippingAmount = normalized.shippingOption === "EXPRESS" ? 10 : 0;
-      const total = subtotal + shippingAmount;
+      subtotal = roundCurrency(subtotal);
+      const fallbackShipping = normalized.shippingOption === "EXPRESS" ? 10 : 0;
+      const shippingAmount = roundCurrency(
+        normalized.shippingAmount !== null && normalized.shippingAmount !== undefined
+          ? normalized.shippingAmount
+          : fallbackShipping,
+      );
+      const total = roundCurrency(subtotal + shippingAmount);
 
       for (const item of normalized.items) {
         const product = productMap.get(item.productId.toHexString());
@@ -282,6 +295,7 @@ export async function persistCheckoutOrder(
         generatedAt: normalized.metadata.generatedAt ?? Date.now(),
         checkout: {
           shippingOption: normalized.shippingOption,
+          shippingAmount,
         },
       };
 
@@ -360,6 +374,18 @@ function normalizeCheckoutPayload(payload: unknown): NormalizedCheckoutPayload |
   const contactPhone = coercePhone(source.contact?.phone);
   const explicitContactName = coerceString(source.customer?.name);
   const fallbackContactName = buildName(shipping.firstName, shipping.lastName);
+  const shippingAmount = resolveShippingAmount(source, shippingOption);
+  const subtotalAmount = coerceCurrency(
+    (source as { subtotalAmount?: unknown; subtotal?: unknown }).subtotalAmount ??
+      (source as { subtotal?: unknown }).subtotal ??
+      null,
+  );
+  const totalAmount = coerceCurrency(
+    (source as { totalAmount?: unknown; total?: unknown; amount?: unknown }).totalAmount ??
+      (source as { total?: unknown }).total ??
+      (source as { amount?: unknown }).amount ??
+      null,
+  );
 
   return {
     items: cartItems,
@@ -373,6 +399,9 @@ function normalizeCheckoutPayload(payload: unknown): NormalizedCheckoutPayload |
     shippingAddress: shipping,
     notes: coerceString(source.notes),
     metadata,
+    shippingAmount,
+    subtotalAmount,
+    totalAmount,
   };
 }
 
@@ -601,12 +630,40 @@ function coerceMetadata(
   };
 }
 
+function resolveShippingAmount(
+  source: RawCheckoutPayload,
+  shippingOption: "FREE" | "EXPRESS",
+): number | null {
+  const explicit = coerceCurrency(
+    (source as { shippingAmount?: unknown; shippingFee?: unknown; shipping_cost?: unknown })
+      .shippingAmount ??
+      (source as { shippingFee?: unknown }).shippingFee ??
+      (source as { shipping_cost?: unknown }).shipping_cost ??
+      null,
+  );
+
+  if (explicit !== null && explicit >= 0) {
+    return explicit;
+  }
+
+  return shippingOption === "EXPRESS" ? 10 : 0;
+}
+
 function coerceShippingOption(value: unknown): "FREE" | "EXPRESS" {
   const normalized = coerceString(value)?.toUpperCase();
   if (normalized === "EXPRESS") {
     return "EXPRESS";
   }
   return "FREE";
+}
+
+function coerceCurrency(value: unknown): number | null {
+  const num = coerceNumber(value);
+  if (!Number.isFinite(num)) {
+    return null;
+  }
+  const rounded = roundCurrency(num);
+  return rounded >= 0 ? rounded : null;
 }
 
 function roundCurrency(value: number): number {
