@@ -250,20 +250,6 @@ export async function persistCheckoutOrder(
       );
       const total = roundCurrency(subtotal + shippingAmount);
 
-      for (const item of normalized.items) {
-        const product = productMap.get(item.productId.toHexString());
-        if (!product) continue;
-
-        const variantMatch = resolveVariant(product, item.color, item.size);
-        await decrementInventory({
-          db,
-          session,
-          product,
-          quantity: item.quantity,
-          variant: variantMatch,
-        });
-      }
-
       const idempotencyKey = buildIdempotencyKey({
         email: normalized.contactEmail,
         generatedAt: normalized.metadata.generatedAt,
@@ -291,6 +277,20 @@ export async function persistCheckoutOrder(
         if (existing) {
           return;
         }
+      }
+
+      for (const item of normalized.items) {
+        const product = productMap.get(item.productId.toHexString());
+        if (!product) continue;
+
+        const variantMatch = resolveVariant(product, item.color, item.size);
+        await decrementInventory({
+          db,
+          session,
+          product,
+          quantity: item.quantity,
+          variant: variantMatch,
+        });
       }
 
       const metadata: Record<string, unknown> = {
