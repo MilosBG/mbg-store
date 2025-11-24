@@ -387,10 +387,17 @@ function normalizeCheckoutPayload(payload: unknown): NormalizedCheckoutPayload |
   const subtotalAmount = coerceCurrency(
     (source as { subtotalAmount?: unknown; subtotal?: unknown }).subtotalAmount ??
       (source as { subtotal?: unknown }).subtotal ??
+      (source as { amount_excl_shipping?: unknown }).amount_excl_shipping ??
       null,
   );
   const totalAmount = coerceCurrency(
-    (source as { totalAmount?: unknown; total?: unknown; amount?: unknown }).totalAmount ??
+    (source as {
+      totalAmount?: unknown;
+      total?: unknown;
+      amount?: unknown;
+      total_paid?: unknown;
+    }).totalAmount ??
+      (source as { total_paid?: unknown }).total_paid ??
       (source as { total?: unknown }).total ??
       (source as { amount?: unknown }).amount ??
       null,
@@ -644,9 +651,16 @@ function resolveShippingAmount(
   shippingOption: "FREE" | "EXPRESS",
 ): number | null {
   const explicit = coerceCurrency(
-    (source as { shippingAmount?: unknown; shippingFee?: unknown; shipping_cost?: unknown })
-      .shippingAmount ??
+    (source as {
+      shippingAmount?: unknown;
+      shippingFee?: unknown;
+      shipping_cost?: unknown;
+      shipping_amount?: unknown;
+      shipping_fee?: unknown;
+    }).shippingAmount ??
       (source as { shippingFee?: unknown }).shippingFee ??
+      (source as { shipping_fee?: unknown }).shipping_fee ??
+      (source as { shipping_amount?: unknown }).shipping_amount ??
       (source as { shipping_cost?: unknown }).shipping_cost ??
       null,
   );

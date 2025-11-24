@@ -165,6 +165,10 @@ export async function createCheckoutOrder({
     subtotalAmount,
     totalAmount,
     amount: totalAmount,
+    total: totalAmount,
+    total_paid: totalAmount,
+    shipping_amount: shippingAmount,
+    shipping_fee: shippingAmount,
     shippingRate: shippingOption === "EXPRESS" ? "EXPRESS_DELIVERY" : "FREE_DELIVERY",
   };
 
