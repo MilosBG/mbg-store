@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createHash } from "crypto";
 import { getAdminDb, getAdminMongoClient } from "./adminDb";
 import { ObjectId, type ClientSession, type Db } from "mongodb";
 
@@ -156,7 +157,7 @@ export async function persistCheckoutOrder(
     return;
   }
 
-  const paypalOrderId = extractAdminOrderId(adminResponse);
+  const adminOrderId = extractAdminOrderId(adminResponse);
   const db = await getAdminDb();
   const client = await getAdminMongoClient();
 
@@ -167,16 +168,6 @@ export async function persistCheckoutOrder(
 
   try {
     await session.withTransaction(async () => {
-      if (paypalOrderId) {
-        const existing = await ordersCollection.findOne(
-          { "metadata.paypalOrderId": paypalOrderId },
-          { session },
-        );
-        if (existing) {
-          return;
-        }
-      }
-
       const productIds = normalized.items.map((item) => item.productId);
       const uniqueProductIds = Array.from(
         new Set(productIds.map((id) => id.toHexString())),
@@ -192,6 +183,13 @@ export async function persistCheckoutOrder(
 
       const now = new Date();
       const orderProducts: OrderProductDocument[] = [];
+      const dedupeItems: Array<{
+        productId: string;
+        color?: string;
+        size?: string;
+        unitPrice: number;
+        quantity: number;
+      }> = [];
       let subtotal = 0;
 
       for (const item of normalized.items) {
@@ -222,6 +220,14 @@ export async function persistCheckoutOrder(
           titleSnapshot: coerceString(item.title) ?? coerceString(product.title) ?? undefined,
           imageSnapshot: coerceString(item.image) ?? resolvePrimaryImage(product),
         });
+
+        dedupeItems.push({
+          productId: product._id.toHexString(),
+          color: variantMatch?.color ?? "",
+          size: variantMatch?.size ?? "",
+          unitPrice,
+          quantity: item.quantity,
+        });
       }
 
       const shippingAmount = normalized.shippingOption === "EXPRESS" ? 10 : 0;
@@ -241,6 +247,35 @@ export async function persistCheckoutOrder(
         });
       }
 
+      const idempotencyKey = buildIdempotencyKey({
+        email: normalized.contactEmail,
+        generatedAt: normalized.metadata.generatedAt,
+        shippingOption: normalized.shippingOption,
+        items: dedupeItems,
+      });
+
+      const duplicateFilters = [];
+      if (adminOrderId) {
+        duplicateFilters.push({ "metadata.adminOrderId": adminOrderId });
+        duplicateFilters.push({ "metadata.paypalOrderId": adminOrderId });
+      }
+      if (idempotencyKey) {
+        duplicateFilters.push({ "metadata.idempotencyKey": idempotencyKey });
+      }
+      if (normalized.metadata.generatedAt) {
+        duplicateFilters.push({ "metadata.generatedAt": normalized.metadata.generatedAt });
+      }
+
+      if (duplicateFilters.length > 0) {
+        const existing = await ordersCollection.findOne(
+          { $or: duplicateFilters },
+          { session, projection: { _id: 1 } },
+        );
+        if (existing) {
+          return;
+        }
+      }
+
       const metadata: Record<string, unknown> = {
         source: normalized.metadata.source ?? DEFAULT_METADATA_SOURCE,
         origin: normalized.metadata.origin ?? null,
@@ -250,13 +285,15 @@ export async function persistCheckoutOrder(
         },
       };
 
-      if (paypalOrderId) {
-        metadata.paypalOrderId = paypalOrderId;
+      if (adminOrderId) {
+        metadata.adminOrderId = adminOrderId;
+        metadata.paypalOrderId = adminOrderId;
       }
+      if (idempotencyKey) metadata.idempotencyKey = idempotencyKey;
 
       const orderDoc: OrderDocument = {
         status: "PENDING",
-        paypalStatus: paypalOrderId ? "CREATED" : "PENDING",
+        paypalStatus: adminOrderId ? "CREATED" : "PENDING",
         contact: {
           email: normalized.contactEmail,
           phone: normalized.contactPhone,
@@ -548,7 +585,7 @@ function coerceMetadata(
     return {
       source: DEFAULT_METADATA_SOURCE,
       origin: null,
-      generatedAt: Date.now(),
+      generatedAt: null,
     };
   }
 
@@ -690,4 +727,40 @@ function extractAdminOrderId(adminResponse: unknown): string | null {
   if (reference) return reference;
 
   return null;
+}
+
+function buildIdempotencyKey({
+  email,
+  generatedAt,
+  shippingOption,
+  items,
+}: {
+  email: string;
+  generatedAt: number | null;
+  shippingOption: "FREE" | "EXPRESS";
+  items: Array<{
+    productId: string;
+    color?: string;
+    size?: string;
+    unitPrice: number;
+    quantity: number;
+  }>;
+}): string {
+  const sortedItems = items
+    .map((item) => ({
+      ...item,
+      color: item.color ?? "",
+      size: item.size ?? "",
+      unitPrice: roundCurrency(item.unitPrice),
+    }))
+    .sort((a, b) => a.productId.localeCompare(b.productId));
+
+  const payload = JSON.stringify({
+    email: email.toLowerCase(),
+    generatedAt: generatedAt ?? null,
+    shippingOption,
+    items: sortedItems,
+  });
+
+  return createHash("sha256").update(payload).digest("hex");
 }
