@@ -31,6 +31,8 @@ export async function GET() {
       try {
         const res = await fetch(url, {
           cache: "no-store",
+          // Avoid following redirects to prevent infinite redirect loops (e.g. auth/login redirects).
+          redirect: "manual",
           headers: { Accept: "text/html, text/plain" },
         });
 
