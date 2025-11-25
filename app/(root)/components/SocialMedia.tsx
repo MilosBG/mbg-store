@@ -1,10 +1,7 @@
 import React from "react";
 
 import { cn } from "@/lib/utils";
-import {
-  TiSocialInstagram,
-  TiSocialYoutube,
-} from "react-icons/ti";
+import { TiSocialInstagram, TiSocialYoutube } from "react-icons/ti";
 import Link from "next/link";
 import {
   Tooltip,
@@ -25,8 +22,8 @@ const socialLink = [
     icon: <TiSocialInstagram size={16} />,
   },
   {
-    title: "YOUTUBE : @Milos-BG",
-    href: "https://www.youtube.com/@Milos-BG",
+    title: "YOUTUBE : @milos-bg",
+    href: "https://www.youtube.com/@milos-bg",
     icon: <TiSocialYoutube size={16} />,
   },
 ];
@@ -34,9 +31,7 @@ const socialLink = [
 const SocialMedia = ({ className, iconClassName }: Props) => {
   return (
     <TooltipProvider>
-      <div
-        className={cn("flex items-center justify-start gap-3.5", className)}
-      >
+      <div className={cn("flex items-center justify-start gap-3.5", className)}>
         {socialLink?.map((item) => (
           <Tooltip key={item?.title}>
             <TooltipTrigger asChild>
