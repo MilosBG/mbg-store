@@ -133,12 +133,6 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
                 {formatShippingMethod(order.shippingMethod)}
               </p>
             </div>
-            <div className="mbg-p-between space-x-2">
-              <label className="font-bold uppercase text-xs">Shipping Fee</label>
-              <p className="text-mbg-green font-bold uppercase text-xs tracking-widest">
-                € {formatAmount(resolveShippingAmount(order.shippingAmount, order.shippingMethod))}
-              </p>
-            </div>
             <StatusBadge
               status={String(order.fulfillmentStatus || "PENDING").toUpperCase()}
             />
@@ -235,17 +229,4 @@ function formatShippingMethod(value: string | undefined | null): string {
   if (normalized.includes("EXPRESS")) return "Express Delivery";
   if (normalized.includes("FREE")) return "Free Delivery";
   return value;
-}
-
-function resolveShippingAmount(
-  amount: unknown,
-  shippingMethod: string | undefined | null,
-): number {
-  const numeric = typeof amount === "number" ? amount : Number(amount ?? 0);
-  if (Number.isFinite(numeric) && numeric >= 0) {
-    return numeric;
-  }
-  const method = (shippingMethod ?? "").toUpperCase();
-  if (method.includes("EXPRESS")) return 10;
-  return 0;
 }
