@@ -22,6 +22,18 @@ const CACHE_HEADERS = {
   "Cache-Control": "no-store, max-age=0, must-revalidate",
 };
 
+const STATUS_REQUEST_TIMEOUT_MS = (() => {
+  const raw =
+    process.env.MBG_STATUS_TIMEOUT_MS ??
+    process.env.MAINTENANCE_STATUS_TIMEOUT_MS ??
+    "4000";
+  const parsed = Number(raw);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return Math.max(500, parsed);
+  }
+  return 4000;
+})();
+
 export async function GET() {
   const envOverride = resolveEnvOverride();
   if (envOverride !== null) {
@@ -38,7 +50,11 @@ export async function GET() {
 
     for (const url of candidates) {
       try {
-        const res = await fetch(url, { cache: "no-store" });
+        const res = await fetchWithTimeout(
+          url,
+          { cache: "no-store" },
+          STATUS_REQUEST_TIMEOUT_MS,
+        );
 
         if (res.status === 404) {
           continue;
@@ -66,7 +82,14 @@ export async function GET() {
           );
         }
       } catch (error) {
-        console.error("Failed to fetch maintenance status candidate", url, error);
+        if (isTimeoutError(error)) {
+          console.warn(
+            `Maintenance status probe timed out after ${STATUS_REQUEST_TIMEOUT_MS}ms`,
+            url,
+          );
+        } else {
+          console.error("Failed to fetch maintenance status candidate", url, error);
+        }
       }
     }
   }
@@ -235,6 +258,27 @@ function getNested(record: Record<string, unknown>, path: string[]): unknown {
     current = (current as Record<string, unknown>)[segment];
   }
   return current;
+}
+
+function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  return fetch(url, { ...init, signal: controller.signal }).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
+
+function isTimeoutError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  if (error.name === "AbortError") return true;
+  // Undici/Node timeout codes
+  const code = (error as { code?: string }).code;
+  return code === "UND_ERR_CONNECT_TIMEOUT" || code === "ETIMEDOUT";
 }
 
 function coerceBoolean(value: unknown): boolean | null {

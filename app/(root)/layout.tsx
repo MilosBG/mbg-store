@@ -35,6 +35,17 @@ type MaintenanceState = {
 
 const STATUS_PATH = "/api/milos-bg/status";
 const OFFLINE_PATH = "/api/milos-bg/offline";
+const MAINTENANCE_FETCH_TIMEOUT_MS = (() => {
+  const raw =
+    process.env.MBG_STATUS_TIMEOUT_MS ??
+    process.env.MAINTENANCE_STATUS_TIMEOUT_MS ??
+    "5000";
+  const parsed = Number(raw);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return Math.max(500, parsed);
+  }
+  return 5000;
+})();
 const DEFAULT_OFFLINE_MESSAGE = `
   <div class="bg-mbg-black flex flex-col mbg-p-center min-h-[50%] gap-6 py-12">
     <div class="animated-border mbg-p-center translate-y-20 p-7">
@@ -94,10 +105,14 @@ async function fetchMaintenanceStatus(
   }
 
   try {
-    const statusResponse = await fetchWithRedirects(statusUrl, {
-      cache: "no-store",
-      headers: { "x-mbg-maintenance-probe": "1" },
-    });
+    const statusResponse = await fetchWithRedirects(
+      statusUrl,
+      {
+        cache: "no-store",
+        headers: { "x-mbg-maintenance-probe": "1" },
+      },
+      MAINTENANCE_FETCH_TIMEOUT_MS
+    );
 
     if (!statusResponse.ok) {
       if (
@@ -136,10 +151,14 @@ async function fetchOfflineMarkup(baseUrl: string): Promise<string> {
   }
 
   try {
-    const offlineResponse = await fetchWithRedirects(offlineUrl, {
-      cache: "no-store",
-      headers: { Accept: "text/html", "x-mbg-maintenance-probe": "1" },
-    });
+    const offlineResponse = await fetchWithRedirects(
+      offlineUrl,
+      {
+        cache: "no-store",
+        headers: { Accept: "text/html", "x-mbg-maintenance-probe": "1" },
+      },
+      MAINTENANCE_FETCH_TIMEOUT_MS
+    );
 
     if (!offlineResponse.ok) {
       return DEFAULT_OFFLINE_MESSAGE;
@@ -183,7 +202,8 @@ function resolveRedirectUrl(
 async function fetchWithRedirects(
   initialUrl: string,
   init: RequestInit,
-  maxRedirects = 4
+  maxRedirects = 4,
+  timeoutMs = MAINTENANCE_FETCH_TIMEOUT_MS
 ): Promise<Response> {
   let url = initialUrl;
   const headers = new Headers(init.headers ?? {});
@@ -200,11 +220,15 @@ async function fetchWithRedirects(
     }
     visited.add(url);
 
-    const response = await fetch(url, {
-      ...init,
-      headers,
-      redirect: "manual",
-    });
+    const response = await fetchWithTimeout(
+      url,
+      {
+        ...init,
+        headers,
+        redirect: "manual",
+      },
+      timeoutMs
+    );
 
     if (!isRedirectStatus(response.status)) {
       return response;
@@ -313,6 +337,19 @@ function takeFirst(value: string | null): string | null {
 
   const first = value.split(",")[0]?.trim();
   return first || null;
+}
+
+function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  return fetch(url, { ...init, signal: controller.signal }).finally(() => {
+    clearTimeout(timeoutId);
+  });
 }
 
 type MaintenanceLogOptions = { warn?: boolean } | undefined;

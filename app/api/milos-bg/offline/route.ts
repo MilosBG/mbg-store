@@ -14,7 +14,39 @@ const CACHE_HEADERS = {
   "Content-Type": "text/html; charset=utf-8",
 };
 
-const DEFAULT_OFFLINE_HTML = process.env.MBG_OFFLINE_HTML ?? process.env.STORE_OFFLINE_HTML ?? "offline";
+const DEFAULT_OFFLINE_HTML =
+  process.env.MBG_OFFLINE_HTML ??
+  process.env.STORE_OFFLINE_HTML ??
+  `
+    <div class="bg-mbg-black flex flex-col mbg-p-center min-h-[50%] gap-6 py-12">
+      <div class="animated-border mbg-p-center translate-y-20 p-7">
+        <img src="/milos-bg-offline.svg" alt="Milos BG" width="180" height="180" loading="lazy" />
+      </div>
+      <div class="mbg-p-center p-7 translate-y-16 flex gap-1 text-3xl font-semibold uppercase tracking-[0.35em]">
+        <span class="off">O</span>
+        <span class="off">F</span>
+        <span class="off">F</span>
+        <span class="off">L</span>
+        <span class="off">I</span>
+        <span class="off">N</span>
+        <span class="off">E</span>
+      </div>
+      <div class="text-center translate-y-10 text-xs text-mbg-green/70 px-8 max-w-md mbg-p-center">
+        <p>We are refreshing the store right now. Please check back soon.</p>
+      </div>
+      <div class="mbg-p-center translate-y-10 p-7 flex items-center justify-center gap-4">
+        <a class="social-media" href="https://www.instagram.com/m.i.l.o.s.bg/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1.2" baseProfile="tiny" viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M18 3h-12c-1.7 0-3 1.3-3 3v12c0 1.7 1.3 3 3 3h12c1.7 0 3-1.3 3-3v-12c0-1.7-1.3-3-3-3zm-6 6c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3zm3.8-2c0-.7.6-1.2 1.2-1.2s1.2.6 1.2 1.2-.5 1.2-1.2 1.2-1.2-.5-1.2-1.2zm2.2 12h-12c-.6 0-1-.4-1-1v-6h2c0 2.8 2.2 5 5 5s5-2.2 5-5h2v6c0 .6-.4 1-1 1z"></path></svg>
+        </a>
+        <a class="social-media" href="https://www.youtube.com/@milos-bg" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+          <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1.2" baseProfile="tiny" viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M22.8 8.6c-.2-1.5-.4-2.6-1-3-.6-.5-5.8-.6-9.8-.6s-9.2.1-9.8.6c-.6.4-.8 1.5-1 3s-.2 2.4-.2 3.4 0 1.9.2 3.4.4 2.6 1 3c.6.5 5.8.6 9.8.6 4 0 9.2-.1 9.8-.6.6-.4.8-1.5 1-3s.2-2.4.2-3.4 0-1.9-.2-3.4zm-12.8 7v-7.2l6 3.6-6 3.6z"></path></svg>
+        </a>
+      </div>
+    </div>
+    <div class="h-[500px] mbg-p-center" >
+      <img class="-translate-y-20" src="/Grinder.png" alt="Milos BG" width="700" height="700" loading="lazy" />
+    </div>
+  `.trim();
 
 export async function GET() {
   const envHtml = process.env.MBG_OFFLINE_HTML ?? process.env.STORE_OFFLINE_HTML;
