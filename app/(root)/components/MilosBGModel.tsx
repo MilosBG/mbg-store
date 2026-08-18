@@ -196,7 +196,7 @@ const MilosBGModel = () => {
           </div>
 
           <Link
-            href="/https://www.youtube.com/@milos-bg"
+            href="https://www.youtube.com/@milos-bg"
             target="_blank"
             rel="noopener noreferrer"
             className="hoverEffect group inline-flex min-h-14 items-center justify-center gap-6 border border-mbg-green bg-mbg-green px-7 py-3 text-sm font-semibold uppercase text-mbg-white hover:border-mbg-black hover:bg-mbg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mbg-green sm:text-base"
