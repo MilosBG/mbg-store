@@ -29,35 +29,35 @@ const processSteps: ProcessStep[] = [
     title: "DESIGN",
     description: "Prototype approved",
     icon: FiEdit3,
-    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
+    className: "border-mbg-black bg-mbg-black/10 text-mbg-white",
   },
   {
     number: "02",
     title: "FABRIC",
     description: "Fabric reserved",
     icon: FiScissors,
-    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
+    className: "border-mbg-black bg-mbg-black/10 text-mbg-white",
   },
   {
     number: "03",
     title: "PRODUCTION",
     description: "Cut and assembled",
     icon: FiTool,
-    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
+    className: "border-mbg-black bg-mbg-black/10 text-mbg-white",
   },
   {
     number: "04",
-    title: "QUALITY CONTROL",
+    title: "QUALITY",
     description: "Finishing checked",
     icon: FiSearch,
-    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
+    className: "border-mbg-black bg-mbg-black/10 text-mbg-white",
   },
   {
     number: "05",
     title: "SHIPPING",
     description: "Piece shipped",
     icon: FiBox,
-    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
+    className: "border-mbg-black bg-mbg-black/10 text-mbg-white",
   },
 ];
 
@@ -110,7 +110,7 @@ const MilosBGModel = () => {
                 starts the grind.
               </h3>
 
-              <p className="mt-6 max-w-[650px] text-base leading-relaxed font-normal text-mbg-darkgrey sm:text-lg lg:text-xl">
+              <p className="mt-6 max-w-[650px] text-base leading-relaxed font-normal text-mbg-darkgrey sm:text-base lg:text-lg">
                 Every piece is made after you place your order, in our workshop
                 in France.
               </p>
@@ -130,14 +130,14 @@ const MilosBGModel = () => {
               >
                 <Icon
                   aria-hidden="true"
-                  className="mb-7 h-5 w-5 bg-mbg-black/40 p-1 stroke-[1.3]"
+                  className="mb-7 h-7 w-7 bg-mbg-black/40 rounded-xs p-1.5 stroke-[1.3]"
                 />
 
-                <h4 className="text-lg leading-tight font-bold uppercase sm:text-xl">
+                <h4 className="text-base leading-tight font-bold uppercase sm:text-lg">
                   {step.number} — {step.title}
                 </h4>
 
-                <p className="mt-2 text-sm leading-normal font-normal sm:text-base">
+                <p className="mt-2 text-xs leading-normal font-normal sm:text-sm">
                   {step.description}
                 </p>
               </article>
@@ -157,13 +157,13 @@ const MilosBGModel = () => {
             </h3>
 
             <p className="mt-1 text-sm leading-normal font-semibold sm:text-base">
-              Estimated shipping:{" "}
+              Estimated shipping |{" "}
               <strong className="font-bold text-mbg-green">
                 10 to 15 business days
               </strong>
             </p>
 
-            <p className="mt-1 text-sm leading-normal font-normal text-mbg-white/85 sm:text-base">
+            <p className="mt-1 text-xs leading-normal font-normal text-mbg-white/85 sm:text-sm">
               An exact date is displayed before payment.
             </p>
           </div>
@@ -184,7 +184,7 @@ const MilosBGModel = () => {
                 >
                   <Icon
                     aria-hidden="true"
-                    className="h-10 w-10 shrink-0 stroke-[1.3]"
+                    className="h-7 w-7 shrink-0 stroke-[1.3]"
                   />
 
                   <span className="text-sm leading-tight font-semibold uppercase lg:text-base">
