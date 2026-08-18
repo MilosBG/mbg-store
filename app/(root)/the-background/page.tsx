@@ -7,13 +7,12 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
   title: "The Background",
-  description: "Discover the inspiration and commitment driving Milos BG's basketball culture collections.",
+  description:
+    "Discover the inspiration and commitment driving Milos BG's basketball culture collections.",
   path: "/the-background",
   image: "/Grinder.png",
   keywords: ["brand story", "Milos BG", "basketball culture"],
 });
-
-
 
 const VIDEO_ID = "xXFQgvUs08s"; // ← replace with your YouTube ID (e.g. "dQw4w9WgXcQ")
 
@@ -29,7 +28,7 @@ const AboutUs = () => {
           <ol className="flex items-center gap-2">
             <li>
               <Link href="/" className="text-mbg-green uppercase font-medium">
-                Accueil
+                Home
               </Link>
             </li>
             <li aria-hidden className="text-mbg-black bg-mbg-black">
@@ -44,7 +43,7 @@ const AboutUs = () => {
           href="/"
           className="inline-flex bg-mbg-rgbablank items-center rounded-xs border border-mbg-green px-3 py-1.5 text-[12px] font-semibold text-mbg-green hover:bg-mbg-green hover:text-mbg-white hoverEffect uppercase transition"
         >
-          ← Retour à la boutique
+          ← Back to shop
         </Link>
       </div>
 
