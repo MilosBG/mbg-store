@@ -2,7 +2,18 @@ import MilosBG from "./Milos-BG.svg";
 import banner from "./banner/banner_1.png";
 import MBGBasket from "./icons/mbg-basket.svg";
 import Grinder from "./chapters/Grinder.png";
+import CraftMan from "./chapters/CRAFT MAN.png";
 import GrindUntilAchieve from "./chapters/GrindUntilAchieve.svg";
+import GrindUntilAchieve2 from "./chapters/GrindUntilAchieve2.svg";
 import spinner from "./Spinner.gif";
 
-export { MilosBG, banner, MBGBasket, Grinder, spinner, GrindUntilAchieve };
+export {
+  MilosBG,
+  banner,
+  MBGBasket,
+  Grinder,
+  spinner,
+  GrindUntilAchieve,
+  GrindUntilAchieve2,
+  CraftMan,
+};

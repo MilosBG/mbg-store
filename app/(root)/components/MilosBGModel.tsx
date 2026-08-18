@@ -13,6 +13,8 @@ import {
   FiSearch,
   FiTool,
 } from "react-icons/fi";
+import { FaBasketballBall } from "react-icons/fa";
+import { CraftMan } from "@/images";
 
 type ProcessStep = {
   number: string;
@@ -26,35 +28,35 @@ const processSteps: ProcessStep[] = [
   {
     number: "01",
     title: "DESIGN",
-    description: "Prototype validé",
+    description: "Prototype approved",
     icon: FiEdit3,
     className: "border-mbg-black bg-mbg-black text-mbg-white",
   },
   {
     number: "02",
-    title: "MATIÈRE",
-    description: "Matière réservée",
+    title: "FABRIC",
+    description: "Fabric reserved",
     icon: FiScissors,
     className: "border-mbg-darkgrey bg-mbg-darkgrey text-mbg-white",
   },
   {
     number: "03",
-    title: "CONFECTION",
-    description: "Découpé et assemblé",
+    title: "PRODUCTION",
+    description: "Cut and assembled",
     icon: FiTool,
     className: "border-mbg-black/40 bg-mbg-lightgrey text-mbg-black",
   },
   {
     number: "04",
-    title: "CONTRÔLE",
-    description: "Finitions vérifiées",
+    title: "QUALITY CONTROL",
+    description: "Finishing checked",
     icon: FiSearch,
     className: "border-mbg-green bg-mbg-green text-mbg-white",
   },
   {
     number: "05",
-    title: "EXPÉDITION",
-    description: "Pièce envoyée",
+    title: "SHIPPING",
+    description: "Piece shipped",
     icon: FiBox,
     className: "border-mbg-black/40 bg-mbg-white text-mbg-black",
   },
@@ -62,15 +64,15 @@ const processSteps: ProcessStep[] = [
 
 const commitments = [
   {
-    label: "FAIT EN FRANCE",
+    label: "MADE IN FRANCE",
     icon: FiMapPin,
   },
   {
-    label: "SANS SURPRODUCTION",
+    label: "NO OVERPRODUCTION",
     icon: FiGrid,
   },
   {
-    label: "PRODUCTION LIMITÉE",
+    label: "LIMITED PRODUCTION",
     icon: FiGrid,
   },
 ];
@@ -90,8 +92,8 @@ const MilosBGModel = () => {
           {/* Workshop image */}
           <div className="relative min-h-[290px] overflow-hidden bg-mbg-black sm:min-h-[370px] lg:min-h-[410px]">
             <Image
-              src="/images/milos-bg-workshop.jpg"
-              alt="Confection artisanale d’un vêtement Milos BG"
+              src={CraftMan}
+              alt="Handcrafted production of a Milos BG garment"
               fill
               sizes="(max-width: 1024px) 100vw, 42vw"
               className="object-cover grayscale"
@@ -106,7 +108,7 @@ const MilosBGModel = () => {
               aria-hidden="true"
               className="absolute right-7 top-6 text-5xl leading-none text-mbg-lightgrey/60 sm:right-10 sm:top-8 sm:text-6xl"
             >
-              ✿
+              <FaBasketballBall />
             </span>
 
             <div className="relative z-10 max-w-[720px]">
@@ -117,8 +119,8 @@ const MilosBGModel = () => {
               </h3>
 
               <p className="mt-6 max-w-[650px] text-base leading-relaxed font-normal text-mbg-darkgrey sm:text-lg lg:text-xl">
-                Chaque pièce est confectionnée après votre commande, dans notre
-                atelier en France.
+                Every piece is made after you place your order, in our workshop
+                in France.
               </p>
             </div>
           </div>
@@ -159,18 +161,18 @@ const MilosBGModel = () => {
 
           <div>
             <h3 className="text-xl leading-tight font-bold uppercase sm:text-2xl">
-              Confection à la commande
+              Made to order
             </h3>
 
             <p className="mt-1 text-sm leading-normal font-semibold sm:text-base">
-              Expédition estimée :{" "}
+              Estimated shipping:{" "}
               <strong className="font-bold text-mbg-green">
-                10 à 15 jours ouvrés
+                10 to 15 business days
               </strong>
             </p>
 
             <p className="mt-1 text-sm leading-normal font-normal text-mbg-white/85 sm:text-base">
-              Une date précise est affichée avant le paiement.
+              An exact date is displayed before payment.
             </p>
           </div>
         </div>
@@ -205,7 +207,7 @@ const MilosBGModel = () => {
             href="/the-background"
             className="hoverEffect group inline-flex min-h-14 items-center justify-center gap-6 border border-mbg-green bg-mbg-green px-7 py-3 text-sm font-semibold uppercase text-mbg-white hover:border-mbg-black hover:bg-mbg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mbg-green sm:text-base"
           >
-            Découvrir le processus
+            Discover the process
             <FiArrowRight
               aria-hidden="true"
               className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
@@ -218,7 +220,7 @@ const MilosBGModel = () => {
           <span className="h-px flex-1 bg-mbg-black/40" />
 
           <p className="flex items-center gap-2 whitespace-nowrap text-[10px] font-medium tracking-[0.2em] uppercase sm:text-sm sm:tracking-[0.3em]">
-            Grind Until Achieve.
+            Grind Until Achieve
             <span aria-hidden="true" className="text-lg tracking-normal">
               ✿
             </span>
