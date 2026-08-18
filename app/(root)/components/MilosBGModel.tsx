@@ -110,7 +110,7 @@ const MilosBGModel = () => {
                 starts the grind.
               </h3>
 
-              <p className="mt-6 max-w-[650px] text-base leading-relaxed font-normal text-mbg-darkgrey sm:text-base lg:text-lg">
+              <p className="mt-6 max-w-[650px] text-xs leading-relaxed font-normal text-mbg-darkgrey sm:text-sm lg:text-lg">
                 Every piece is made after you place your order, in our workshop
                 in France.
               </p>
@@ -130,7 +130,7 @@ const MilosBGModel = () => {
               >
                 <Icon
                   aria-hidden="true"
-                  className="mb-7 h-7 w-7 bg-mbg-black/40 rounded-xs p-1.5 stroke-[1.3]"
+                  className="mb-7 h-7 w-7 bg-mbg-black/10 rounded-xs p-1.5 stroke-[1.3]"
                 />
 
                 <h4 className="text-base leading-tight font-bold uppercase sm:text-lg">
@@ -164,7 +164,7 @@ const MilosBGModel = () => {
             </p>
 
             <p className="mt-1 text-xs leading-normal font-normal text-mbg-white/85 sm:text-sm">
-              An exact date is displayed before payment.
+              The exact date will be confirmed by email after payment.
             </p>
           </div>
         </div>
@@ -196,7 +196,9 @@ const MilosBGModel = () => {
           </div>
 
           <Link
-            href="/the-background"
+            href="/https://www.youtube.com/@milos-bg"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hoverEffect group inline-flex min-h-14 items-center justify-center gap-6 border border-mbg-green bg-mbg-green px-7 py-3 text-sm font-semibold uppercase text-mbg-white hover:border-mbg-black hover:bg-mbg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mbg-green sm:text-base"
           >
             Discover the process
