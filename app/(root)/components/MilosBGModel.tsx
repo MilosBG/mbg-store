@@ -13,7 +13,6 @@ import {
   FiSearch,
   FiTool,
 } from "react-icons/fi";
-import { FaBasketballBall } from "react-icons/fa";
 import { CraftMan } from "@/images";
 
 type ProcessStep = {
@@ -30,35 +29,35 @@ const processSteps: ProcessStep[] = [
     title: "DESIGN",
     description: "Prototype approved",
     icon: FiEdit3,
-    className: "border-mbg-black bg-mbg-black text-mbg-white",
+    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
   },
   {
     number: "02",
     title: "FABRIC",
     description: "Fabric reserved",
     icon: FiScissors,
-    className: "border-mbg-darkgrey bg-mbg-darkgrey text-mbg-white",
+    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
   },
   {
     number: "03",
     title: "PRODUCTION",
     description: "Cut and assembled",
     icon: FiTool,
-    className: "border-mbg-black/40 bg-mbg-lightgrey text-mbg-black",
+    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
   },
   {
     number: "04",
     title: "QUALITY CONTROL",
     description: "Finishing checked",
     icon: FiSearch,
-    className: "border-mbg-green bg-mbg-green text-mbg-white",
+    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
   },
   {
     number: "05",
     title: "SHIPPING",
     description: "Piece shipped",
     icon: FiBox,
-    className: "border-mbg-black/40 bg-mbg-white text-mbg-black",
+    className: "border-mbg-black bg-mbg-black/90 text-mbg-white",
   },
 ];
 
@@ -85,7 +84,7 @@ const MilosBGModel = () => {
     >
       <div className="mx-auto max-w-[1440px]">
         {/* Section heading */}
-        <h2 className="heading2-bold mb-4">The Milos BG Model</h2>
+        <h2 className="heading2-bold mb-4">How we work</h2>
 
         {/* Main presentation */}
         <div className="grid overflow-hidden border border-mbg-black bg-mbg-white shadow-mbg-bx-shadow lg:grid-cols-[42%_58%]">
@@ -104,13 +103,6 @@ const MilosBGModel = () => {
 
           {/* Main copy */}
           <div className="relative flex min-h-[330px] items-center px-7 py-12 sm:px-10 lg:min-h-0 lg:px-12 xl:px-14">
-            <span
-              aria-hidden="true"
-              className="absolute right-7 top-6 text-5xl leading-none text-mbg-lightgrey/60 sm:right-10 sm:top-8 sm:text-6xl"
-            >
-              <FaBasketballBall />
-            </span>
-
             <div className="relative z-10 max-w-[720px]">
               <h3 className="text-4xl leading-[1.05] font-extrabold tracking-[-0.03em] uppercase sm:text-5xl lg:text-6xl">
                 Your order
@@ -134,11 +126,11 @@ const MilosBGModel = () => {
             return (
               <article
                 key={step.number}
-                className={`hoverEffect flex min-h-[220px] flex-col items-center justify-center border px-5 py-7 text-center shadow-mbg-bx-shadow hover:-translate-y-1 ${step.className}`}
+                className={`hoverEffect flex min-h-[220px] flex-col items-center justify-center border px-5 py-7 text-center shadow-mbg-bx-shadow hover:-translate-y-1 hover:bg-mbg-white/80 hover:text-mbg-black ${step.className}`}
               >
                 <Icon
                   aria-hidden="true"
-                  className="mb-7 h-12 w-12 stroke-[1.3]"
+                  className="mb-7 h-5 w-5 bg-mbg-black/40 p-1 stroke-[1.3]"
                 />
 
                 <h4 className="text-lg leading-tight font-bold uppercase sm:text-xl">
