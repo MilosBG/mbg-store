@@ -6,6 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 import { Suspense } from "react";
 import ProductCardSkeleton from "@/components/mbg-components/ProductCardSkeleton";
 import MilosBGModel from "./components/MilosBGModel";
+import MilosBGBook from "./components/MilosBGBook";
 
 export const metadata = buildMetadata({
   title: "Home",
@@ -38,6 +39,7 @@ export default function Home() {
       >
         <ProductList />
       </Suspense>
+      <MilosBGBook />
     </Container>
   );
 }
