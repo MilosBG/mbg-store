@@ -130,7 +130,7 @@ const MilosBGBook = ({
                 </div>
               </article>
 
-              <article className="grid min-h-[190px] grid-cols-[72px_1fr] items-center gap-5 bg-mbg-black/10 p-6 text-mbg-white sm:grid-cols-[92px_1fr] sm:px-8 sm:py-7">
+              <article className="grid min-h-[190px] grid-cols-[72px_1fr] items-center gap-5 bg-mbg-black/20 p-6 text-mbg-white sm:grid-cols-[92px_1fr] sm:px-8 sm:py-7">
                 <FiPackage
                   aria-hidden="true"
                   className="h-7 w-7 justify-self-center stroke-[1.35] sm:h-16 sm:w-16"
