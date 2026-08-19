@@ -71,10 +71,52 @@ const AboutUs = () => {
       {/* Our Story */}
       <section className="mt-5">
         <p className="mt-2 text-xs text-mbg-green">
-          Born in a modest studio, the brand has always stood by a simple
-          principle : quality and craftsmanship above all else. Each piece is
-          meticulously designed, tested, refined, and released in limited,
-          purposeful editions.
+          Milos BG is more than a clothing brand, it is a story of progression,
+          written one chapter at a time. Born in a modest studio, Milos BG has
+          always stood by one uncompromising principle: quality and
+          craftsmanship above all else. Every piece is thoughtfully designed,
+          tested, refined, and handcrafted with purpose before being released in
+          limited editions. Nothing is created simply to fill a collection.
+          Every garment has a reason to exist. But Milos BG was never meant to
+          be only about clothing. The brand is built around a philosophy of
+          continuous improvement, the belief that achievement is not a single
+          moment, but the result of what we repeatedly choose to do when nobody
+          is watching. That philosophy unfolds through five Chapters: CHAPTER I
+          | GRIND The decision to begin. To work when motivation fades. To
+          embrace the process and keep moving forward. CHAPTER II | RESILIENCE
+          The strength to get back up. To turn failure, pressure and adversity
+          into fuel. CHAPTER III | CONSISTENCY The discipline to return every
+          day. Small actions, repeated relentlessly, becoming progress. CHAPTER
+          IV | FOCUS The ability to silence distractions, trust the path and
+          keep your eyes on what matters. CHAPTER V | ACHIEVE Not the end of the
+          journey, but the consequence of everything that came before it. GRIND.
+          RESILIENCE. CONSISTENCY. FOCUS. ACHIEVE. Five Chapters. One journey.
+          Together, they form the Milos BG guideline, like the chapters of a
+          book that is not simply meant to be read, but lived. Because once you
+          understand the journey, the message becomes simple: GRIND UNTIL
+          ACHIEVE. And when that mentality becomes part of who you are, you
+          don't simply believe in it, you wear it. That is where clothing and
+          philosophy become one. Wear the mentality. MAKE IT YOUR LIKED OUTFITS.
+          Each Milos BG collection represents a new Chapter of that story,
+          translating its mentality into garments with their own purpose,
+          identity and message. Every piece becomes a physical reminder of the
+          journey: keep working, keep learning, keep improving, keep moving
+          forward. Inspired by craftsmanship, sport, basketball, movement and
+          the relentless pursuit of self-improvement, Milos BG creates pieces
+          designed to accompany you through the process, from the quiet hours
+          when nobody sees the work, to the moments when that work finally
+          speaks for itself. Because ACHIEVE means very little without
+          everything required to reach it. The setbacks. The repetitions. The
+          discipline. The sacrifices. The unseen hours. The days when progress
+          feels invisible. That is where Milos BG lives. Not only in the
+          victory, but in everything that happens before it. We don't celebrate
+          only the destination. We celebrate the GRIND that makes the
+          destination possible. Every Chapter tells a story. Every collection
+          represents a step forward. Every piece carries a message. And every
+          person who wears it continues the journey in their own way. This is
+          Milos BG. A story you don't simply read. A mentality you don't simply
+          follow. A journey you wear. GRIND UNTIL YOU ACHIEVE. MAKE IT YOUR
+          LIKED OUTFITS. Enjoy the Grind. ✿
         </p>
       </section>
 

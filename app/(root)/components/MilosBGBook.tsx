@@ -166,7 +166,7 @@ const MilosBGBook = ({
               </article>
             </div>
 
-            <footer className="flex min-h-[68px] items-center justify-center gap-2 border-t border-mbg-black/10 bg-mbg-white/90 px-5 py-4">
+            <footer className="flex min-h-[68px] items-center justify-center gap-2 border-t border-mbg-black/20 bg-mbg-white/90 px-5 py-4">
               <p className="text-center text-[12px] font-black uppercase tracking-[-0.025em] sm:text-sm">
                 Gr<text className="text-mbg-green">i</text>nd{" "}
                 <text className="text-mbg-green">until</text> achie
