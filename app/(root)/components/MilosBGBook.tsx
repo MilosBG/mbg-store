@@ -68,7 +68,7 @@ const MilosBGBook = ({
               <div className="relative z-30 px-6 pb-6 pt-10 sm:px-9 lg:px-11 lg:py-14 xl:px-[52px]">
                 <div className="mb-4 h-[3px] w-24 bg-mbg-green" />
 
-                <p className="mb-5 text-[11px] font-bold uppercase tracking-[-0.02em] text-mbg-green sm:text-xs lg:text-sm">
+                <p className="mb-5 text-[11px] font-bold uppercase tracking-[-0.02em] text-mbg-black sm:text-xs lg:text-sm">
                   Milos BG — Personal development
                 </p>
 
