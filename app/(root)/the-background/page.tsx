@@ -279,7 +279,8 @@ const AboutUs = () => {
                 Madagascar periwinkle, a flower whose remarkable resilience and
                 ability to endure challenging conditions echo the mindset at the
                 heart of the brand.
-                <br />
+              </p>
+              <p>
                 Milos BG creates pieces designed to accompany you throughout the
                 process. From the quiet hours when no one sees the work to the
                 moments when that dedication finally speaks for itself, every
