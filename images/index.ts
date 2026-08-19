@@ -5,6 +5,7 @@ import Grinder from "./chapters/Grinder.png";
 import CraftMan from "./chapters/CRAFT MAN.png";
 import GrindUntilAchieve from "./chapters/GrindUntilAchieve.svg";
 import GrindUntilAchieve2 from "./chapters/GrindUntilAchieve2.svg";
+import MBGBooks from "./chapters/MBG BOOKS.png";
 import spinner from "./Spinner.gif";
 
 export {
@@ -16,4 +17,5 @@ export {
   GrindUntilAchieve,
   GrindUntilAchieve2,
   CraftMan,
+  MBGBooks,
 };
