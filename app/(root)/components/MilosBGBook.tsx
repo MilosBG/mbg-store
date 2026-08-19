@@ -303,7 +303,7 @@ const MilosBGBook = ({
                       </p>
 
                       <p className="mt-4 text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
-                        The journey is challenging; however, it ultimately
+                        The journey is challenging, however, it ultimately
                         culminates in authentic achievement.
                       </p>
 
