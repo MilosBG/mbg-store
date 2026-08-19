@@ -275,12 +275,18 @@ const AboutUs = () => {
                 Inspired by craftsmanship, sport, basketball, movement, and
                 Japanese philosophy, especially the spirit of Kaizen, the
                 pursuit of continuous improvement through discipline, patience,
-                and repetition, Milos BG creates pieces designed to accompany
-                you throughout the process. From the quiet hours when no one
-                sees the work to the moments when that dedication finally speaks
-                for itself, every garment reflects the belief that progress is
-                built step by step, through consistency, intention, and respect
-                for the craft.
+                and repetition, Milos BG also draws inspiration from the
+                Madagascar periwinkle, a flower whose remarkable resilience and
+                ability to endure challenging conditions echo the mindset at the
+                heart of the brand.
+                <br />
+                Milos BG creates pieces designed to accompany you throughout the
+                process. From the quiet hours when no one sees the work to the
+                moments when that dedication finally speaks for itself, every
+                garment reflects the belief that progress is built step by step,
+                through resilience, consistency, intention, and respect for the
+                craft. Like the Madagascar periwinkle, it is about continuing to
+                grow, adapt, and move forward regardless of the conditions.
               </p>
             </div>
           </div>
