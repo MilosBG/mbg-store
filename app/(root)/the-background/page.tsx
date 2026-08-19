@@ -367,7 +367,7 @@ const AboutUs = () => {
 
           <div className="mt-8 space-y-1">
             <p className="text-sm font-black uppercase tracking-[0.15em] text-mbg-black">
-              Grind Until You Achieve.
+              Grind Until <text className="text-mbg-white">You</text> Achieve.
             </p>
             <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-mbg-white">
               Make It Your Liked Outfits.

@@ -224,7 +224,7 @@ const MilosBGBook = ({
                   <span
                     aria-hidden="true"
                     className="
-                      relative flex h-9 w-9 shrink-0
+                      relative flex h-7 w-7 shrink-0
                       items-center justify-center
                       border border-mbg-black
                       transition-colors duration-300
@@ -309,8 +309,7 @@ const MilosBGBook = ({
                         <strong className="font-bold text-mbg-black">
                           Grind Until Achieve
                         </strong>{" "}
-                        is not just a title, it&apos;s a mantra, a philosophy of
-                        life.
+                        is a mantra, a mentality.
                       </p>
 
                       {/* FINAL STATEMENT */}
