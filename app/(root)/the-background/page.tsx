@@ -91,10 +91,10 @@ const AboutUs = () => {
               {/* Main intro */}
               <div>
                 <p className="max-w-4xl text-xl font-semibold leading-[1.35] tracking-tight text-mbg-black sm:text-2xl md:text-3xl lg:text-4xl">
-                  Milos BG is more than a clothing brand.
+                  Milos BG
                   <span className="text-mbg-green">
                     {" "}
-                    It is a story of progression,
+                    is a story of progression,
                   </span>{" "}
                   written one chapter at a time.
                 </p>
@@ -224,7 +224,7 @@ const AboutUs = () => {
                 The Mantra
               </span>
 
-              <h3 className="mt-5 text-4xl font-bold uppercase leading-[0.95] tracking-[-0.04em] text-mbg-white sm:text-5xl md:text-7xl">
+              <h3 className="mt-5 text-2xl font-bold uppercase leading-[0.95] tracking-[-0.04em] text-mbg-white sm:text-5xl md:text-7xl">
                 Gr<text className="text-mbg-green">i</text>nd{" "}
                 <text className="text-mbg-green">Until</text> Achie
                 <text className="text-mbg-green">v</text>e
@@ -348,7 +348,7 @@ const AboutUs = () => {
         </div>
 
         {/* Final Signature */}
-        <div className="bg-mbg-black/5 px-6 py-12 text-center md:py-16">
+        <div className="bg-mbg-black/20 px-6 py-12 text-center md:py-16">
           <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-mbg-black/60">
             This is Milos BG
           </p>

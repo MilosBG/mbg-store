@@ -1,7 +1,7 @@
 import { MBGBooks } from "@/images";
 import Image from "next/image";
-import { FiArrowUpRight, FiPackage, FiTablet } from "react-icons/fi";
-
+import { FiArrowUpRight, FiTablet } from "react-icons/fi";
+import { PiBookBookmark } from "react-icons/pi";
 export type MilosBGBookProps = {
   amazonUrl?: string;
   paypalUrl?: string;
@@ -131,9 +131,9 @@ const MilosBGBook = ({
               </article>
 
               <article className="grid min-h-[190px] grid-cols-[72px_1fr] items-center gap-5 bg-mbg-black/20 p-6 text-mbg-white sm:grid-cols-[92px_1fr] sm:px-8 sm:py-7">
-                <FiPackage
+                <PiBookBookmark
                   aria-hidden="true"
-                  className="h-7 w-7 justify-self-center stroke-[1.35] sm:h-16 sm:w-16"
+                  className="h-7 w-7 justify-self-center stroke-[1.35] sm:h-10 sm:w-10"
                 />
 
                 <div className="min-w-0">
