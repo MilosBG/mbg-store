@@ -348,7 +348,7 @@ const AboutUs = () => {
         </div>
 
         {/* Final Signature */}
-        <div className="bg-mbg-green px-6 py-12 text-center md:py-16">
+        <div className="bg-mbg-black/5 px-6 py-12 text-center md:py-16">
           <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-mbg-black/60">
             This is Milos BG
           </p>
@@ -369,7 +369,6 @@ const AboutUs = () => {
             <p className="text-sm font-black uppercase tracking-[0.15em] text-mbg-black">
               Grind Until You Achieve.
             </p>
-            <p>&</p>
             <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-mbg-white">
               Make It Your Liked Outfits.
             </p>
