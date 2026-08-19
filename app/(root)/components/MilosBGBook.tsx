@@ -11,8 +11,7 @@ export type MilosBGBookProps = {
 const DEFAULT_AMAZON_URL =
   "https://www.amazon.fr/GRIND-UNTIL-ACHIEVE-English-GAMIL-ebook/dp/B0GP19C9PN";
 
-const DEFAULT_PAYPAL_URL =
-  "https://www.paypal.com/ncp/payment/L29HGX5RLJAEC";
+const DEFAULT_PAYPAL_URL = "https://www.paypal.com/ncp/payment/L29HGX5RLJAEC";
 
 const MilosBGBook = ({
   amazonUrl = DEFAULT_AMAZON_URL,
@@ -23,7 +22,7 @@ const MilosBGBook = ({
     <section
       id="the-book"
       aria-labelledby="the-book-title"
-      className={`relative isolate overflow-hidden bg-[#f4f4f4] font-kanit text-mbg-black ${className}`}
+      className={`relative isolate mt-10 overflow-hidden bg-[#f4f4f4] font-kanit text-mbg-black ${className}`}
     >
       {/* Basketball-court construction lines */}
       <div
@@ -102,7 +101,7 @@ const MilosBGBook = ({
               <article className="grid min-h-[190px] grid-cols-[72px_1fr] items-center gap-5 bg-mbg-black p-6 text-mbg-white sm:grid-cols-[92px_1fr] sm:px-8 sm:py-7">
                 <FiTablet
                   aria-hidden="true"
-                  className="h-14 w-14 justify-self-center stroke-[1.35] sm:h-16 sm:w-16"
+                  className="h-7 w-7 justify-self-center stroke-[1.35] sm:h-16 sm:w-16"
                 />
 
                 <div className="min-w-0">
@@ -131,10 +130,10 @@ const MilosBGBook = ({
                 </div>
               </article>
 
-              <article className="grid min-h-[190px] grid-cols-[72px_1fr] items-center gap-5 bg-mbg-green p-6 text-mbg-white sm:grid-cols-[92px_1fr] sm:px-8 sm:py-7">
+              <article className="grid min-h-[190px] grid-cols-[72px_1fr] items-center gap-5 bg-mbg-black/10 p-6 text-mbg-white sm:grid-cols-[92px_1fr] sm:px-8 sm:py-7">
                 <FiPackage
                   aria-hidden="true"
-                  className="h-14 w-14 justify-self-center stroke-[1.35] sm:h-16 sm:w-16"
+                  className="h-7 w-7 justify-self-center stroke-[1.35] sm:h-16 sm:w-16"
                 />
 
                 <div className="min-w-0">
@@ -169,14 +168,10 @@ const MilosBGBook = ({
 
             <footer className="flex min-h-[68px] items-center justify-center gap-2 border-t border-mbg-black/10 bg-mbg-white/90 px-5 py-4">
               <p className="text-center text-[12px] font-black uppercase tracking-[-0.025em] sm:text-sm">
-                Grind until achieve.
+                Gr<text className="text-mbg-green">i</text>nd{" "}
+                <text className="text-mbg-green">until</text> achie
+                <text className="text-mbg-green">v</text>e
               </p>
-              <span
-                aria-hidden="true"
-                className="-translate-y-px text-[19px] leading-none"
-              >
-                ✿
-              </span>
             </footer>
           </div>
         </div>
