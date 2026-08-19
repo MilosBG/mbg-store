@@ -76,12 +76,14 @@ const MilosBGBook = ({
                   id="the-book-title"
                   className="w-max max-w-none text-[clamp(2.25rem,4.45vw,4.75rem)] font-black uppercase leading-[0.96] tracking-[-0.055em]"
                 >
-                  <span className="block whitespace-nowrap">The grind is</span>
+                  <span className="block whitespace-nowrap">
+                    <text className="text-mbg-green">The grind</text> is
+                  </span>
 
                   <span className="block whitespace-nowrap">Not a moment.</span>
 
                   <span className="block whitespace-nowrap">
-                    It is a mentality.
+                    It <text className="text-mbg-green">is a mentality</text>.
                   </span>
                 </h2>
 
