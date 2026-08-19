@@ -2,6 +2,7 @@ import { MBGBooks } from "@/images";
 import Image from "next/image";
 import { FiArrowUpRight, FiTablet } from "react-icons/fi";
 import { PiBookBookmark } from "react-icons/pi";
+
 export type MilosBGBookProps = {
   amazonUrl?: string;
   paypalUrl?: string;
@@ -30,8 +31,11 @@ const MilosBGBook = ({
         className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
       >
         <div className="absolute -right-28 -top-36 h-[500px] w-[500px] rounded-full border-2 border-mbg-black/10" />
+
         <div className="absolute -right-10 top-32 h-44 w-72 rounded-l-full border-2 border-r-0 border-mbg-black/10" />
+
         <div className="absolute -bottom-64 -left-32 h-[500px] w-[500px] rounded-full border-2 border-mbg-black/10" />
+
         <div className="absolute bottom-20 left-[12%] h-40 w-64 rotate-[-14deg] rounded-[50%] border-2 border-mbg-black/10" />
       </div>
 
@@ -48,6 +52,10 @@ const MilosBGBook = ({
           </aside>
 
           <div className="lg:pl-[72px]">
+            {/* ====================================================== */}
+            {/* HERO                                                   */}
+            {/* ====================================================== */}
+
             <div className="relative grid min-h-[610px] items-center lg:grid-cols-[0.88fr_1.12fr] xl:min-h-[650px]">
               <span
                 aria-hidden="true"
@@ -56,6 +64,7 @@ const MilosBGBook = ({
                 05
               </span>
 
+              {/* TEXT */}
               <div className="relative z-30 px-6 pb-6 pt-10 sm:px-9 lg:px-11 lg:py-14 xl:px-[52px]">
                 <div className="mb-4 h-[3px] w-24 bg-mbg-green" />
 
@@ -68,7 +77,9 @@ const MilosBGBook = ({
                   className="w-max max-w-none text-[clamp(2.25rem,4.45vw,4.75rem)] font-black uppercase leading-[0.96] tracking-[-0.055em]"
                 >
                   <span className="block whitespace-nowrap">The grind is</span>
+
                   <span className="block whitespace-nowrap">Not a moment.</span>
+
                   <span className="block whitespace-nowrap">
                     It is a way of life.
                   </span>
@@ -86,6 +97,7 @@ const MilosBGBook = ({
                 </p>
               </div>
 
+              {/* BOOK IMAGE */}
               <div className="relative z-20 flex min-h-[380px] items-center justify-center overflow-visible px-2 pb-8 sm:px-5 lg:min-h-[610px] lg:-translate-x-2 lg:px-0 lg:pb-0 xl:min-h-[650px] xl:-translate-x-5">
                 <Image
                   src={MBGBooks}
@@ -97,11 +109,16 @@ const MilosBGBook = ({
               </div>
             </div>
 
+            {/* ====================================================== */}
+            {/* BOOK FORMATS                                           */}
+            {/* ====================================================== */}
+
             <div className="grid border-t border-mbg-black/10 md:grid-cols-2">
+              {/* EBOOK */}
               <article className="grid min-h-[190px] grid-cols-[72px_1fr] items-center gap-5 bg-mbg-black p-6 text-mbg-white sm:grid-cols-[92px_1fr] sm:px-8 sm:py-7">
                 <FiTablet
                   aria-hidden="true"
-                  className="h-7 w-7 justify-self-center stroke-[1.35] sm:h-16 sm:w-16"
+                  className="h-7 w-7 justify-self-center stroke-[1.35] sm:h-10 sm:w-10"
                 />
 
                 <div className="min-w-0">
@@ -130,6 +147,7 @@ const MilosBGBook = ({
                 </div>
               </article>
 
+              {/* PHYSICAL BOOK */}
               <article className="grid min-h-[190px] grid-cols-[72px_1fr] items-center gap-5 bg-mbg-black/20 p-6 text-mbg-white sm:grid-cols-[92px_1fr] sm:px-8 sm:py-7">
                 <PiBookBookmark
                   aria-hidden="true"
@@ -165,6 +183,184 @@ const MilosBGBook = ({
                 </div>
               </article>
             </div>
+
+            {/* ====================================================== */}
+            {/* BOOK SUMMARY ACCORDION                                 */}
+            {/* ====================================================== */}
+
+            <div className="border-t border-mbg-black/15 bg-mbg-white">
+              <details className="group">
+                {/* ACCORDION HEADER */}
+                <summary
+                  className="
+                    flex min-h-[82px] cursor-pointer
+                    list-none items-center justify-between
+                    gap-6 px-6 py-4
+                    transition-colors duration-300
+                    hover:bg-mbg-black/[0.025]
+                    sm:px-8
+                    lg:px-10
+                    [&::-webkit-details-marker]:hidden
+                  "
+                >
+                  <div className="flex items-center gap-5 sm:gap-7">
+                    {/* CHAPTER NUMBER */}
+                    <span className="text-[9px] font-black tracking-[0.18em] text-mbg-green sm:text-[10px]">
+                      01
+                    </span>
+
+                    <div>
+                      <p className="text-[8px] font-extrabold uppercase tracking-[0.22em] text-mbg-green sm:text-[9px]">
+                        About the book
+                      </p>
+
+                      <h3 className="mt-1 text-[12px] font-black uppercase tracking-[-0.02em] text-mbg-black sm:text-sm">
+                        Read the summary
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* PLUS / MINUS BUTTON */}
+                  <span
+                    aria-hidden="true"
+                    className="
+                      relative flex h-9 w-9 shrink-0
+                      items-center justify-center
+                      border border-mbg-black
+                      transition-colors duration-300
+                      group-open:bg-mbg-black
+                    "
+                  >
+                    {/* Horizontal line */}
+                    <span
+                      className="
+                        absolute h-[1.5px] w-3.5
+                        bg-mbg-black
+                        transition-colors duration-300
+                        group-open:bg-mbg-white
+                      "
+                    />
+
+                    {/* Vertical line */}
+                    <span
+                      className="
+                        absolute h-3.5 w-[1.5px]
+                        bg-mbg-black
+                        transition-all duration-300
+                        group-open:rotate-90
+                        group-open:bg-mbg-white
+                      "
+                    />
+                  </span>
+                </summary>
+
+                {/* ACCORDION CONTENT */}
+                <div className="border-t border-mbg-black/10 bg-[#f7f7f7]">
+                  <div className="grid gap-8 px-6 py-9 sm:px-8 lg:grid-cols-[190px_1fr] lg:gap-12 lg:px-10 lg:py-12">
+                    {/* LEFT COLUMN */}
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-mbg-green">
+                        Grind Until Achieve
+                      </p>
+
+                      <div className="mt-3 h-[3px] w-12 bg-mbg-green" />
+
+                      <p className="mt-5 max-w-[150px] text-[10px] font-medium uppercase leading-[1.65] tracking-[0.06em] text-mbg-black/50">
+                        Five chapters.
+                        <br />
+                        One mentality.
+                        <br />
+                        One journey.
+                      </p>
+                    </div>
+
+                    {/* SUMMARY TEXT */}
+                    <div className="max-w-[760px]">
+                      <p className="text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
+                        This book is an invitation to the{" "}
+                        <strong className="font-bold text-mbg-black">
+                          Grind
+                        </strong>
+                        , the{" "}
+                        <strong className="font-bold text-mbg-black">
+                          Resilience
+                        </strong>
+                        , the{" "}
+                        <strong className="font-bold text-mbg-black">
+                          Consistency
+                        </strong>
+                        , the{" "}
+                        <strong className="font-bold text-mbg-black">
+                          Focus
+                        </strong>{" "}
+                        in order to{" "}
+                        <strong className="font-bold text-mbg-green">
+                          Achieve
+                        </strong>
+                        .
+                      </p>
+
+                      <p className="mt-4 text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
+                        The journey is challenging; however, it ultimately
+                        culminates in authentic achievement.
+                      </p>
+
+                      <p className="mt-4 text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
+                        <strong className="font-bold text-mbg-black">
+                          Grind Until Achieve
+                        </strong>{" "}
+                        is not just a title, it&apos;s a mantra, a philosophy of
+                        life.
+                      </p>
+
+                      {/* FINAL STATEMENT */}
+                      <div className="mt-7 border-l-[3px] border-mbg-green pl-4">
+                        <p className="text-sm font-bold leading-[1.6] text-mbg-green sm:text-[15px]">
+                          Now it&apos;s up to you to write your own chapter.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FIVE CHAPTERS */}
+                  <div className="border-t border-mbg-black/10 px-6 py-5 sm:px-8 lg:px-10">
+                    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 sm:justify-start">
+                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
+                        Grind
+                      </span>
+
+                      <span className="text-[9px] text-mbg-green">✿</span>
+
+                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
+                        Resilience
+                      </span>
+
+                      <span className="text-[9px] text-mbg-green">✿</span>
+
+                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
+                        Consistency
+                      </span>
+
+                      <span className="text-[9px] text-mbg-green">✿</span>
+
+                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
+                        Focus
+                      </span>
+
+                      <span className="text-[9px] text-mbg-green">✿</span>
+
+                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-green">
+                        Achieve
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            {/* ====================================================== */}
+            {/* EXISTING FOOTER                                        */}
+            {/* ====================================================== */}
 
             <footer className="flex min-h-[68px] items-center justify-center gap-2 border-t border-mbg-black/20 bg-mbg-white/90 px-5 py-4">
               <p className="text-center text-[12px] font-black uppercase tracking-[-0.025em] sm:text-sm">
