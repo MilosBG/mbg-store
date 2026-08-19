@@ -81,7 +81,7 @@ const MilosBGBook = ({
                   <span className="block whitespace-nowrap">Not a moment.</span>
 
                   <span className="block whitespace-nowrap">
-                    It is a way of life.
+                    It is a mentality.
                   </span>
                 </h2>
 

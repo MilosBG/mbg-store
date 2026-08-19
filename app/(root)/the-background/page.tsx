@@ -444,7 +444,7 @@ const AboutUs = () => {
         <p>
           Last update&nbsp;:&nbsp;
           {/* UPDATE MANUALLY */}
-          24/09/2025
+          19/08/2026
         </p>
 
         <p className="mt-2">
