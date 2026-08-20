@@ -135,6 +135,8 @@ export type StorefrontOrder = {
   shippingMethod?: string;
   trackingNumber?: string;
   trackingUrl?: string;
+  transporter?: string;
+  dateMailed?: string;
   placedAt?: string;
   customerClerkId?: string;
 };
@@ -383,6 +385,22 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
     (source as { shippingRate?: unknown }).shippingRate ??
     (source as { shipping_rate?: unknown }).shipping_rate;
 
+  const trackingNumberSource =
+    source.trackingNumber ??
+    (source as { tracking_number?: unknown }).tracking_number;
+
+  const trackingUrlSource =
+    source.trackingUrl ??
+    (source as { tracking_url?: unknown }).tracking_url;
+
+  const transporterSource =
+    source.transporter ??
+    (source as { carrier?: unknown }).carrier;
+
+  const dateMailedSource =
+    source.dateMailed ??
+    (source as { date_mailed?: unknown }).date_mailed;
+
   const customerClerkId = toStringSafe(
     (source.customerClerkId ??
       (source as { customerClerk?: unknown }).customerClerk ??
@@ -402,8 +420,10 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
     completedAt: toIsoString(completedAtSource),
     cancelledAt: toIsoString(cancelledAtSource),
     shippingMethod: toStringSafe(shippingMethodSource),
-    trackingNumber: toStringSafe(source.trackingNumber),
-    trackingUrl: toStringSafe(source.trackingUrl),
+    trackingNumber: toStringSafe(trackingNumberSource),
+    trackingUrl: toStringSafe(trackingUrlSource),
+    transporter: toStringSafe(transporterSource),
+    dateMailed: toIsoString(dateMailedSource),
     placedAt: toIsoString(placedAtSource),
     customerClerkId,
   };
@@ -570,5 +590,4 @@ function buildOrdersHeaders(forceToken = false): Record<string, string> {
 
   return headers;
 }
-
 
