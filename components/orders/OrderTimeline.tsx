@@ -1,5 +1,8 @@
 import React from "react";
-import { FiExternalLink, FiTruck } from "react-icons/fi";
+import {
+  FiExternalLink,
+  FiTruck,
+} from "react-icons/fi";
 import { STATUS_MESSAGES } from "./StatusBadge";
 
 type Props = {
@@ -12,7 +15,6 @@ type Props = {
     completedAt?: string;
     cancelledAt?: string;
 
-    // Shipping information coming from mbg-admin
     trackingNumber?: string;
     transporter?: string;
     dateMailed?: string;
@@ -24,30 +26,23 @@ function fmt(d?: string) {
 
   const dt = new Date(d);
 
-  return isNaN(dt.getTime())
-    ? ""
-    : dt.toLocaleString("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
+  if (Number.isNaN(dt.getTime())) {
+    return "";
+  }
+
+  return dt.toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
-/**
- * Transforme :
- *
- * www.colissimo.fr/...
- *
- * en :
- *
- * https://www.colissimo.fr/...
- *
- * afin que le lien fonctionne correctement dans href.
- */
-function normalizeTrackingUrl(value?: string) {
+function normalizeTrackingUrl(
+  value?: string
+) {
   if (!value) return "";
 
   const tracking = value.trim();
@@ -55,8 +50,8 @@ function normalizeTrackingUrl(value?: string) {
   if (!tracking) return "";
 
   if (
-    tracking.startsWith("http://") ||
-    tracking.startsWith("https://")
+    tracking.startsWith("https://") ||
+    tracking.startsWith("http://")
   ) {
     return tracking;
   }
@@ -68,148 +63,169 @@ function normalizeTrackingUrl(value?: string) {
   return "";
 }
 
-export function OrderTimeline({ order }: Props) {
+export function OrderTimeline({
+  order,
+}: Props) {
   const items = [
     {
-      k: "processingAt",
+      key: "processingAt",
       label: "Processing",
       at: order.processingAt,
       code: "PROCESSING",
     },
     {
-      k: "shippedAt",
+      key: "shippedAt",
       label: "Shipped",
       at: order.shippedAt,
       code: "SHIPPED",
     },
     {
-      k: "deliveredAt",
+      key: "deliveredAt",
       label: "Delivered",
       at: order.deliveredAt,
       code: "DELIVERED",
     },
     {
-      k: "completedAt",
+      key: "completedAt",
       label: "Completed",
       at: order.completedAt,
       code: "COMPLETED",
     },
     {
-      k: "cancelledAt",
+      key: "cancelledAt",
       label: "Cancelled",
       at: order.cancelledAt,
       code: "CANCELLED",
     },
-  ].filter((i) => !!i.at);
+  ].filter((item) => Boolean(item.at));
 
   if (!items.length) {
     return (
-      <p className="text-xs text-gray-500">
+      <p className="text-[10px] text-mbg-black/50">
         No tracking events yet.
       </p>
     );
   }
 
-  /*
-   * IMPORTANT :
-   *
-   * On utilise shippedAt et pas uniquement :
-   *
-   * order.fulfillmentStatus === "SHIPPED"
-   *
-   * Ainsi le tracking reste visible quand la commande
-   * devient ensuite DELIVERED ou COMPLETED.
-   */
-  const hasBeenShipped = Boolean(order.shippedAt);
+  const hasBeenShipped =
+    Boolean(order.shippedAt) ||
+    [
+      "SHIPPED",
+      "DELIVERED",
+      "COMPLETED",
+    ].includes(
+      String(
+        order.fulfillmentStatus || ""
+      ).toUpperCase()
+    );
 
-  const trackingUrl = normalizeTrackingUrl(
-    order.trackingNumber
-  );
+  const trackingUrl =
+    normalizeTrackingUrl(
+      order.trackingNumber
+    );
 
   return (
     <div>
-      {/* ==================================================
-          ORDER TIMELINE
-      ================================================== */}
+      {/* ===================================================
+          TIMELINE
+      ==================================================== */}
 
-      <ul className="space-y-1 text-xs">
-        {items.map((i) => (
+      <ul className="space-y-[6px]">
+        {items.map((item) => (
           <li
-            key={i.k}
-            className="flex flex-wrap items-center gap-2"
+            key={item.key}
+            className="
+              grid
+              grid-cols-[8px_70px_auto_1fr]
+              items-center
+              gap-x-2
+            "
           >
             {/* DOT */}
-            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-mbg-green" />
+            <span className="h-2 w-2 rounded-full bg-mbg-green" />
 
             {/* STATUS */}
-            <span className="text-[10px] font-bold uppercase tracking-widest text-mbg-black">
-              {i.label}
+            <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-mbg-black">
+              {item.label}
             </span>
 
             {/* DATE */}
-            <span className="text-[10px] text-mbg-black/70">
-              {fmt(i.at)}
+            <span className="whitespace-nowrap text-[9.5px] font-medium text-mbg-black/80">
+              {fmt(item.at)}
             </span>
 
-            {/* MESSAGE */}
-            <span className="text-[10px] uppercase tracking-wide text-mbg-black/50">
-              {STATUS_MESSAGES[i.code] || ""}
+            {/* STATUS MESSAGE */}
+            <span className="text-[9.5px] uppercase tracking-wide text-mbg-black/50">
+              {STATUS_MESSAGES[item.code] ||
+                ""}
             </span>
           </li>
         ))}
       </ul>
 
-      {/* ==================================================
+      {/* ===================================================
           SHIPPING INFORMATION
-      ================================================== */}
+      ==================================================== */}
 
       {hasBeenShipped &&
-        (order.transporter || order.trackingNumber) && (
-          <div className="mt-5">
-            <div className="max-w-[520px] border-l-2 border-mbg-green pl-4">
-              {/* HEADER */}
-              <div className="mb-3 flex items-center gap-2">
-                <FiTruck className="text-[13px] text-mbg-green" />
+        (order.transporter ||
+          order.trackingNumber ||
+          order.dateMailed) && (
+          <div
+            className="
+              mt-6
+              w-full
+              max-w-[530px]
+              border
+              border-mbg-green
+              bg-white/20
+              px-5
+              py-4
+            "
+          >
+            {/* TITLE */}
+            <div className="mb-5 flex items-center gap-2">
+              <FiTruck className="text-[16px] text-mbg-green" />
 
-                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-mbg-black">
-                  Shipping Information
-                </span>
-              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-mbg-green">
+                Shipping Information
+              </span>
+            </div>
 
-              <div className="space-y-2">
-                {/* TRANSPORTER */}
-                {order.transporter && (
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="min-w-[90px] text-[10px] font-bold uppercase tracking-wider text-mbg-black">
-                      Carrier
-                    </span>
-
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-mbg-green">
+            <div className="space-y-3">
+              {/* CARRIER */}
+              {order.transporter && (
+                <ShippingRow
+                  label="Carrier"
+                  value={
+                    <span className="font-bold uppercase text-mbg-green">
                       {order.transporter}
                     </span>
-                  </div>
-                )}
+                  }
+                />
+              )}
 
-                {/* DATE MAILED */}
-                {order.dateMailed && (
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="min-w-[90px] text-[10px] font-bold uppercase tracking-wider text-mbg-black">
-                      Shipped on
+              {/* DATE */}
+              {(order.dateMailed ||
+                order.shippedAt) && (
+                <ShippingRow
+                  label="Shipped on"
+                  value={
+                    <span>
+                      {fmt(
+                        order.dateMailed ||
+                          order.shippedAt
+                      )}
                     </span>
+                  }
+                />
+              )}
 
-                    <span className="text-[10px] font-medium tracking-wide text-mbg-black/70">
-                      {fmt(order.dateMailed)}
-                    </span>
-                  </div>
-                )}
-
-                {/* TRACKING URL */}
-                {trackingUrl && (
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="min-w-[90px] text-[10px] font-bold uppercase tracking-wider text-mbg-black">
-                      Tracking
-                    </span>
-
+              {/* TRACKING URL */}
+              {trackingUrl && (
+                <ShippingRow
+                  label="Tracking"
+                  value={
                     <a
                       href={trackingUrl}
                       target="_blank"
@@ -217,14 +233,12 @@ export function OrderTimeline({ order }: Props) {
                       className="
                         inline-flex
                         items-center
-                        gap-1
-                        text-[10px]
-                        font-bold
+                        gap-1.5
+                        font-extrabold
                         uppercase
                         tracking-wider
                         text-mbg-green
                         underline
-                        decoration-1
                         underline-offset-4
                         transition-opacity
                         hover:opacity-60
@@ -234,25 +248,53 @@ export function OrderTimeline({ order }: Props) {
 
                       <FiExternalLink className="text-[11px]" />
                     </a>
-                  </div>
-                )}
+                  }
+                />
+              )}
 
-                {/* TRACKING NUMBER WITHOUT URL */}
-                {order.trackingNumber && !trackingUrl && (
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="min-w-[90px] text-[10px] font-bold uppercase tracking-wider text-mbg-black">
-                      Tracking #
-                    </span>
-
-                    <span className="text-[10px] font-bold tracking-wide text-mbg-green">
-                      {order.trackingNumber}
-                    </span>
-                  </div>
+              {/* TRACKING NUMBER */}
+              {order.trackingNumber &&
+                !trackingUrl && (
+                  <ShippingRow
+                    label="Tracking #"
+                    value={
+                      <span className="font-bold text-mbg-green">
+                        {order.trackingNumber}
+                      </span>
+                    }
+                  />
                 )}
-              </div>
             </div>
           </div>
         )}
+    </div>
+  );
+}
+
+function ShippingRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div
+      className="
+        grid
+        grid-cols-[105px_1fr]
+        items-center
+        gap-3
+        text-[10px]
+      "
+    >
+      <span className="font-extrabold uppercase tracking-wider text-mbg-black">
+        {label}
+      </span>
+
+      <div className="font-medium text-mbg-black">
+        {value}
+      </div>
     </div>
   );
 }
