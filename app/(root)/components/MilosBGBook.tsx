@@ -65,8 +65,8 @@ const MilosBGBook = ({
               </span>
 
               {/* TEXT */}
-              <div className="relative z-30 px-6 pb-6 pt-10 sm:px-9 lg:px-11 lg:py-14 xl:px-[52px]">
-                <div className="mb-4 h-[3px] w-24 bg-mbg-green" />
+              <div className="relative z-30 px-5 pb-6 pt-10 text-center sm:px-9 sm:text-left lg:px-11 lg:py-14 xl:px-[52px]">
+                <div className="mx-auto mb-4 h-[3px] w-24 bg-mbg-green sm:mx-0" />
 
                 <p className="mb-5 text-[11px] font-bold uppercase tracking-[-0.02em] text-mbg-black sm:text-xs lg:text-sm">
                   Milos BG — Personal development
@@ -74,27 +74,41 @@ const MilosBGBook = ({
 
                 <h2
                   id="the-book-title"
-                  className="w-max max-w-none text-[clamp(2.25rem,4.45vw,4.75rem)] font-black uppercase leading-[0.96] tracking-[-0.055em]"
+                  className="
+      mx-auto
+      w-full
+      max-w-full
+      text-[clamp(1.7rem,8vw,2.25rem)]
+      font-black
+      uppercase
+      leading-[0.96]
+      tracking-[-0.055em]
+      sm:mx-0
+      sm:text-[clamp(2.25rem,4.45vw,4.75rem)]
+      sm:text-left
+    "
                 >
-                  <span className="block whitespace-nowrap">
+                  <span className="block sm:whitespace-nowrap">
                     <text className="text-mbg-green">The grind</text> is
                   </span>
 
-                  <span className="block whitespace-nowrap">Not a moment.</span>
+                  <span className="block sm:whitespace-nowrap">
+                    Not a moment.
+                  </span>
 
-                  <span className="block whitespace-nowrap">
+                  <span className="block sm:whitespace-nowrap">
                     It <text className="text-mbg-green">is a mentality</text>.
                   </span>
                 </h2>
 
-                <div className="mt-5 h-[3px] w-72 max-w-full bg-mbg-green" />
+                <div className="mx-auto mt-5 h-[3px] w-72 max-w-full bg-mbg-green sm:mx-0" />
 
-                <p className="mt-4 max-w-[440px] text-[11px] leading-[1.55] text-mbg-darkgrey sm:text-xs lg:text-sm">
+                <p className="mx-auto mt-4 max-w-[440px] text-[11px] leading-[1.55] text-mbg-darkgrey sm:mx-0 sm:text-xs lg:text-sm">
                   Five chapters built on discipline, resilience, consistency,
                   focus and achievement.
                 </p>
 
-                <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-[1.45] text-mbg-green sm:text-xs lg:text-sm">
+                <p className="mx-auto mt-2 max-w-[440px] text-[11px] font-medium leading-[1.45] text-mbg-green sm:mx-0 sm:text-xs lg:text-sm">
                   Read it. Apply it. Write your own chapter.
                 </p>
               </div>
