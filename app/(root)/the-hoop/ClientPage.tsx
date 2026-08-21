@@ -3,7 +3,7 @@
 "use client";
 
 import Container from "@/components/mbg-components/Container";
-import { Grinder } from "@/images";
+import { GrindUntilAchieve2 } from "@/images";
 import { createCheckoutOrder } from "@/lib/checkoutClient";
 import type { CheckoutLine } from "@/lib/checkoutClient";
 import useCart from "@/lib/hooks/useCart";
@@ -259,7 +259,7 @@ const Cart = () => {
                 Empty Hoop...
               </p>
               <div>
-                <Image src={Grinder} alt="Grinder" className="bg-mbg-white/46" />
+                <Image src={GrindUntilAchieve2} alt="Grind Until Achieve" className="bg-mbg-white/46" />
                 <Link href="/" className="mbg-prime-full mbg-p-center">
                   Shoot Now
                 </Link>
