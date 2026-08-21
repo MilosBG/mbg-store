@@ -8,6 +8,7 @@ import ProductCardSkeleton from "@/components/mbg-components/ProductCardSkeleton
 import MilosBGModel from "./components/MilosBGModel";
 import MilosBGBook from "./components/MilosBGBook";
 import MilosBGAnimatedSlogan from "./components/MilosBGAnimatedSlogan/MilosBGAnimatedSlogan";
+import MilosBGSocialsSection from "./components/MilosBGSocialsSection";
 
 export const metadata = buildMetadata({
   title: "Home",
@@ -42,6 +43,7 @@ export default function Home() {
       </Suspense>
       <MilosBGAnimatedSlogan />
       <MilosBGBook />
+      <MilosBGSocialsSection />
     </Container>
   );
 }
