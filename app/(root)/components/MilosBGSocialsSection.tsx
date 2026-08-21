@@ -3,7 +3,7 @@ import { MBGPeriwinkle } from "@/images";
 
 const MilosBGSocialsSection = () => {
   return (
-    <section className="relative w-full overflow-hidden bg-black">
+    <section className="relative w-full overflow-hidden bg-black mt-10">
       <div className="relative aspect-[3/1] w-full">
         <Image
           src={MBGPeriwinkle}
