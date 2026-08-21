@@ -259,7 +259,21 @@ const Cart = () => {
                 Empty Hoop...
               </p>
               <div>
-                <Image src={GrindUntilAchieve2} alt="Grind Until Achieve" className="bg-mbg-white/46" />
+              <Image
+  src={GrindUntilAchieve2}
+  alt="Grind Until Achieve"
+  className="
+    mx-auto
+    h-auto
+    w-[72%]
+    max-w-[460px]
+    object-contain
+    py-8
+    sm:w-[68%]
+    md:w-[64%]
+    lg:w-[60%]
+  "
+/>
                 <Link href="/" className="mbg-prime-full mbg-p-center">
                   Shoot Now
                 </Link>
