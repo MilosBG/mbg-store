@@ -265,14 +265,13 @@ const Cart = () => {
   className="
     mx-auto
     h-auto
-    w-[72%]
-    max-w-[260px]
-    object-contain
+    w-[46%]
+    max-w-[460px]
+    object-center
     py-8
     sm:w-[68%]
     md:w-[64%]
     lg:w-[60%]
-    bg-mbg-black/7
   "
 />
                 <Link href="/" className="mbg-prime-full mbg-p-center">
