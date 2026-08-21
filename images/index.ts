@@ -7,6 +7,7 @@ import GrindUntilAchieve from "./chapters/GrindUntilAchieve.svg";
 import GrindUntilAchieve2 from "./chapters/GrindUntilAchieve2.svg";
 import MBGBooks from "./chapters/MBG BOOKS.png";
 import MBGPeriwinkle from "./chapters/MBG - PERIWINKLE.png";
+import MBGMPeriwinkle from "./chapters/MBG - Madagascar PERIWINKLES.png";
 import spinner from "./Spinner.gif";
 
 export {
@@ -19,5 +20,6 @@ export {
   GrindUntilAchieve2,
   CraftMan,
   MBGBooks,
-  MBGPeriwinkle
+  MBGPeriwinkle,
+  MBGMPeriwinkle
 };
