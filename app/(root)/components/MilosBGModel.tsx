@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { IconType } from "react-icons";
 import {
   FiArrowRight,
-  FiBox,
+  FiTruck,
   FiClock,
   FiShoppingCart,
   FiGrid,
@@ -48,15 +48,15 @@ const processSteps: ProcessStep[] = [
   {
     number: "04",
     title: "QUALITY",
-    description: "Finishing checked",
+    description: "We check the finishing",
     icon: FiSearch,
     className: "border-mbg-black bg-mbg-black/10 text-mbg-white",
   },
   {
     number: "05",
     title: "SHIPPING",
-    description: "Piece shipped",
-    icon: FiBox,
+    description: "We ship your outfits",
+    icon: FiTruck,
     className: "border-mbg-black bg-mbg-black/10 text-mbg-white",
   },
 ];
