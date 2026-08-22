@@ -11,7 +11,7 @@ import {
   FiMapPin,
   FiCheckSquare,
   FiSearch,
-  FiTool,
+  FiScissors,
 } from "react-icons/fi";
 import { CraftMan } from "@/images";
 
@@ -42,7 +42,7 @@ const processSteps: ProcessStep[] = [
     number: "03",
     title: "PRODUCTION",
     description: "We produce your items",
-    icon: FiTool,
+    icon: FiScissors,
     className: "border-mbg-black bg-mbg-black/10 text-mbg-white",
   },
   {
