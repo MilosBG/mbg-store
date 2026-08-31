@@ -258,7 +258,7 @@ const Cart = () => {
               <p className="uppercase text-[11px] tracking-widest font-bold text-mbg-green py-3">
                 Empty Hoop...
               </p>
-              <div>
+              <div className="min-h-[50%] bg-mbg-white/90 p-10">
               <Image
   src={MBG}
   alt="Grind Until Achieve"
