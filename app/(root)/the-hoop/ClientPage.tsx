@@ -3,7 +3,7 @@
 "use client";
 
 import Container from "@/components/mbg-components/Container";
-import { MBGMPeriwinkle } from "@/images";
+import { MBG } from "@/images";
 import { createCheckoutOrder } from "@/lib/checkoutClient";
 import type { CheckoutLine } from "@/lib/checkoutClient";
 import useCart from "@/lib/hooks/useCart";
@@ -260,7 +260,7 @@ const Cart = () => {
               </p>
               <div>
               <Image
-  src={MBGMPeriwinkle}
+  src={MBG}
   alt="Grind Until Achieve"
   className="
     mx-auto
