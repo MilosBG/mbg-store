@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import "../globals.css";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import MaintenanceGate from "./components/MaintenanceGate";
@@ -96,7 +97,7 @@ async function getMaintenanceState(): Promise<MaintenanceState> {
 }
 
 async function fetchMaintenanceStatus(
-  baseUrl: string
+  baseUrl: string,
 ): Promise<MaintenanceState> {
   const statusUrl = buildMaintenanceUrl(baseUrl, STATUS_PATH);
   if (!statusUrl) {
@@ -110,7 +111,7 @@ async function fetchMaintenanceStatus(
         cache: "no-store",
         headers: { "x-mbg-maintenance-probe": "1" },
       },
-      MAINTENANCE_FETCH_TIMEOUT_MS
+      MAINTENANCE_FETCH_TIMEOUT_MS,
     );
 
     if (!statusResponse.ok) {
@@ -121,7 +122,7 @@ async function fetchMaintenanceStatus(
         const errorBody = await statusResponse.text().catch(() => "");
         console.error(
           `Maintenance status request failed with ${statusResponse.status}`,
-          errorBody
+          errorBody,
         );
       }
       return { isOnline: true, offlineHtml: null };
@@ -156,7 +157,7 @@ async function fetchOfflineMarkup(baseUrl: string): Promise<string> {
         cache: "no-store",
         headers: { Accept: "text/html", "x-mbg-maintenance-probe": "1" },
       },
-      MAINTENANCE_FETCH_TIMEOUT_MS
+      MAINTENANCE_FETCH_TIMEOUT_MS,
     );
 
     if (!offlineResponse.ok) {
@@ -189,7 +190,7 @@ function isRedirectStatus(status: number): boolean {
 
 function resolveRedirectUrl(
   currentUrl: string,
-  location: string
+  location: string,
 ): string | null {
   try {
     return new URL(location, currentUrl).toString();
@@ -202,7 +203,7 @@ async function fetchWithRedirects(
   initialUrl: string,
   init: RequestInit,
   maxRedirects = 4,
-  timeoutMs = MAINTENANCE_FETCH_TIMEOUT_MS
+  timeoutMs = MAINTENANCE_FETCH_TIMEOUT_MS,
 ): Promise<Response> {
   let url = initialUrl;
   const headers = new Headers(init.headers ?? {});
@@ -213,7 +214,7 @@ async function fetchWithRedirects(
       logMaintenanceError(
         `Detected redirect loop while fetching ${initialUrl}. Looped back to ${url}`,
         undefined,
-        { warn: true }
+        { warn: true },
       );
       return new Response(null, { status: 508, statusText: "Redirect Loop" });
     }
@@ -226,7 +227,7 @@ async function fetchWithRedirects(
         headers,
         redirect: "manual",
       },
-      timeoutMs
+      timeoutMs,
     );
 
     if (!isRedirectStatus(response.status)) {
@@ -251,7 +252,7 @@ async function fetchWithRedirects(
       maxRedirects + 1
     } redirects`,
     undefined,
-    { warn: true }
+    { warn: true },
   );
   return new Response(null, {
     status: 508,
@@ -260,13 +261,13 @@ async function fetchWithRedirects(
 }
 
 function resolveBaseUrl(
-  headerList: Awaited<ReturnType<typeof headers>>
+  headerList: Awaited<ReturnType<typeof headers>>,
 ): string {
   const host = takeFirst(
-    headerList.get("x-forwarded-host") ?? headerList.get("host")
+    headerList.get("x-forwarded-host") ?? headerList.get("host"),
   );
   const protocol = takeFirst(
-    headerList.get("x-forwarded-proto") ?? headerList.get("forwarded-proto")
+    headerList.get("x-forwarded-proto") ?? headerList.get("forwarded-proto"),
   );
 
   if (host) {
@@ -341,7 +342,7 @@ function takeFirst(value: string | null): string | null {
 function fetchWithTimeout(
   url: string,
   init: RequestInit,
-  timeoutMs: number
+  timeoutMs: number,
 ): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -356,7 +357,7 @@ type MaintenanceLogOptions = { warn?: boolean } | undefined;
 function logMaintenanceError(
   context: string,
   error?: unknown,
-  options?: MaintenanceLogOptions
+  options?: MaintenanceLogOptions,
 ): void {
   const warn = options?.warn ?? false;
 
