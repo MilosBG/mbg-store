@@ -80,7 +80,7 @@ const MilosBGModel = () => {
   return (
     <section
       id="milos-bg-model"
-      className="bg-mbg-rgbalight px-5 py-10 font-kanit text-mbg-black sm:px-6 lg:px-8 lg:py-14"
+      className="bg-mbg-black/3 px-5 py-10 font-kanit text-mbg-black sm:px-6 lg:px-8 lg:py-14"
     >
       <div className="mx-auto max-w-[1440px]">
         {/* Section heading */}
