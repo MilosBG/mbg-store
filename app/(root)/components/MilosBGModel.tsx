@@ -126,7 +126,7 @@ const MilosBGModel = () => {
             return (
               <article
                 key={step.number}
-                className={`hoverEffect flex min-h-[220px] flex-col items-center justify-center border px-5 py-7 text-center shadow-mbg-bx-shadow hover:-translate-y-1 hover:bg-mbg-white/80 hover:text-mbg-black ${step.className}`}
+                className={`hoverEffect flex min-h-[220px] flex-col items-center justify-center border-dashed px-5 py-7 text-center shadow-mbg-bx-shadow hover:-translate-y-1 hover:bg-mbg-white/80 hover:text-mbg-black ${step.className}`}
               >
                 <Icon
                   aria-hidden="true"
