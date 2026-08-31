@@ -2,41 +2,10 @@
 
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { useState, type ReactNode } from "react";
-
-type CommerceInfo = {
-  productReference?: string;
-  productDetails?: string;
-  materialComposition?: string;
-  fabricName?: string;
-  fabricWeight?: number | string;
-  fabricDescription?: string;
-  fit?: string;
-  fitNotes?: string;
-  careInstructions?: string;
-  countryOfManufacture?: string;
-  fabricOrigin?: string;
-  craftsmanship?: string;
-  certificationName?: string;
-  certificationScope?: string;
-  certificateNumber?: string;
-  certificationInstitute?: string;
-  certificateUrl?: string;
-  shippingProcessingTime?: string;
-  deliveryEstimate?: string;
-  withdrawalDays?: number | string;
-  returnCostBearer?: string;
-  manufacturerName?: string;
-  manufacturerAddress?: string;
-  manufacturerEmail?: string;
-  safetyWarnings?: string;
-};
-
-type ProductWithCommerceInfo = {
-  commerceInfo?: CommerceInfo | null;
-};
+import type { CommerceInfo, Product } from "@/lib/types";
 
 type ProductAccordionProps = {
-  product: unknown;
+  product: Product;
 };
 
 type AccordionItem = {
@@ -54,19 +23,8 @@ const toPositiveNumber = (value: unknown): number => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
-const getCommerceInfo = (product: unknown): CommerceInfo => {
-  if (typeof product !== "object" || product === null) {
-    return {};
-  }
-
-  const commerceInfo = (product as ProductWithCommerceInfo).commerceInfo;
-
-  if (typeof commerceInfo !== "object" || commerceInfo === null) {
-    return {};
-  }
-
-  return commerceInfo;
-};
+const getCommerceInfo = (product: Product): CommerceInfo =>
+  product.commerceInfo ?? {};
 
 const MultilineText = ({ value }: { value?: string }) => {
   if (!hasText(value)) return null;
