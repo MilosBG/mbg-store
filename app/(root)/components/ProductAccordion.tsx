@@ -357,7 +357,7 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
           const contentId = `${item.id}-content`;
 
           return (
-            <div key={item.id} className="border-mbg-green/55 border-b">
+            <div key={item.id} className="border-mbg-white/55 border-b">
               <button
                 type="button"
                 aria-expanded={isOpen}
