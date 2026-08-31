@@ -349,7 +349,7 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
   return (
     <section
       aria-label="Product information"
-      className="bg-mbg-green/7 mt-3 w-full px-4 sm:px-5"
+      className="bg-mbg-white/7 mt-3 w-full px-4 sm:px-5"
     >
       <div className="border-mbg-green/55 border-t">
         {visibleItems.map((item) => {
