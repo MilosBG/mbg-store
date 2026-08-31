@@ -14,6 +14,7 @@ type AccordionItem = {
   content: ReactNode;
 };
 
+
 const hasText = (value: unknown): boolean =>
   typeof value === "string" && value.trim().length > 0;
 
