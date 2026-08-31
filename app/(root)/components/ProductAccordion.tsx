@@ -349,7 +349,7 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
   return (
     <section
       aria-label="Product information"
-      className="bg-mbg-black/7 mt-3 w-full px-4 sm:px-5"
+      className="bg-mbg-black/3 mt-3 w-full px-4 sm:px-5"
     >
       <div className="border-mbg-green/55 border-t">
         {visibleItems.map((item) => {
@@ -373,7 +373,7 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
                   {item.title}
                 </span>
 
-                <span className="border-mbg-black/15 group-hover:border-mbg-green flex h-6 w-6 shrink-0 items-center justify-center border transition-colors duration-300">
+                <span className="border-mbg-black/15 group-hover:border-mbg-white flex h-6 w-6 shrink-0 items-center justify-center border transition-colors duration-300">
                   <ChevronDown
                     aria-hidden="true"
                     className={`h-3.5 w-3.5 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
