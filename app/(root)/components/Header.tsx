@@ -125,7 +125,7 @@ const Header = () => {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search Keys : TOPS  |  UPCYCLINGS |  BOTTOMS  |  BACKUPS  |  CGS  |"
+                placeholder="TOPS  ✿  UPCYCLINGS  ✿  BOTTOMS  ✿  BACKUPS  ✿  CGS"
                 className="bg-mbg-black/7 w-full text-mbg-black focus:ring-mbg-black/7 focus:border-mbg-black focus:bg-mbg-rgbablank"
                 width="100%"
               />
