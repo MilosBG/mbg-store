@@ -79,7 +79,7 @@ const ProductDetails = async ({
 
         <div className="min-w-0">
           <ProductInfo productInfo={productDetails} />
-          <ProductAccordion product={productDetails as any} />
+          <ProductAccordion product={productDetails} />
         </div>
       </div>
     </Container>
