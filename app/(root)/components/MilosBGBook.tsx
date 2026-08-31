@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { MBGBooks } from "@/images";
 import Image from "next/image";
 import { FiArrowUpRight, FiTablet } from "react-icons/fi";
@@ -20,6 +23,8 @@ const MilosBGBook = ({
   paypalUrl = DEFAULT_PAYPAL_URL,
   className = "",
 }: MilosBGBookProps) => {
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+
   return (
     <section
       id="the-book"
@@ -472,222 +477,265 @@ const MilosBGBook = ({
             {/* ====================================================== */}
 
             <div className="border-t border-mbg-black/15 bg-mbg-white">
-              <details className="group">
-                {/* ====================================================== */}
-                {/* ACCORDION HEADER                                       */}
-                {/* ====================================================== */}
+              {/* ====================================================== */}
+              {/* ACCORDION HEADER                                       */}
+              {/* ====================================================== */}
 
-                <summary
-                  className="
-                    flex
-                    min-h-[82px]
-                    cursor-pointer
-                    list-none
-                    items-center
-                    justify-between
-                    gap-6
-                    px-6
-                    py-4
-                    transition-colors
-                    duration-300
-                    hover:bg-mbg-black/[0.025]
-                    sm:px-8
-                    lg:px-10
-                    [&::-webkit-details-marker]:hidden
-                  "
-                >
-                  <div className="flex items-center gap-5 sm:gap-7">
-                    {/* CHAPTER NUMBER */}
-                    <span className="text-[9px] font-black tracking-[0.18em] text-mbg-green sm:text-[10px]">
-                      01
-                    </span>
+              <button
+                type="button"
+                aria-expanded={isSummaryOpen}
+                aria-controls="book-summary-content"
+                onClick={() => setIsSummaryOpen((open) => !open)}
+                className={`
+                  flex
+                  min-h-[82px]
+                  w-full
+                  cursor-pointer
+                  items-center
+                  justify-between
+                  gap-6
+                  px-6
+                  py-4
+                  text-left
+                  transition-[background-color,transform]
+                  duration-300
+                  ease-out
+                  hover:bg-mbg-black/[0.025]
+                  focus-visible:outline
+                  focus-visible:outline-2
+                  focus-visible:outline-offset-[-2px]
+                  focus-visible:outline-mbg-green
+                  sm:px-8
+                  lg:px-10
+                  ${isSummaryOpen ? "bg-mbg-black/[0.025]" : "bg-transparent"}
+                `}
+              >
+                <div className="flex items-center gap-5 sm:gap-7">
+                  {/* CHAPTER NUMBER */}
+                  <span className="text-[9px] font-black tracking-[0.18em] text-mbg-green sm:text-[10px]">
+                    01
+                  </span>
 
-                    <div>
-                      <p className="text-[8px] font-extrabold uppercase tracking-[0.22em] text-mbg-green sm:text-[9px]">
-                        About the book
-                      </p>
+                  <div>
+                    <p className="text-[8px] font-extrabold uppercase tracking-[0.22em] text-mbg-green sm:text-[9px]">
+                      About the book
+                    </p>
 
-                      <h3 className="mt-1 text-[12px] font-black uppercase tracking-[-0.02em] text-mbg-black sm:text-sm">
-                        Read the summary
-                      </h3>
-                    </div>
+                    <h3 className="mt-1 text-[12px] font-black uppercase tracking-[-0.02em] text-mbg-black sm:text-sm">
+                      Read the summary
+                    </h3>
                   </div>
+                </div>
 
-                  {/* PLUS / MINUS BUTTON */}
+                {/* PLUS / MINUS BUTTON */}
+                <span
+                  aria-hidden="true"
+                  className={`
+                    relative
+                    flex
+                    h-7
+                    w-7
+                    shrink-0
+                    items-center
+                    justify-center
+                    border
+                    border-mbg-black
+                    transition-[background-color,transform]
+                    duration-500
+                    ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                    ${
+                      isSummaryOpen
+                        ? "scale-[1.06] bg-mbg-black"
+                        : "scale-100 bg-transparent"
+                    }
+                  `}
+                >
+                  {/* HORIZONTAL LINE */}
                   <span
-                    aria-hidden="true"
-                    className="
-                      relative
-                      flex
-                      h-7
-                      w-7
-                      shrink-0
-                      items-center
-                      justify-center
-                      border
-                      border-mbg-black
+                    className={`
+                      absolute
+                      h-[1.5px]
+                      w-3.5
                       transition-colors
                       duration-300
-                      group-open:bg-mbg-black
-                    "
-                  >
-                    {/* HORIZONTAL LINE */}
-                    <span
-                      className="
-                        absolute
-                        h-[1.5px]
-                        w-3.5
-                        bg-mbg-black
-                        transition-colors
-                        duration-300
-                        group-open:bg-mbg-white
-                      "
-                    />
+                      ${isSummaryOpen ? "bg-mbg-white" : "bg-mbg-black"}
+                    `}
+                  />
 
-                    {/* VERTICAL LINE */}
-                    <span
-                      className="
-                        absolute
-                        h-3.5
-                        w-[1.5px]
-                        bg-mbg-black
-                        transition-all
-                        duration-300
-                        group-open:rotate-90
-                        group-open:bg-mbg-white
-                      "
-                    />
-                  </span>
-                </summary>
+                  {/* VERTICAL LINE */}
+                  <span
+                    className={`
+                      absolute
+                      h-3.5
+                      w-[1.5px]
+                      transition-[transform,background-color]
+                      duration-500
+                      ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                      ${
+                        isSummaryOpen
+                          ? "rotate-90 bg-mbg-white"
+                          : "rotate-0 bg-mbg-black"
+                      }
+                    `}
+                  />
+                </span>
+              </button>
 
-                {/* ====================================================== */}
-                {/* ACCORDION CONTENT                                      */}
-                {/* ====================================================== */}
+              {/* ====================================================== */}
+              {/* ACCORDION CONTENT                                      */}
+              {/* Smooth height + subtle spring finish                    */}
+              {/* ====================================================== */}
 
-                <div className="border-t border-mbg-black/10 bg-[#f7f7f7]">
+              <div
+                id="book-summary-content"
+                aria-hidden={!isSummaryOpen}
+                className="grid transition-[grid-template-rows] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                style={{
+                  gridTemplateRows: isSummaryOpen ? "1fr" : "0fr",
+                }}
+              >
+                <div className="min-h-0 overflow-hidden">
                   <div
-                    className="
-                      grid
-                      gap-8
-                      px-6
-                      py-9
-                      sm:px-8
-                      lg:grid-cols-[190px_1fr]
-                      lg:gap-12
-                      lg:px-10
-                      lg:py-12
-                    "
+                    className={`
+                      border-t
+                      border-mbg-black/10
+                      bg-[#f7f7f7]
+                      origin-top
+                      transition-[opacity,transform]
+                      duration-500
+                      ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                      motion-reduce:transition-none
+                      ${
+                        isSummaryOpen
+                          ? "translate-y-0 scale-y-100 opacity-100 delay-75"
+                          : "-translate-y-2 scale-y-[0.985] opacity-0 delay-0"
+                      }
+                    `}
                   >
-                    {/* ====================================================== */}
-                    {/* LEFT COLUMN                                            */}
-                    {/* ====================================================== */}
+                    <div
+                      className="
+                        grid
+                        gap-8
+                        px-6
+                        py-9
+                        sm:px-8
+                        lg:grid-cols-[190px_1fr]
+                        lg:gap-12
+                        lg:px-10
+                        lg:py-12
+                      "
+                    >
+                      {/* ====================================================== */}
+                      {/* LEFT COLUMN                                            */}
+                      {/* ====================================================== */}
 
-                    <div className="text-center lg:text-left">
-                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-mbg-green">
-                        Grind Until Achieve
-                      </p>
+                      <div className="text-center lg:text-left">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-mbg-green">
+                          Grind Until Achieve
+                        </p>
 
-                      <div className="mx-auto mt-3 h-[3px] w-12 bg-mbg-green lg:mx-0" />
+                        <div className="mx-auto mt-3 h-[3px] w-12 bg-mbg-green lg:mx-0" />
 
-                      <p className="mx-auto mt-5 max-w-[150px] text-[10px] font-medium uppercase leading-[1.65] tracking-[0.06em] text-mbg-black/50 lg:mx-0">
-                        Five chapters.
-                        <br />
-                        One mentality.
-                        <br />
-                        One journey.
-                      </p>
+                        <p className="mx-auto mt-5 max-w-[150px] text-[10px] font-medium uppercase leading-[1.65] tracking-[0.06em] text-mbg-black/50 lg:mx-0">
+                          Five chapters.
+                          <br />
+                          One mentality.
+                          <br />
+                          One journey.
+                        </p>
+                      </div>
+
+                      {/* ====================================================== */}
+                      {/* SUMMARY TEXT                                           */}
+                      {/* ====================================================== */}
+
+                      <div className="mx-auto max-w-[760px] text-center lg:mx-0 lg:text-left">
+                        <p className="text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
+                          This book is an invitation to the{" "}
+                          <strong className="font-bold text-mbg-black">
+                            Grind
+                          </strong>
+                          , the{" "}
+                          <strong className="font-bold text-mbg-black">
+                            Resilience
+                          </strong>
+                          , the{" "}
+                          <strong className="font-bold text-mbg-black">
+                            Consistency
+                          </strong>
+                          , the{" "}
+                          <strong className="font-bold text-mbg-black">
+                            Focus
+                          </strong>{" "}
+                          in order to{" "}
+                          <strong className="font-bold text-mbg-green">
+                            Achieve
+                          </strong>
+                          .
+                        </p>
+
+                        <p className="mt-4 text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
+                          The journey is challenging, however, it ultimately
+                          culminates in authentic achievement.
+                        </p>
+
+                        <p className="mt-4 text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
+                          <strong className="font-bold text-mbg-black">
+                            Grind Until Achieve
+                          </strong>{" "}
+                          is a mantra, a mentality.
+                        </p>
+
+                        {/* ====================================================== */}
+                        {/* FINAL STATEMENT                                        */}
+                        {/* ====================================================== */}
+
+                        <div className="mx-auto mt-7 max-w-[520px] border-l-[3px] border-mbg-green pl-4 text-left lg:mx-0">
+                          <p className="text-sm font-bold leading-[1.6] text-mbg-green sm:text-[15px]">
+                            Now it&apos;s up to you to write your own chapter.
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
                     {/* ====================================================== */}
-                    {/* SUMMARY TEXT                                           */}
+                    {/* FIVE CHAPTERS                                           */}
                     {/* ====================================================== */}
 
-                    <div className="mx-auto max-w-[760px] text-center lg:mx-0 lg:text-left">
-                      <p className="text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
-                        This book is an invitation to the{" "}
-                        <strong className="font-bold text-mbg-black">
+                    <div className="border-t border-mbg-black/10 px-6 py-5 sm:px-8 lg:px-10">
+                      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 lg:justify-start">
+                        <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
                           Grind
-                        </strong>
-                        , the{" "}
-                        <strong className="font-bold text-mbg-black">
+                        </span>
+
+                        <span className="text-[9px] text-mbg-green">✿</span>
+
+                        <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
                           Resilience
-                        </strong>
-                        , the{" "}
-                        <strong className="font-bold text-mbg-black">
+                        </span>
+
+                        <span className="text-[9px] text-mbg-green">✿</span>
+
+                        <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
                           Consistency
-                        </strong>
-                        , the{" "}
-                        <strong className="font-bold text-mbg-black">
+                        </span>
+
+                        <span className="text-[9px] text-mbg-green">✿</span>
+
+                        <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
                           Focus
-                        </strong>{" "}
-                        in order to{" "}
-                        <strong className="font-bold text-mbg-green">
+                        </span>
+
+                        <span className="text-[9px] text-mbg-green">✿</span>
+
+                        <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-green">
                           Achieve
-                        </strong>
-                        .
-                      </p>
-
-                      <p className="mt-4 text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
-                        The journey is challenging, however, it ultimately
-                        culminates in authentic achievement.
-                      </p>
-
-                      <p className="mt-4 text-[13px] leading-[1.8] text-mbg-black/75 sm:text-sm sm:leading-[1.9]">
-                        <strong className="font-bold text-mbg-black">
-                          Grind Until Achieve
-                        </strong>{" "}
-                        is a mantra, a mentality.
-                      </p>
-
-                      {/* ====================================================== */}
-                      {/* FINAL STATEMENT                                        */}
-                      {/* ====================================================== */}
-
-                      <div className="mx-auto mt-7 max-w-[520px] border-l-[3px] border-mbg-green pl-4 text-left lg:mx-0">
-                        <p className="text-sm font-bold leading-[1.6] text-mbg-green sm:text-[15px]">
-                          Now it&apos;s up to you to write your own chapter.
-                        </p>
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  {/* ====================================================== */}
-                  {/* FIVE CHAPTERS                                           */}
-                  {/* ====================================================== */}
-
-                  <div className="border-t border-mbg-black/10 px-6 py-5 sm:px-8 lg:px-10">
-                    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 lg:justify-start">
-                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
-                        Grind
-                      </span>
-
-                      <span className="text-[9px] text-mbg-green">✿</span>
-
-                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
-                        Resilience
-                      </span>
-
-                      <span className="text-[9px] text-mbg-green">✿</span>
-
-                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
-                        Consistency
-                      </span>
-
-                      <span className="text-[9px] text-mbg-green">✿</span>
-
-                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-black">
-                        Focus
-                      </span>
-
-                      <span className="text-[9px] text-mbg-green">✿</span>
-
-                      <span className="text-[9px] font-black uppercase tracking-[0.13em] text-mbg-green">
-                        Achieve
-                      </span>
-                    </div>
-                  </div>
                 </div>
-              </details>
+              </div>
             </div>
 
             {/* ====================================================== */}
