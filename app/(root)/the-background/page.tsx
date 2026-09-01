@@ -430,9 +430,9 @@ const AboutUs = () => {
 
           <div className="mt-8 space-y-1">
             <p className="text-sm font-black uppercase tracking-[0.15em] text-mbg-black">
-              Grind Until <text className="text-mbg-white">You</text> Achieve.
+              Grind Until <text className="text-mbg-green">You</text> Achieve.
             </p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-mbg-white">
+            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-mbg-green">
               Make It Your Liked Outfits.
             </p>
 
@@ -466,7 +466,7 @@ const AboutUs = () => {
             key={label}
             className="rounded-xs border border-mbg-black/7 bg-mbg-black/7 p-4 text-center"
           >
-            <div className="text-lg uppercase font-bold tracking-tight text-mbg-black/50">
+            <div className="text-lg uppercase font-bold tracking-tight text-mbg-black/80">
               {big}
             </div>
 
