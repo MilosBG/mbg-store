@@ -330,13 +330,13 @@ const AboutUs = () => {
 
             <div className="space-y-6 text-[13px] leading-7 text-mbg-darkgrey">
               <p>
-                Each Milos BG collection represents a new Chapter of that story,
-                translating its mentality into garments with their own purpose,
+                Each Milos BG collection represents a new <strong>Chapter</strong> of that story,
+                translating its <strong className="text-mbg-green">Mentality</strong> into garments with their own purpose,
                 identity and message.
               </p>
 
               <p>
-                Every piece becomes a physical reminder of the journey:
+                Every piece becomes a physical reminder of the journey,
                 <strong className="font-semibold text-mbg-black">
                   {" "}
                   keep working, keep learning, keep improving, keep moving
@@ -344,24 +344,24 @@ const AboutUs = () => {
                 </strong>
               </p>
               <p>
-                Inspired by craftsmanship, sport, basketball, movement, and
-                Japanese philosophy, Milos BG draws deeply from the spirit of
-                Kaizen, the pursuit of continuous improvement through
-                discipline, patience, and repetition. As well as Kintsugi, the
+                Inspired by <strong>craftsmanship</strong>, <strong>sport</strong>, <strong>basketball</strong>, <strong>movement</strong>, and
+                <strong>Japanese philosophy</strong>, Milos BG draws deeply from the spirit of
+                <strong>Kaizen</strong>, the pursuit of continuous improvement through
+                discipline, patience, and repetition. As well as <strong>Kintsugi</strong>, the
                 art of repairing what has been broken while embracing its scars
                 as part of its history, character, and strength. The brand also
-                finds inspiration in the Madagascar periwinkle, a flower whose
+                finds inspiration in the <strong>Madagascar periwinkle</strong>, a flower whose
                 remarkable resilience and ability to endure challenging
                 conditions reflects the mindset at the heart of Milos BG.
               </p>
               <p>
                 These influences shape not only the philosophy of the brand, but
-                also the way each piece is conceived. Milos BG creates garments
-                designed to accompany you throughout the process, from the quiet
+                also the way each piece is conceived. <strong>Milos BG creates garments</strong>
+                <strong>designed to accompany you throughout the process</strong>, from the quiet
                 hours when no one sees the work to the moments when that
-                dedication finally speaks for itself. Every piece reflects the
-                belief that progress is built step by step, through resilience,
-                consistency, intention, and respect for the craft. Like
+                dedication finally speaks for itself. <strong>Every piece reflects the</strong>
+                <strong>belief that progress is built step by step, through resilience,</strong>
+                <strong>consistency, intention, and respect for the craft</strong>. Like
                 Kintsugi, it is about finding strength and meaning in what has
                 been endured. Like the Madagascar periwinkle, it is about
                 continuing to grow, adapt, and move forward regardless of the
