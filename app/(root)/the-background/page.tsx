@@ -294,31 +294,31 @@ const AboutUs = () => {
               <Image
                 src={GRIND}
                 alt="GRIND"
-                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
                 src={RESILIENCE}
                 alt="RESILIENCE"
-                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
                 src={CONSISTENCY}
                 alt="CONSISTENCY"
-                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
                 src={FOCUS}
                 alt="FOCUS"
-                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
                 src={ACHIEVE}
                 alt="ACHIEVE"
-                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
             </div>
           </div>
