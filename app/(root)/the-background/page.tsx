@@ -409,7 +409,7 @@ const AboutUs = () => {
                 </span>
 
                 <p className="mt-4 max-w-md text-base leading-8 text-mbg-black md:text-lg">
-                  ACHIEVE means very little without everything required to reach
+                  <strong>ACHIEVE</strong> means very little without everything required to reach
                   it.
                 </p>
               </div>
@@ -570,7 +570,7 @@ const AboutUs = () => {
         </div>
 
         {/* Final Signature */}
-        <div className="bg-mbg-white/90 px-6 py-12 text-center md:py-16">
+        <div className="bg-mbg-white/80 px-6 py-12 text-center md:py-16">
           <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-mbg-black/60">
             This is Milos BG
           </p>
