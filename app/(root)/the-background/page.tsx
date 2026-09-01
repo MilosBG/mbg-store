@@ -283,20 +283,6 @@ const AboutUs = () => {
               ))}
             </div>
 
-            {/* Footer */}
-            <div className="mt-8 flex items-center justify-between gap-6">
-              <div className="flex items-center gap-3">
-                <span className="h-[2px] w-8 bg-mbg-green" />
-
-                <span className="text-[9px] font-bold uppercase tracking-[0.28em] text-mbg-black">
-                  Grind Until Achieve
-                </span>
-              </div>
-
-              <span className="hidden text-[9px] font-medium uppercase tracking-[0.2em] text-mbg-black/30 sm:block">
-                I — V
-              </span>
-            </div>
           </div>
         </div>
 
@@ -666,7 +652,7 @@ const AboutUs = () => {
         <p>
           Last update&nbsp;:&nbsp;
           {/* UPDATE MANUALLY */}
-          19/08/2026
+          01/09/2026
         </p>
 
         <p className="mt-2">
