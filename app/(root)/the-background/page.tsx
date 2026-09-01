@@ -5,7 +5,15 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
 import Image from "next/image";
-import { ACHIEVE, BG, CONSISTENCY, FOCUS, GRIND, MBG2, RESILIENCE } from "@/images";
+import {
+  ACHIEVE,
+  BG,
+  CONSISTENCY,
+  FOCUS,
+  GRIND,
+  MBG2,
+  RESILIENCE,
+} from "@/images";
 
 export const metadata = buildMetadata({
   title: "The Background",
@@ -282,38 +290,38 @@ const AboutUs = () => {
                 </div>
               ))}
             </div>
+          <div className="mt-4 flex w-full items-center justify-evenly gap-7">
+            <Image
+              src={GRIND}
+              alt="GRIND"
+              className="h-auto w-16 object-contain"
+            />
+
+            <Image
+              src={RESILIENCE}
+              alt="RESILIENCE"
+              className="h-auto w-16 object-contain"
+            />
+
+            <Image
+              src={CONSISTENCY}
+              alt="CONSISTENCY"
+              className="h-auto w-16 object-contain"
+            />
+
+            <Image
+              src={FOCUS}
+              alt="FOCUS"
+              className="h-auto w-16 object-contain"
+            />
+
+            <Image
+              src={ACHIEVE}
+              alt="ACHIEVE"
+              className="h-auto w-16 object-contain"
+            />
           </div>
-         <div className="flex w-full items-center justify-evenly gap-7">
-  <Image
-    src={GRIND}
-    alt="GRIND"
-    className="h-auto w-16 object-contain"
-  />
-
-  <Image
-    src={RESILIENCE}
-    alt="RESILIENCE"
-    className="h-auto w-16 object-contain"
-  />
-
-  <Image
-    src={CONSISTENCY}
-    alt="CONSISTENCY"
-    className="h-auto w-16 object-contain"
-  />
-
-  <Image
-    src={FOCUS}
-    alt="FOCUS"
-    className="h-auto w-16 object-contain"
-  />
-
-  <Image
-    src={ACHIEVE}
-    alt="ACHIEVE"
-    className="h-auto w-16 object-contain"
-  />
-</div>
+          </div>
         </div>
 
         {/* Mantra */}
@@ -361,9 +369,10 @@ const AboutUs = () => {
 
             <div className="space-y-6 text-[13px] leading-7 text-mbg-darkgrey">
               <p>
-                Each Milos BG collection represents a new <strong>Chapter</strong> of that story,
-                translating its <strong className="text-mbg-green">Mentality</strong> into garments with their own purpose,
-                identity and message.
+                Each Milos BG collection represents a new{" "}
+                <strong>Chapter</strong> of that story, translating its{" "}
+                <strong className="text-mbg-green">Mentality</strong> into
+                garments with their own purpose, identity and message.
               </p>
 
               <p>
@@ -375,28 +384,41 @@ const AboutUs = () => {
                 </strong>
               </p>
               <p>
-                Inspired by <strong>craftsmanship</strong>, <strong>sport</strong>, <strong>basketball</strong>, <strong>movement</strong>, and
-                <strong>Japanese philosophy</strong>, Milos BG draws deeply from the spirit of
-                <strong>Kaizen</strong>, the pursuit of continuous improvement through
-                discipline, patience, and repetition. As well as <strong>Kintsugi</strong>, the
-                art of repairing what has been broken while embracing its scars
-                as part of its history, character, and strength. The brand also
-                finds inspiration in the <strong>Madagascar periwinkle</strong>, a flower whose
+                Inspired by <strong>craftsmanship</strong>,{" "}
+                <strong>sport</strong>, <strong>basketball</strong>,{" "}
+                <strong>movement</strong>, and
+                <strong>Japanese philosophy</strong>, Milos BG draws deeply from
+                the spirit of
+                <strong>Kaizen</strong>, the pursuit of continuous improvement
+                through discipline, patience, and repetition. As well as{" "}
+                <strong>Kintsugi</strong>, the art of repairing what has been
+                broken while embracing its scars as part of its history,
+                character, and strength. The brand also finds inspiration in the{" "}
+                <strong>Madagascar periwinkle</strong>, a flower whose
                 remarkable resilience and ability to endure challenging
                 conditions reflects the mindset at the heart of Milos BG.
               </p>
               <p>
                 These influences shape not only the philosophy of the brand, but
-                also the way each piece is conceived. <strong>Milos BG creates garments</strong>
-                <strong>designed to accompany you throughout the process</strong>, from the quiet
-                hours when no one sees the work to the moments when that
-                dedication finally speaks for itself. <strong>Every piece reflects the</strong>
-                <strong>belief that progress is built step by step, through resilience,</strong>
-                <strong>consistency, intention, and respect for the craft</strong>. Like
-                Kintsugi, it is about finding strength and meaning in what has
-                been endured. Like the Madagascar periwinkle, it is about
-                continuing to grow, adapt, and move forward regardless of the
-                conditions.
+                also the way each piece is conceived.{" "}
+                <strong>Milos BG creates garments</strong>
+                <strong>
+                  designed to accompany you throughout the process
+                </strong>
+                , from the quiet hours when no one sees the work to the moments
+                when that dedication finally speaks for itself.{" "}
+                <strong>Every piece reflects the</strong>
+                <strong>
+                  belief that progress is built step by step, through
+                  resilience,
+                </strong>
+                <strong>
+                  consistency, intention, and respect for the craft
+                </strong>
+                . Like Kintsugi, it is about finding strength and meaning in
+                what has been endured. Like the Madagascar periwinkle, it is
+                about continuing to grow, adapt, and move forward regardless of
+                the conditions.
               </p>
               <p className="text-mbg-green">
                 Together, they embody a simple idea at the core of Milos BG,
