@@ -299,13 +299,21 @@ const AboutUs = () => {
 
         {/* The unseen work */}
         <div className="border-y border-mbg-black/10 py-12 md:py-16">
-  <Image
-                            src={MBG}
-                            alt="Handcrafted production of a Milos BG garment"
-                            fill
-                            sizes="(max-width: 1024px) 100vw, 42vw"
-                            className="object-cover grayscale"
-                          />
+ <Image
+  src={MBG}
+  alt="Grind Until Achieve"
+  className="
+    mx-auto
+    h-auto
+    w-[46%]
+    max-w-[460px]
+    object-center
+    py-8
+    sm:w-[68%]
+    md:w-[64%]
+    lg:w-[60%]
+  "
+/>
         </div>
         {/* The unseen work */}
         <div className="border-y border-mbg-black/10 py-12 md:py-16">
