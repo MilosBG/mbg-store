@@ -386,9 +386,9 @@ const AboutUs = () => {
               <p>
                 Inspired by <strong>craftsmanship</strong>,{" "}
                 <strong>sport</strong>, <strong>basketball</strong>,{" "}
-                <strong>movement</strong>, and 
+                <strong>movement</strong>, and{" "}
                 <strong>Japanese philosophy</strong>, Milos BG draws deeply from
-                the spirit of
+                the spirit of{" "}
                 <strong>Kaizen</strong>, the pursuit of continuous improvement
                 through discipline, patience, and repetition. As well as{" "}
                 <strong>Kintsugi</strong>, the art of repairing what has been
@@ -401,13 +401,13 @@ const AboutUs = () => {
               <p>
                 These influences shape not only the philosophy of the brand, but
                 also the way each piece is conceived.{" "}
-                <strong>Milos BG creates garments</strong>
+                <strong>Milos BG creates garments</strong>{" "}
                 <strong>
                   designed to accompany you throughout the process
                 </strong>
                 , from the quiet hours when no one sees the work to the moments
                 when that dedication finally speaks for itself.{" "}
-                <strong>Every piece reflects the</strong>
+                <strong>Every piece reflects the</strong>{" "}
                 <strong>
                   belief that progress is built step by step, through
                   resilience,
