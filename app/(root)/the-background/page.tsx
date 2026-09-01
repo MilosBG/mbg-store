@@ -5,7 +5,7 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
 import Image from "next/image";
-import { MBG2 } from "@/images";
+import { BG, MBG2 } from "@/images";
 
 export const metadata = buildMetadata({
   title: "The Background",
@@ -75,69 +75,100 @@ const AboutUs = () => {
       </section>
 
       {/* Our Story */}
-      {/* Our Story */}
-      <section className="mt-10 overflow-hidden">
-        {/* Opening / Manifesto */}
-        <div className="border-y border-mbg-black/10 py-10 md:py-14">
-          <div className="mx-auto max-w-5xl">
-            <div className="grid gap-8 md:grid-cols-[180px_1fr] md:gap-12">
-              {/* Left label */}
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-mbg-green">
+      <section className="mt-10 overflow-hidden border-y border-mbg-black/10">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
+          <div className="relative grid min-h-[620px] items-center gap-10 py-12 md:grid-cols-[1.05fr_0.95fr] md:py-0 lg:min-h-[700px]">
+            {/* LEFT — CONTENT */}
+            <div className="relative z-10 max-w-2xl py-8 md:py-20">
+              {/* Small label */}
+              <div className="mb-8 flex items-center gap-4">
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-mbg-green">
                   Our Philosophy
                 </span>
 
-                <div className="mt-3 h-[2px] w-10 bg-mbg-green" />
+                <div className="h-px w-10 bg-mbg-green" />
               </div>
 
-              {/* Main intro */}
-              <div>
-                <p className="max-w-4xl text-xl font-semibold leading-[1.35] tracking-tight text-mbg-black sm:text-2xl md:text-3xl lg:text-4xl">
-                  Milos BG
-                  <span className="text-mbg-green">
-                    {" "}
-                    is a story of progression,
-                  </span>{" "}
-                  written one chapter at a time.
+              {/* Main title */}
+              <h2 className="max-w-xl text-[clamp(2.4rem,5vw,5.5rem)] font-semibold leading-[0.95] tracking-[-0.045em] text-mbg-black">
+                A story of
+                <span className="block text-mbg-green">progression.</span>
+              </h2>
+
+              {/* Intro */}
+              <p className="mt-8 max-w-xl text-sm leading-7 text-mbg-darkgrey md:text-[15px]">
+                Born in a modest studio, Milos BG has always stood by one
+                uncompromising principle:
+                <strong className="font-semibold text-mbg-black">
+                  {" "}
+                  quality and craftsmanship above all else.
+                </strong>
+              </p>
+
+              <p className="mt-5 max-w-xl text-sm leading-7 text-mbg-darkgrey md:text-[15px]">
+                Every piece is thoughtfully designed, tested, refined and
+                handcrafted with purpose before being released in limited
+                editions. Nothing exists simply to fill a collection.
+              </p>
+
+              {/* Mentality */}
+              <div className="mt-10 max-w-xl border-l-2 border-mbg-green pl-5">
+                <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-mbg-green">
+                  The Mentality
+                </span>
+
+                <p className="mt-3 text-sm leading-7 text-mbg-black/75">
+                  Achievement is not a single moment. It is the result of what
+                  we repeatedly choose to do when nobody is watching.
                 </p>
-
-                <div className="mt-8 grid gap-5 text-[13px] leading-7 text-mbg-darkgrey md:grid-cols-2">
-                  <p>
-                    Born in a modest studio, Milos BG has always stood by one
-                    uncompromising principle:
-                    <strong className="font-semibold text-mbg-black">
-                      {" "}
-                      quality and craftsmanship above all else.
-                    </strong>
-                  </p>
-
-                  <p>
-                    Every piece is thoughtfully designed, tested, refined and
-                    handcrafted with purpose before being released in limited
-                    editions. Nothing exists simply to fill a collection.
-                  </p>
-                </div>
               </div>
+            </div>
+
+            {/* RIGHT — IMAGE */}
+            <div className="relative flex h-[440px] items-end justify-center md:h-full">
+              {/* Decorative chapter text */}
+              <span
+                aria-hidden="true"
+                className="absolute right-0 top-20 hidden text-[clamp(5rem,9vw,9rem)] font-bold uppercase leading-none tracking-[-0.08em] text-mbg-black/[0.025] lg:block"
+              >
+                GRIND
+              </span>
+
+              {/* Green detail behind image */}
+              <div className="absolute bottom-[12%] right-[12%] h-36 w-36 rounded-full bg-mbg-green/[0.06] blur-3xl md:h-60 md:w-60" />
+
+              <div className="relative h-full w-full max-w-[520px]">
+                <Image
+                  src={BG}
+                  alt="Milos BG — Basketball Court"
+                  fill
+                  priority
+                  className="object-contain object-bottom grayscale"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
+            </div>
+
+            {/* Bottom chapter marker */}
+            <div className="absolute bottom-7 left-0 hidden items-center gap-4 md:flex">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
+                Grind
+              </span>
+
+              <span className="h-px w-8 bg-mbg-black/20" />
+
+              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
+                Resilience
+              </span>
+
+              <span className="h-px w-8 bg-mbg-black/20" />
+
+              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
+                Consistency
+              </span>
             </div>
           </div>
         </div>
-
-        {/* Philosophy statement */}
-        <div className="mx-auto max-w-5xl py-12 md:py-16">
-          <div className="max-w-3xl">
-            <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-mbg-green">
-              The Mentality
-            </span>
-
-            <p className="mt-4 text-base leading-8 text-mbg-black/80 md:text-lg">
-              Milos BG was never meant to be only about clothing. The brand is
-              built around a philosophy of continuous improvement, the belief
-              that achievement is not a single moment, but the result of what we
-              repeatedly choose to do when nobody is watching.
-            </p>
-          </div>
-        </div>
-
         {/* Five Chapters */}
         <div className="border-y border-mbg-black/10 bg-mbg-black/[0.025] py-12 md:py-16">
           <div className="mx-auto max-w-5xl">
@@ -255,8 +286,6 @@ const AboutUs = () => {
                 <br />
                 become one.
               </h3>
-
-                       
             </div>
 
             <div className="space-y-6 text-[13px] leading-7 text-mbg-darkgrey">
@@ -299,10 +328,10 @@ const AboutUs = () => {
 
         {/* The unseen work */}
         <div className="border-y border-mbg-black/10 py-12 md:py-16">
- <Image
-  src={MBG2}
-  alt="Grind Until Achieve"
-  className="
+          <Image
+            src={MBG2}
+            alt="Grind Until Achieve"
+            className="
     mx-auto
     h-auto
     w-[46%]
@@ -313,7 +342,7 @@ const AboutUs = () => {
     md:w-[64%]
     lg:w-[60%]
   "
-/>
+          />
         </div>
         {/* The unseen work */}
         <div className="border-y border-mbg-black/10 py-12 md:py-16">

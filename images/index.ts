@@ -9,6 +9,7 @@ import MBGBooks from "./chapters/MBG BOOKS.png";
 import MBGPeriwinkle from "./chapters/MBG - PERIWINKLE.png";
 import MBGMPeriwinkle from "./chapters/MBG - Madagascar PERIWINKLES.png";
 import MBG from "./chapters/MBG ✿.png";
+import BG from "./chapters/BG ✿.png";
 import MBG2 from "./chapters/Milos BG ✿.png";
 import spinner from "./Spinner.gif";
 
@@ -25,5 +26,6 @@ export {
   MBGPeriwinkle,
   MBGMPeriwinkle,
   MBG,
-  MBG2
+  MBG2,
+  BG
 };
