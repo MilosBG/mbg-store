@@ -282,7 +282,6 @@ const AboutUs = () => {
                 </div>
               ))}
             </div>
-
           </div>
         </div>
 
@@ -344,24 +343,35 @@ const AboutUs = () => {
                   forward.
                 </strong>
               </p>
-
               <p>
                 Inspired by craftsmanship, sport, basketball, movement, and
-                Japanese philosophy, especially the spirit of Kaizen, the
-                pursuit of continuous improvement through discipline, patience,
-                and repetition, Milos BG also draws inspiration from the
-                Madagascar periwinkle, a flower whose remarkable resilience and
-                ability to endure challenging conditions echo the mindset at the
-                heart of the brand.
+                Japanese philosophy, Milos BG draws deeply from the spirit of
+                Kaizen, the pursuit of continuous improvement through
+                discipline, patience, and repetition. As well as Kintsugi, the
+                art of repairing what has been broken while embracing its scars
+                as part of its history, character, and strength. The brand also
+                finds inspiration in the Madagascar periwinkle, a flower whose
+                remarkable resilience and ability to endure challenging
+                conditions reflects the mindset at the heart of Milos BG.
               </p>
               <p>
-                Milos BG creates pieces designed to accompany you throughout the
-                process. From the quiet hours when no one sees the work to the
-                moments when that dedication finally speaks for itself, every
-                garment reflects the belief that progress is built step by step,
-                through resilience, consistency, intention, and respect for the
-                craft. Like the Madagascar periwinkle, it is about continuing to
-                grow, adapt, and move forward regardless of the conditions.
+                These influences shape not only the philosophy of the brand, but
+                also the way each piece is conceived. Milos BG creates garments
+                designed to accompany you throughout the process, from the quiet
+                hours when no one sees the work to the moments when that
+                dedication finally speaks for itself. Every piece reflects the
+                belief that progress is built step by step, through resilience,
+                consistency, intention, and respect for the craft. Like
+                Kintsugi, it is about finding strength and meaning in what has
+                been endured. Like the Madagascar periwinkle, it is about
+                continuing to grow, adapt, and move forward regardless of the
+                conditions.
+              </p>
+              <p className="text-mbg-green">
+                Together, they embody a simple idea at the core of Milos BG,
+                progress is not defined by perfection, but by the ability to
+                persist, evolve, and turn every experience into part of the
+                journey.
               </p>
             </div>
           </div>
@@ -395,8 +405,8 @@ const AboutUs = () => {
                 </span>
 
                 <p className="mt-4 max-w-md text-base leading-8 text-mbg-black md:text-lg">
-                  <strong>ACHIEVE</strong> means very little without everything required to reach
-                  it.
+                  <strong>ACHIEVE</strong> means very little without everything
+                  required to reach it.
                 </p>
               </div>
 
