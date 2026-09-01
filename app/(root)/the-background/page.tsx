@@ -125,14 +125,7 @@ const AboutUs = () => {
             </div>
 
             {/* RIGHT — IMAGE */}
-            <div className="relative flex h-[440px] items-end justify-center md:h-full">
-              {/* Decorative chapter text */}
-              <span
-                aria-hidden="true"
-                className="absolute right-0 top-20 hidden text-[clamp(5rem,9vw,9rem)] font-bold uppercase leading-none tracking-[-0.08em] text-mbg-black/[0.025] lg:block"
-              >
-                GRIND
-              </span>
+            <div className="relative flex h-[440px] items-center justify-center md:h-full">
 
               {/* Green detail behind image */}
               <div className="absolute bottom-[12%] right-[12%] h-36 w-36 rounded-full bg-mbg-green/[0.06] blur-3xl md:h-60 md:w-60" />
@@ -143,7 +136,7 @@ const AboutUs = () => {
                   alt="Milos BG — Basketball Court"
                   fill
                   priority
-                  className="object-contain object-bottom grayscale"
+                  className="object-contain object-center"
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
@@ -165,6 +158,18 @@ const AboutUs = () => {
 
               <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
                 Consistency
+              </span>
+
+              <span className="h-px w-8 bg-mbg-black/20" />
+
+              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
+                Focus
+              </span>
+
+              <span className="h-px w-8 bg-mbg-black/20" />
+
+              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
+                Achieve
               </span>
             </div>
           </div>
