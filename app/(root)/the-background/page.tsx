@@ -98,7 +98,7 @@ const AboutUs = () => {
               {/* Intro */}
               <p className="mt-8 max-w-xl text-sm leading-7 text-mbg-darkgrey md:text-[15px]">
                 Born in a modest studio, Milos BG has always stood by one
-                uncompromising principle:
+                uncompromising principle,
                 <strong className="font-semibold text-mbg-black">
                   {" "}
                   quality and craftsmanship above all else.
