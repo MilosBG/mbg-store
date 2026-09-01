@@ -4,6 +4,8 @@ import { H3 } from "@/components/mbg-components/H3";
 import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
+import Image from "next/image";
+import { MBG } from "@/images";
 
 export const metadata = buildMetadata({
   title: "The Background",
@@ -253,6 +255,14 @@ const AboutUs = () => {
                 <br />
                 become one.
               </h3>
+
+                         <Image
+                            src={MBG}
+                            alt="Handcrafted production of a Milos BG garment"
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 42vw"
+                            className="object-cover grayscale"
+                          />
             </div>
 
             <div className="space-y-6 text-[13px] leading-7 text-mbg-darkgrey">
