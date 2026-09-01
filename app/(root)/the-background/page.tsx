@@ -173,30 +173,32 @@ const AboutUs = () => {
             </div>
           </div>
         </div>
-       
+
         {/* Five Chapters */}
-        <div className="border-y border-mbg-black/10 bg-mbg-black/[0.025] py-12 md:py-16">
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="border-y border-mbg-black/10 bg-mbg-black/[0.025] py-14 md:py-20">
+          <div className="mx-auto max-w-5xl px-5 sm:px-8">
+            {/* Header */}
+            <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-mbg-green">
+                <span className="text-[9px] font-bold uppercase tracking-[0.32em] text-mbg-green">
                   The Guideline
                 </span>
 
-                <h3 className="mt-2 text-2xl font-bold uppercase tracking-tight text-mbg-black md:text-4xl">
+                <h3 className="mt-3 text-3xl font-bold uppercase leading-[0.95] tracking-[-0.04em] text-mbg-black md:text-5xl">
                   Five Chapters.
                   <br />
                   One Journey.
                 </h3>
               </div>
 
-              <p className="max-w-md text-xs leading-6 text-mbg-darkgrey md:text-right">
+              <p className="max-w-sm text-xs leading-6 text-mbg-darkgrey md:text-right">
                 Like the chapters of a book, each step builds upon the one
                 before it. Not simply meant to be read, but lived.
               </p>
             </div>
 
-            <div className="divide-y divide-mbg-black/10 border-y border-mbg-black/10">
+            {/* Chapters */}
+            <div className="border-y border-mbg-black/10">
               {[
                 {
                   number: "I",
@@ -236,31 +238,64 @@ const AboutUs = () => {
               ].map((chapter) => (
                 <div
                   key={chapter.title}
-                  className="group grid gap-4 py-7 transition-all duration-300 md:grid-cols-[80px_220px_1fr] md:items-center"
+                  className="
+            group grid gap-6 border-b border-mbg-black/10
+            py-8 last:border-b-0
+            transition-all duration-500
+            md:grid-cols-[70px_220px_1fr]
+            md:items-center
+            md:gap-8
+          "
                 >
-                  <span className="text-xs font-bold tracking-[0.2em] text-mbg-green">
-                    {chapter.number}
-                  </span>
-
-                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
-                    <h4 className="text-xl font-bold uppercase tracking-tight text-mbg-black transition-colors group-hover:text-mbg-green md:text-2xl">
-                      {chapter.title}
-                    </h4>
-
-                    <span className="inline-flex w-fit items-center gap-2 rounded-full border border-mbg-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-mbg-darkgrey">
-                      <span
-                        className="h-3 w-3 rounded-full border border-mbg-black/15"
-                        style={{ backgroundColor: chapter.color }}
-                      />
-                      {chapter.color}
+                  {/* Number */}
+                  <div>
+                    <span className="text-[10px] font-bold tracking-[0.22em] text-mbg-green">
+                      {chapter.number}
                     </span>
                   </div>
 
+                  {/* Chapter identity */}
+                  <div>
+                    <h4 className="text-xl font-bold uppercase tracking-[-0.03em] text-mbg-black transition-transform duration-500 group-hover:translate-x-1 md:text-2xl">
+                      {chapter.title}
+                    </h4>
+
+                    {/* Color signature */}
+                    <div className="mt-3 flex items-center gap-3">
+                      <span
+                        className="h-[3px] w-10 shrink-0 border border-mbg-black/10 transition-all duration-500 group-hover:w-16"
+                        style={{
+                          backgroundColor: chapter.color,
+                        }}
+                      />
+
+                      <span className="font-mono text-[9px] font-medium uppercase tracking-[0.16em] text-mbg-black/40">
+                        {chapter.color}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
                   <p className="max-w-xl text-xs leading-6 text-mbg-darkgrey md:text-[13px]">
                     {chapter.description}
                   </p>
                 </div>
               ))}
+            </div>
+
+            {/* Footer */}
+            <div className="mt-8 flex items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <span className="h-[2px] w-8 bg-mbg-green" />
+
+                <span className="text-[9px] font-bold uppercase tracking-[0.28em] text-mbg-black">
+                  Grind Until Achieve
+                </span>
+              </div>
+
+              <span className="hidden text-[9px] font-medium uppercase tracking-[0.2em] text-mbg-black/30 sm:block">
+                I — V
+              </span>
             </div>
           </div>
         </div>
@@ -365,7 +400,7 @@ const AboutUs = () => {
           />
         </div>
         {/* The unseen work */}
-        <div className="border-y border-mbg-black/10 py-12 md:py-16">
+        <div className="border-y bg-mbg-white/80 border-mbg-black/10 py-12 md:py-16">
           <div className="mx-auto max-w-5xl">
             <div className="grid gap-10 md:grid-cols-[1fr_1.2fr] md:items-center">
               <div>
