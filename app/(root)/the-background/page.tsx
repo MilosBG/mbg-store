@@ -5,7 +5,7 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
 import Image from "next/image";
-import { MBG } from "@/images";
+import { MBG2 } from "@/images";
 
 export const metadata = buildMetadata({
   title: "The Background",
@@ -300,7 +300,7 @@ const AboutUs = () => {
         {/* The unseen work */}
         <div className="border-y border-mbg-black/10 py-12 md:py-16">
  <Image
-  src={MBG}
+  src={MBG2}
   alt="Grind Until Achieve"
   className="
     mx-auto
