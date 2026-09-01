@@ -126,7 +126,6 @@ const AboutUs = () => {
 
             {/* RIGHT — IMAGE */}
             <div className="relative flex h-[440px] items-center justify-center md:h-full">
-
               {/* Green detail behind image */}
               <div className="absolute bottom-[12%] right-[12%] h-36 w-36 rounded-full bg-mbg-green/[0.06] blur-3xl md:h-60 md:w-60" />
 
@@ -174,6 +173,7 @@ const AboutUs = () => {
             </div>
           </div>
         </div>
+       
         {/* Five Chapters */}
         <div className="border-y border-mbg-black/10 bg-mbg-black/[0.025] py-12 md:py-16">
           <div className="mx-auto max-w-5xl">
@@ -201,30 +201,35 @@ const AboutUs = () => {
                 {
                   number: "I",
                   title: "GRIND",
+                  color: "#000000",
                   description:
                     "The decision to begin. To work when motivation fades. To embrace the process and keep moving forward.",
                 },
                 {
                   number: "II",
                   title: "RESILIENCE",
+                  color: "#404040",
                   description:
                     "The strength to get back up. To turn failure, pressure and adversity into fuel.",
                 },
                 {
                   number: "III",
                   title: "CONSISTENCY",
+                  color: "#BFBFBF",
                   description:
                     "The discipline to return every day. Small actions, repeated relentlessly, becoming progress.",
                 },
                 {
                   number: "IV",
                   title: "FOCUS",
+                  color: "#00821A",
                   description:
                     "The ability to silence distractions, trust the path and keep your eyes on what matters.",
                 },
                 {
                   number: "V",
                   title: "ACHIEVE",
+                  color: "#FFFFFF",
                   description:
                     "Not the end of the journey, but the consequence of everything that came before it.",
                 },
@@ -234,12 +239,22 @@ const AboutUs = () => {
                   className="group grid gap-4 py-7 transition-all duration-300 md:grid-cols-[80px_220px_1fr] md:items-center"
                 >
                   <span className="text-xs font-bold tracking-[0.2em] text-mbg-green">
-                    {chapter.number.padStart(2, "")}
+                    {chapter.number}
                   </span>
 
-                  <h4 className="text-xl font-bold uppercase tracking-tight text-mbg-black transition-colors group-hover:text-mbg-green md:text-2xl">
-                    {chapter.title}
-                  </h4>
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+                    <h4 className="text-xl font-bold uppercase tracking-tight text-mbg-black transition-colors group-hover:text-mbg-green md:text-2xl">
+                      {chapter.title}
+                    </h4>
+
+                    <span className="inline-flex w-fit items-center gap-2 rounded-full border border-mbg-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-mbg-darkgrey">
+                      <span
+                        className="h-3 w-3 rounded-full border border-mbg-black/15"
+                        style={{ backgroundColor: chapter.color }}
+                      />
+                      {chapter.color}
+                    </span>
+                  </div>
 
                   <p className="max-w-xl text-xs leading-6 text-mbg-darkgrey md:text-[13px]">
                     {chapter.description}
@@ -387,137 +402,137 @@ const AboutUs = () => {
             </div>
           </div>
         </div>
-{/* Closing / Progression Chart */}
-<div className="mx-auto max-w-5xl py-16 md:py-24">
-  {/* Heading */}
-  <div className="max-w-4xl">
-    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-mbg-green">
-      The Journey
-    </span>
+        {/* Closing / Progression Chart */}
+        <div className="mx-auto max-w-5xl py-16 md:py-24">
+          {/* Heading */}
+          <div className="max-w-4xl">
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-mbg-green">
+              The Journey
+            </span>
 
-    <h2 className="mt-5 max-w-3xl text-2xl font-semibold leading-[1.25] tracking-tight text-mbg-black md:text-4xl">
-      We don&apos;t celebrate only the destination.
-      <span className="mt-1 block text-mbg-green">
-        We celebrate the GRIND that makes it possible.
-      </span>
-    </h2>
-  </div>
-
-  {/* Chart */}
-  <div className="relative mt-16 md:mt-20">
-    {/* Desktop horizontal line */}
-    <div className="absolute left-0 right-0 top-[22px] hidden h-px bg-mbg-black/15 md:block" />
-
-    {/* Green progress line */}
-    <div className="absolute left-0 top-[22px] hidden h-px w-[75%] bg-mbg-green md:block" />
-
-    <div className="grid gap-10 md:grid-cols-4 md:gap-6">
-      {/* 01 */}
-      <div className="group relative">
-        <div className="relative z-10 flex items-center md:block">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
-            01
+            <h2 className="mt-5 max-w-3xl text-2xl font-semibold leading-[1.25] tracking-tight text-mbg-black md:text-4xl">
+              We don&apos;t celebrate only the destination.
+              <span className="mt-1 block text-mbg-green">
+                We celebrate the GRIND that makes it possible.
+              </span>
+            </h2>
           </div>
 
-          {/* Mobile line */}
-          <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
-        </div>
+          {/* Chart */}
+          <div className="relative mt-16 md:mt-20">
+            {/* Desktop horizontal line */}
+            <div className="absolute left-0 right-0 top-[22px] hidden h-px bg-mbg-black/15 md:block" />
 
-        <div className="mt-5 md:mt-8">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
-            Chapter
-          </span>
+            {/* Green progress line */}
+            <div className="absolute left-0 top-[22px] hidden h-px w-[75%] bg-mbg-green md:block" />
 
-          <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
-            Every Chapter
-            <span className="block font-normal text-mbg-black/60">
-              tells a story.
-            </span>
-          </p>
-        </div>
-      </div>
+            <div className="grid gap-10 md:grid-cols-4 md:gap-6">
+              {/* 01 */}
+              <div className="group relative">
+                <div className="relative z-10 flex items-center md:block">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
+                    01
+                  </div>
 
-      {/* 02 */}
-      <div className="group relative">
-        <div className="relative z-10 flex items-center md:block">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
-            02
+                  {/* Mobile line */}
+                  <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
+                </div>
+
+                <div className="mt-5 md:mt-8">
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
+                    Chapter
+                  </span>
+
+                  <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
+                    Every Chapter
+                    <span className="block font-normal text-mbg-black/60">
+                      tells a story.
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* 02 */}
+              <div className="group relative">
+                <div className="relative z-10 flex items-center md:block">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
+                    02
+                  </div>
+
+                  <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
+                </div>
+
+                <div className="mt-5 md:mt-8">
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
+                    Collection
+                  </span>
+
+                  <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
+                    Every collection
+                    <span className="block font-normal text-mbg-black/60">
+                      represents a step forward.
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* 03 */}
+              <div className="group relative">
+                <div className="relative z-10 flex items-center md:block">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
+                    03
+                  </div>
+
+                  <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
+                </div>
+
+                <div className="mt-5 md:mt-8">
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
+                    Piece
+                  </span>
+
+                  <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
+                    Every piece
+                    <span className="block font-normal text-mbg-black/60">
+                      carries a message.
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* 04 */}
+              <div className="group relative">
+                <div className="relative z-10 flex items-center md:block">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-black bg-mbg-black text-[10px] font-bold tracking-widest text-white transition-all duration-300 group-hover:border-mbg-green group-hover:bg-mbg-green">
+                    04
+                  </div>
+                </div>
+
+                <div className="mt-5 md:mt-8">
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
+                    Journey
+                  </span>
+
+                  <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
+                    Every person
+                    <span className="block font-normal text-mbg-black/60">
+                      continues the journey.
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
-        </div>
+          {/* Closing mantra */}
+          <div className="mt-16 flex items-center gap-4 border-t border-mbg-black/10 pt-6 md:mt-20">
+            <div className="h-[2px] w-8 bg-mbg-green" />
 
-        <div className="mt-5 md:mt-8">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
-            Collection
-          </span>
-
-          <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
-            Every collection
-            <span className="block font-normal text-mbg-black/60">
-              represents a step forward.
-            </span>
-          </p>
-        </div>
-      </div>
-
-      {/* 03 */}
-      <div className="group relative">
-        <div className="relative z-10 flex items-center md:block">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
-            03
-          </div>
-
-          <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
-        </div>
-
-        <div className="mt-5 md:mt-8">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
-            Piece
-          </span>
-
-          <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
-            Every piece
-            <span className="block font-normal text-mbg-black/60">
-              carries a message.
-            </span>
-          </p>
-        </div>
-      </div>
-
-      {/* 04 */}
-      <div className="group relative">
-        <div className="relative z-10 flex items-center md:block">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-black bg-mbg-black text-[10px] font-bold tracking-widest text-white transition-all duration-300 group-hover:border-mbg-green group-hover:bg-mbg-green">
-            04
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-mbg-black">
+              Grind Until Achieve
+            </p>
           </div>
         </div>
-
-        <div className="mt-5 md:mt-8">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
-            Journey
-          </span>
-
-          <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
-            Every person
-            <span className="block font-normal text-mbg-black/60">
-              continues the journey.
-            </span>
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {/* Closing mantra */}
-  <div className="mt-16 flex items-center gap-4 border-t border-mbg-black/10 pt-6 md:mt-20">
-    <div className="h-[2px] w-8 bg-mbg-green" />
-
-    <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-mbg-black">
-      Grind Until Achieve
-    </p>
-  </div>
-</div>
 
         {/* Final Signature */}
         <div className="bg-mbg-white/90 px-6 py-12 text-center md:py-16">
