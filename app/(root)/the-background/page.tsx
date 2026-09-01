@@ -290,37 +290,37 @@ const AboutUs = () => {
                 </div>
               ))}
             </div>
-          <div className="mt-10 flex w-full items-center justify-evenly gap-7">
-            <Image
-              src={GRIND}
-              alt="GRIND"
-              className="h-auto w-16 object-contain"
-            />
+            <div className="mt-8 flex w-full flex-nowrap items-center justify-between gap-2 px-1 sm:mt-10 sm:gap-4 sm:px-2 md:gap-7">
+              <Image
+                src={GRIND}
+                alt="GRIND"
+                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+              />
 
-            <Image
-              src={RESILIENCE}
-              alt="RESILIENCE"
-              className="h-auto w-16 object-contain"
-            />
+              <Image
+                src={RESILIENCE}
+                alt="RESILIENCE"
+                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+              />
 
-            <Image
-              src={CONSISTENCY}
-              alt="CONSISTENCY"
-              className="h-auto w-16 object-contain"
-            />
+              <Image
+                src={CONSISTENCY}
+                alt="CONSISTENCY"
+                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+              />
 
-            <Image
-              src={FOCUS}
-              alt="FOCUS"
-              className="h-auto w-16 object-contain"
-            />
+              <Image
+                src={FOCUS}
+                alt="FOCUS"
+                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+              />
 
-            <Image
-              src={ACHIEVE}
-              alt="ACHIEVE"
-              className="h-auto w-16 object-contain"
-            />
-          </div>
+              <Image
+                src={ACHIEVE}
+                alt="ACHIEVE"
+                className="h-auto w-[clamp(28px,10vw,64px)] shrink-0 object-contain"
+              />
+            </div>
           </div>
         </div>
 
