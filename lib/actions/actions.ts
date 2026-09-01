@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_noStore as noStore } from "next/cache";
 import { getAdminDb } from "../adminDb";
 import { getProductById, getProducts, getProductsByIds } from "../admin";
 import type { Chapter, Product } from "../types";
@@ -29,6 +30,8 @@ async function loadMongoModule(): Promise<MongoModule> {
 }
 
 export const getChapters = async (): Promise<Chapter[]> => {
+  noStore();
+
   const db = await getAdminDb();
   const chapters = await db
     .collection<ChapterDocument>("chapters")
@@ -40,6 +43,8 @@ export const getChapters = async (): Promise<Chapter[]> => {
 };
 
 export const getChapterDetails = async (chapterId: string): Promise<Chapter | null> => {
+  noStore();
+
   const { ObjectId } = await loadMongoModule();
   if (!ObjectId.isValid(chapterId)) {
     return null;
@@ -89,6 +94,7 @@ export const getSearchedProducts = async (query: string): Promise<Product[]> => 
 type ChapterDocument = {
   _id: ObjectId;
   title: string;
+  badge?: string;
   description?: string;
   image: string;
   products?: Array<ObjectId | string>;
@@ -100,6 +106,7 @@ function serializeChapter(doc: ChapterDocument, products?: Product[]): Chapter {
   return {
     _id: doc._id.toHexString(),
     title: doc.title,
+    badge: doc.badge?.trim() || undefined,
     description: doc.description ?? undefined,
     image: doc.image,
     products,
