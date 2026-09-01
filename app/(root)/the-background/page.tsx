@@ -5,7 +5,7 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
 import Image from "next/image";
-import { BG, MBG2 } from "@/images";
+import { ACHIEVE, BG, CONSISTENCY, FOCUS, GRIND, MBG2, RESILIENCE } from "@/images";
 
 export const metadata = buildMetadata({
   title: "The Background",
@@ -283,6 +283,37 @@ const AboutUs = () => {
               ))}
             </div>
           </div>
+         <div className="flex w-full items-center justify-center gap-6">
+  <Image
+    src={GRIND}
+    alt="GRIND"
+    className="h-auto w-16 object-contain"
+  />
+
+  <Image
+    src={RESILIENCE}
+    alt="RESILIENCE"
+    className="h-auto w-16 object-contain"
+  />
+
+  <Image
+    src={CONSISTENCY}
+    alt="CONSISTENCY"
+    className="h-auto w-16 object-contain"
+  />
+
+  <Image
+    src={FOCUS}
+    alt="FOCUS"
+    className="h-auto w-16 object-contain"
+  />
+
+  <Image
+    src={ACHIEVE}
+    alt="ACHIEVE"
+    className="h-auto w-16 object-contain"
+  />
+</div>
         </div>
 
         {/* Mantra */}
