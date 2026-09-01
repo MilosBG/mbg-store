@@ -306,7 +306,7 @@ const AboutUs = () => {
               <Image
                 src={CONSISTENCY}
                 alt="CONSISTENCY"
-                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
+                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.10)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
