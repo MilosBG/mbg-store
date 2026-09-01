@@ -12,7 +12,13 @@ export type CommerceInfo = {
   fabricOrigin?: string;
   craftsmanship?: string;
   certificationName?: string;
-  certificationScope?: "" | "FABRIC" | "FINISHED_GARMENT" | string;
+
+  certificationScope?:
+    | ""
+    | "FABRIC"
+    | "FINISHED_GARMENT"
+    | string;
+
   certificateNumber?: string;
   certificationInstitute?: string;
   certificateUrl?: string;
@@ -38,7 +44,13 @@ export type Product = {
   cost?: number;
   sizes?: string[];
   colors?: string[];
-  variants?: Array<{ color?: string; size?: string; stock: number }>;
+
+  variants?: Array<{
+    color?: string;
+    size?: string;
+    stock: number;
+  }>;
+
   countInStock?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -46,13 +58,15 @@ export type Product = {
   // Admin flag to expose product in the store.
   fetchToStore?: boolean;
 
-  // Product technical/commercial information displayed in ProductAccordion.
+  // Product technical/commercial information
+  // displayed in ProductAccordion.
   commerceInfo?: CommerceInfo;
 };
 
 export type Chapter = {
   _id: string;
   title: string;
+  badge?: string;
   image: string;
   description?: string;
   href?: string;

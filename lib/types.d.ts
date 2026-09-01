@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
+
 type ChapterType = {
   href: string;
   _id: string;
   title: string;
+  badge?: string;
   products: number;
   image: string;
 };
@@ -19,14 +21,18 @@ type ProductType = {
   cost: number;
   sizes: [string];
   colors: [string];
+
   // Variant-level availability (optional)
   variants?: Array<{
     color?: string;
     size?: string;
     stock: number;
   }>;
-  // Number of items available in stock (optional in older docs)
+
+  // Number of items available in stock
+  // (optional in older documents)
   countInStock?: number;
+
   createdAt: string;
   updatedAt: string;
 };
@@ -38,6 +44,7 @@ type UserType = {
   createdAt: string;
   updatedAt: string;
 };
+
 type OrderType = {
   shippingAddress: Object;
   _id: string;
@@ -45,7 +52,15 @@ type OrderType = {
   products: [OrderItemType];
   shippingRate: string;
   totalAmount: number;
-  fulfillmentStatus?: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
+
+  fulfillmentStatus?:
+    | "PENDING"
+    | "PROCESSING"
+    | "SHIPPED"
+    | "DELIVERED"
+    | "COMPLETED"
+    | "CANCELLED";
+
   processingAt?: string;
   shippedAt?: string;
   deliveredAt?: string;
