@@ -283,7 +283,7 @@ const AboutUs = () => {
               ))}
             </div>
           </div>
-         <div className="flex w-full items-center justify-center gap-6">
+         <div className="flex w-full items-center justify-evenly gap-7">
   <Image
     src={GRIND}
     alt="GRIND"
