@@ -386,7 +386,7 @@ const AboutUs = () => {
           />
         </div>
         {/* The unseen work */}
-        <div className="border-y bg-mbg-white/80 border-mbg-black/10 py-12 md:py-16">
+        <div className="border-y bg-mbg-white/80 border-mbg-black/10 py-12 px-4 md:py-16">
           <div className="mx-auto max-w-5xl">
             <div className="grid gap-10 md:grid-cols-[1fr_1.2fr] md:items-center">
               <div>
