@@ -290,7 +290,7 @@ const AboutUs = () => {
                 </div>
               ))}
             </div>
-          <div className="mt-4 flex w-full items-center justify-evenly gap-7">
+          <div className="mt-10 flex w-full items-center justify-evenly gap-7">
             <Image
               src={GRIND}
               alt="GRIND"
