@@ -256,13 +256,7 @@ const AboutUs = () => {
                 become one.
               </h3>
 
-                         <Image
-                            src={MBG}
-                            alt="Handcrafted production of a Milos BG garment"
-                            fill
-                            sizes="(max-width: 1024px) 100vw, 42vw"
-                            className="object-cover grayscale"
-                          />
+                       
             </div>
 
             <div className="space-y-6 text-[13px] leading-7 text-mbg-darkgrey">
@@ -303,6 +297,16 @@ const AboutUs = () => {
           </div>
         </div>
 
+        {/* The unseen work */}
+        <div className="border-y border-mbg-black/10 py-12 md:py-16">
+  <Image
+                            src={MBG}
+                            alt="Handcrafted production of a Milos BG garment"
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 42vw"
+                            className="object-cover grayscale"
+                          />
+        </div>
         {/* The unseen work */}
         <div className="border-y border-mbg-black/10 py-12 md:py-16">
           <div className="mx-auto max-w-5xl">
