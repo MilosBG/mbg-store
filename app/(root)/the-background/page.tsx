@@ -386,7 +386,7 @@ const AboutUs = () => {
               <p>
                 Inspired by <strong>craftsmanship</strong>,{" "}
                 <strong>sport</strong>, <strong>basketball</strong>,{" "}
-                <strong>movement</strong>, and
+                <strong>movement</strong>, and 
                 <strong>Japanese philosophy</strong>, Milos BG draws deeply from
                 the spirit of
                 <strong>Kaizen</strong>, the pursuit of continuous improvement
