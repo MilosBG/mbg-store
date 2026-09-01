@@ -411,18 +411,18 @@ const AboutUs = () => {
         </div>
 
         {/* Final Signature */}
-        <div className="bg-mbg-black/20 px-6 py-12 text-center md:py-16">
+        <div className="bg-mbg-white/90 px-6 py-12 text-center md:py-16">
           <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-mbg-black/60">
             This is Milos BG
           </p>
 
           <div className="mx-auto mt-6 max-w-4xl">
-            <p className="text-2xl font-bold uppercase leading-[1.15] tracking-tight text-mbg-white sm:text-3xl md:text-5xl">
+            <p className="text-2xl font-bold uppercase leading-[1.15] tracking-tight text-mbg-black sm:text-3xl md:text-5xl">
               A story you don&apos;t simply read.
               <br />
               A mentality you don&apos;t simply follow.
               <br />
-              <span className="text-mbg-black">A journey you wear.</span>
+              <span className="text-mbg-green">A journey you wear.</span>
             </p>
           </div>
 
@@ -466,7 +466,7 @@ const AboutUs = () => {
             key={label}
             className="rounded-xs border border-mbg-black/7 bg-mbg-black/7 p-4 text-center"
           >
-            <div className="text-lg uppercase font-bold tracking-tight text-mbg-white/90">
+            <div className="text-lg uppercase font-bold tracking-tight text-mbg-black/50">
               {big}
             </div>
 
