@@ -24,7 +24,7 @@ export const metadata = buildMetadata({
   keywords: ["brand story", "Milos BG", "basketball culture"],
 });
 
-const VIDEO_ID = "dadrxcC8HOw&t";
+const VIDEO_ID = "dadrxcC8HOw";
 
 const AboutUs = () => {
   return (
