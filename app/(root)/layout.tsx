@@ -10,18 +10,21 @@ import CookieConsent from "@/components/privacy/CookieConsent";
 import { buildMetadata, SITE_METADATA } from "@/lib/seo";
 import { kanit } from "../fonts";
 
-const BASE_DESCRIPTION = "MAKE IT YOUR LIKED OUTFITS";
+const BASE_DESCRIPTION =
+  "A story of progression, written one chapter at a time.";
 
 const baseMetadata = buildMetadata({
   title: SITE_METADATA.name,
   description: BASE_DESCRIPTION,
   path: "/",
-  image: "/Grinder.png",
+  image: "/images/seo/milos-bg-og.jpg",
 });
 
 export const metadata: Metadata = {
   ...baseMetadata,
+
   metadataBase: new URL(SITE_METADATA.url),
+
   title: {
     default: SITE_METADATA.name,
     template: `%s | ${SITE_METADATA.name}`,

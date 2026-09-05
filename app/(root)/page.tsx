@@ -12,11 +12,23 @@ import MilosBGSocialsSection from "./components/MilosBGSocialsSection";
 
 export const metadata = buildMetadata({
   title: "Home",
+
   description:
-    "Discover basketball-inspired apparel, accessories, and stories from Milos BG.",
+    "A story of progression, written one chapter at a time. Discover handcrafted apparel inspired by basketball, craftsmanship and the Grind Until Achieve mentality.",
+
   path: "/",
-  image: "/Grinder.png",
-  keywords: ["basketball apparel", "streetwear", "Milos BG"],
+
+  image: "/images/seo/milos-bg-og.jpg",
+
+  keywords: [
+    "Milos BG",
+    "Grind Until Achieve",
+    "basketball apparel",
+    "basketball clothing",
+    "streetwear",
+    "handcrafted clothing",
+    "made in France",
+  ],
 });
 
 export default function Home() {
