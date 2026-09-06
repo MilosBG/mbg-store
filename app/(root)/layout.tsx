@@ -17,7 +17,7 @@ const baseMetadata = buildMetadata({
   title: SITE_METADATA.name,
   description: BASE_DESCRIPTION,
   path: "/",
-  image: "/images/seo/milos-bg-og.jpg",
+  image: "/milos-bg-og.jpg",
 });
 
 export const metadata: Metadata = {

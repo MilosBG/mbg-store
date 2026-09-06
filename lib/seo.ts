@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = "https://www.milos-bg.com";
+export const SITE_URL = "https://milos-bg.com";
 const SITE_NAME = "Milos BG";
 
-const DEFAULT_OG_IMAGE = "/images/seo/milos-bg-og.jpg";
+const DEFAULT_OG_IMAGE = "/milos-bg-og.jpg";
 
 export const SITE_METADATA = {
   name: SITE_NAME,

@@ -18,7 +18,7 @@ export const metadata = buildMetadata({
 
   path: "/",
 
-  image: "/images/seo/milos-bg-og.jpg",
+  image: "/milos-bg-og.jpg",
 
   keywords: [
     "Milos BG",
