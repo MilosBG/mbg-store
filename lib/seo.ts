@@ -42,7 +42,7 @@ export function buildMetadata({
 
   const isHomePage = path === "/";
   const titleWithSite = isHomePage
-    ? "Milos BG — Grind Until Achieve"
+    ? "Milos BG — GRIND UNTIL ACHIEVE"
     : `${title} | ${SITE_NAME}`;
 
   return {

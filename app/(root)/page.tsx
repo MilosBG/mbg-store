@@ -14,7 +14,7 @@ export const metadata = buildMetadata({
   title: "Home",
 
   description:
-    "A story of progression, written one chapter at a time. Discover handcrafted apparel inspired by basketball, craftsmanship and the Grind Until Achieve mentality.",
+    "A story of progression, written one chapter at a time. Discover handcrafted apparel inspired by basketball, craftsmanship and the GRIND UNTIL ACHIEVE Mentality.",
 
   path: "/",
 
