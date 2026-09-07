@@ -140,16 +140,23 @@ const Header = () => {
               <Link
                 href="/"
                 aria-label="Home"
-                className="
-                  mbg-icons-style
-                  mbg-p-center
-                  hoverEffect
-                  rounded-sm
-                  focus-visible:outline-none
-                  focus-visible:ring-2
-                  focus-visible:ring-mbg-green
-                  focus-visible:ring-offset-2
-                "
+                 className="
+                rounded-sm
+                border
+                border-mbg-black/[0.07]
+                px-4
+                p-2
+                text-mbg-green
+                shadow-md
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:border-mbg-green/40
+                hover:text-mbg-green
+                hover:shadow-lg
+                active:translate-y-0
+                active:scale-95
+              "
               >
                 <GiFamilyHouse />
               </Link>
