@@ -134,7 +134,8 @@ const Header = () => {
             {/* HOME */}
             <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
               <Link href="/" aria-label="Home">
-                <GiHouse />
+                <GiHouse className=" mbg-icons-style
+                          hoverEffect" />
               </Link>
             </div>
 
