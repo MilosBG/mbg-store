@@ -169,20 +169,6 @@ const ProductRail = ({ products }: ProductRailProps) => {
               <ArrowRight size={17} />
             </button>
           </div>
-
-          <Link
-            href="/products"
-            className="
-              ml-1 hidden
-              text-[11px] font-semibold uppercase
-              tracking-[0.12em] text-black/50
-              transition-colors
-              hover:text-mbg-green
-              md:block
-            "
-          >
-            View all
-          </Link>
         </div>
       </div>
 
@@ -254,14 +240,6 @@ const ProductRail = ({ products }: ProductRailProps) => {
         <p className="text-[10px] uppercase tracking-[0.14em] text-black/40">
           Swipe to explore
         </p>
-
-        <Link
-          href="/products"
-          className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-mbg-black"
-        >
-          View all
-          <ArrowRight size={13} />
-        </Link>
       </div>
     </div>
   );
