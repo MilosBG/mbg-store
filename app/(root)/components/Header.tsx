@@ -388,7 +388,7 @@ const Header = () => {
 
               {/* CATEGORY HINTS */}
 
-              <div
+              {/* <div
                 aria-hidden="true"
                 className="
                   pointer-events-none
@@ -431,7 +431,7 @@ const Header = () => {
                 <span className="text-mbg-green/70">✿</span>
 
                 <span>CGS</span>
-              </div>
+              </div> */}
             </form>
           </div>
         </div>
@@ -452,6 +452,7 @@ const Header = () => {
               items-center
               justify-center
               bg-mbg-white
+              rounded-b-sm
               px-4
               p-2
               pt-3
