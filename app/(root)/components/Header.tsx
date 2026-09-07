@@ -337,8 +337,8 @@ const Header = () => {
                   ref={inputRef}
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search Milos BG..."
-                  aria-label="Search Milos BG"
+                  placeholder="Search..."
+                  aria-label="Search"
                   autoComplete="off"
                   className="
                     h-10
