@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 
-import { GiBasketballBasket, GiFamilyHouse } from "react-icons/gi";
+import { GiBasketballBasket, GiHouse } from "react-icons/gi";
 import { FaUserCircle } from "react-icons/fa";
 import { IoMdBasketball } from "react-icons/io";
 
@@ -134,16 +134,7 @@ const Header = () => {
             {/* HOME */}
             <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
               <Link href="/" aria-label="Home">
-                <GiFamilyHouse
-                  className="
-                        mbg-p-center
-                        rounded-sm
-                        focus-visible:outline-none
-                        focus-visible:ring-2
-                        focus-visible:ring-mbg-green
-                        focus-visible:ring-offset-2
-                      "
-                />
+                <GiHouse />
               </Link>
             </div>
 
