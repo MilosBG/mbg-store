@@ -451,7 +451,7 @@ const Header = () => {
               cursor-pointer
               items-center
               justify-center
-              bg-transparent
+              bg-mbg-white
               px-4
               p-2
               pt-3
