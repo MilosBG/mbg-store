@@ -382,7 +382,6 @@ const Header = () => {
                       disabled:opacity-30
                     "
                   >
-                    <Search size={17} strokeWidth={2} />
                   </button>
                 </div>
               </div>
@@ -510,7 +509,7 @@ const Header = () => {
                 text-mbg-white
                 shadow-sm
               "
-              style={{ top: "-14px" }}
+              style={{ top: "-90px" }}
             >
               {totalQty > 99 ? "99+" : totalQty}
             </span>
