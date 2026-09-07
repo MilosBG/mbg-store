@@ -29,7 +29,7 @@ const Header = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const totalQty = useCart((state) =>
-    state.cartItems.reduce((sum, item) => sum + item.quantity, 0)
+    state.cartItems.reduce((sum, item) => sum + item.quantity, 0),
   );
 
   /*
@@ -96,11 +96,7 @@ const Header = () => {
         {/* ============================================================= */}
 
         <div className="mbg-p-center w-full bg-mbg-black px-4">
-          <Link
-            href="/"
-            aria-label="Milos BG - Home"
-            className="group"
-          >
+          <Link href="/" aria-label="Milos BG - Home" className="group">
             <Image
               src={MilosBG}
               alt="Milos BG"
@@ -137,10 +133,9 @@ const Header = () => {
           >
             {/* HOME */}
             <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
-              <Link
-                href="/"
-                aria-label="Home"
-                className="
+              <Link href="/" aria-label="Home">
+                <GiFamilyHouse
+                  className="
                         mbg-p-center
                         rounded-sm
                         focus-visible:outline-none
@@ -148,8 +143,7 @@ const Header = () => {
                         focus-visible:ring-mbg-green
                         focus-visible:ring-offset-2
                       "
-              >
-                <GiFamilyHouse />
+                />
               </Link>
             </div>
 
@@ -178,11 +172,7 @@ const Header = () => {
                         className={`
                           mbg-icons-style
                           hoverEffect
-                          ${
-                            open
-                              ? "rotate-12 text-mbg-green"
-                              : ""
-                          }
+                          ${open ? "rotate-12 text-mbg-green" : ""}
                         `}
                       />
                     </button>
