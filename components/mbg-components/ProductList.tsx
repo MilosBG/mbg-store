@@ -1,5 +1,4 @@
 import { getProducts } from "@/lib/admin";
-import type { Product } from "@/lib/types";
 import React from "react";
 import ProductRail from "./ProductRail";
 

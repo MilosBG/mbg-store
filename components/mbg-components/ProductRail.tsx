@@ -116,7 +116,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-mbg-white/80">
       {/* HEADER */}
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
@@ -139,7 +139,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
               aria-label="Previous products"
               className="
                 flex h-10 w-10 items-center justify-center
-                rounded-full border border-black/10
+                rounded-xs border border-black/10
                 bg-white
                 transition-all duration-200
                 hover:border-black hover:bg-mbg-black hover:text-white
@@ -157,7 +157,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
               aria-label="Next products"
               className="
                 flex h-10 w-10 items-center justify-center
-                rounded-full border border-black/10
+                rounded-xs border border-black/10
                 bg-white
                 transition-all duration-200
                 hover:border-black hover:bg-mbg-black hover:text-white
