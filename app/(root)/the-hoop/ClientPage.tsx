@@ -14,6 +14,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  extractOrderReference,
+  ORDER_PLACED_SESSION_KEY,
+  type OrderPlacedSnapshot,
+} from "@/lib/orderPlaced";
 
 type CheckoutFormState = {
   email: string;
@@ -188,63 +193,181 @@ const Cart = () => {
     return errors;
   }, [formData]);
 
-  const handleSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!ensureCheckoutReady()) {
-        return;
+ const handleSubmit = useCallback(
+  async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!ensureCheckoutReady()) {
+      return;
+    }
+
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await createCheckoutOrder({
+        lines: checkoutLines,
+
+        shippingOption,
+
+        customer: checkoutCustomer,
+
+        contact: {
+          email: formData.email.trim(),
+          phone: formData.phone.trim()
+            ? formData.phone.trim()
+            : null,
+        },
+
+        shippingAddress: {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          address: formData.address.trim(),
+          city: formData.city.trim(),
+          postalCode: formData.postalCode.trim(),
+          country: formData.country.trim(),
+          phone: formData.phone.trim()
+            ? formData.phone.trim()
+            : null,
+        },
+      });
+
+      const orderReference = extractOrderReference(result);
+
+      const snapshot: OrderPlacedSnapshot = {
+        orderReference,
+
+        createdAt: new Date().toISOString(),
+
+        contact: {
+          email: formData.email.trim(),
+          phone: formData.phone.trim()
+            ? formData.phone.trim()
+            : null,
+        },
+
+        shippingAddress: {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          address: formData.address.trim(),
+          city: formData.city.trim(),
+          postalCode: formData.postalCode.trim(),
+          country: formData.country.trim(),
+          phone: formData.phone.trim()
+            ? formData.phone.trim()
+            : null,
+        },
+
+        shippingOption,
+
+        items: checkoutLines.map((line) => ({
+          productId: line.productId,
+
+          title: line.title ?? "Milos BG Product",
+
+          image: line.image ?? null,
+
+          color: line.color ?? null,
+
+          size: line.size ?? null,
+
+          quantity: line.quantity,
+
+          unitPrice: Number(line.unitPrice),
+
+          lineTotal: Number(
+            (
+              Number(line.unitPrice) *
+              Number(line.quantity)
+            ).toFixed(2),
+          ),
+        })),
+
+        subtotal: subtotalRounded,
+
+        shippingFee,
+
+        total: finalTotal,
+
+        currency: "EUR",
+      };
+
+      /*
+       * On sauvegarde le bon de commande AVANT
+       * de vider le panier.
+       *
+       * sessionStorage est volontairement utilisé :
+       * les données disparaissent à la fermeture de l'onglet.
+       */
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem(
+            ORDER_PLACED_SESSION_KEY,
+            JSON.stringify(snapshot),
+          );
+        } catch (error) {
+          console.warn(
+            "[checkout] Unable to save order placed snapshot",
+            error,
+          );
+        }
       }
 
-      const validationErrors = validateForm();
-      if (Object.keys(validationErrors).length > 0) {
-        setFormErrors(validationErrors);
-        return;
-      }
+      setFormErrors({});
 
-      setIsSubmitting(true);
-      try {
-        const result = await createCheckoutOrder({
-          lines: checkoutLines,
-          shippingOption,
-          customer: checkoutCustomer,
-          contact: {
-            email: formData.email.trim(),
-            phone: formData.phone.trim() ? formData.phone.trim() : null,
-          },
-          shippingAddress: {
-            firstName: formData.firstName.trim(),
-            lastName: formData.lastName.trim(),
-            address: formData.address.trim(),
-            city: formData.city.trim(),
-            postalCode: formData.postalCode.trim(),
-            country: formData.country.trim(),
-            phone: formData.phone.trim() ? formData.phone.trim() : null,
-          },
-        });
+      /*
+       * La commande existe maintenant côté serveur.
+       * On peut donc vider le panier.
+       */
+      clearCart();
 
-        setFormErrors({});
-        clearCart();
-        toast.success(
-       "Order created. We will reach out with payment instructions.",
+      toast.success("Order placed successfully.");
+
+      /*
+       * replace() plutôt que push():
+       * un retour arrière évite de retomber directement
+       * sur l'étape de validation de commande.
+       */
+      if (orderReference) {
+        router.replace(
+          `/order_placed?order=${encodeURIComponent(
+            orderReference,
+          )}`,
         );
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unable to create order. Please try again.";
-        toast.error(message);
-      } finally {
-        setIsSubmitting(false);
+      } else {
+        router.replace("/order_placed");
       }
-    },
-    [
-      checkoutCustomer,
-      checkoutLines,
-      clearCart,
-      ensureCheckoutReady,
-      formData,
-      shippingOption,
-      validateForm,
-    ],
-  );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to create order. Please try again.";
+
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  },
+  [
+    checkoutCustomer,
+    checkoutLines,
+    clearCart,
+    ensureCheckoutReady,
+    finalTotal,
+    formData,
+    router,
+    shippingFee,
+    shippingOption,
+    subtotalRounded,
+    validateForm,
+  ],
+);
 
   return (
     <Container className="min-h-screen">
