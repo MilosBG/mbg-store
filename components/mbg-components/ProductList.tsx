@@ -4,7 +4,7 @@ import ProductRail from "./ProductRail";
 
 const ProductList = async () => {
   const products = await getProducts({
-    limit: 12,
+    limit: 4,
   });
 
   return (

@@ -96,7 +96,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
   if (!products.length) {
     return (
       <div className="rounded-2xl border border-black/10 bg-black/[0.02] px-6 py-14 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-black/5">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm bg-black/5">
           <PackageSearch
             size={21}
             className="text-black/50"
@@ -116,7 +116,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
   }
 
   return (
-    <div className="w-full bg-mbg-white/80 p-5">
+    <div className="w-full bg-mbg-white/80 p-5 rounded-sm">
       {/* HEADER */}
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>

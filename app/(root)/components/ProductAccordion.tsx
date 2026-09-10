@@ -2,10 +2,16 @@
 
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import type { StoreLanguage } from "@/lib/store-language";
 import type { CommerceInfo, Product } from "@/lib/types";
 
 type ProductAccordionProps = {
   product: Product;
+  lang?: StoreLanguage;
+};
+
+type LocalizedProduct = Product & {
+  commerceInfoFr?: Partial<CommerceInfo>;
 };
 
 type AccordionItem = {
@@ -15,6 +21,87 @@ type AccordionItem = {
   content: ReactNode;
 };
 
+const COPY = {
+  en: {
+    ariaLabel: "Product information",
+    productDetails: "PRODUCT DETAILS",
+    productReference: "Product reference",
+    details: "Details",
+    materialComposition: "MATERIAL & COMPOSITION",
+    composition: "Composition",
+    fabric: "Fabric",
+    fabricWeight: "Fabric weight",
+    characteristics: "Characteristics",
+    fitSize: "FIT & SIZE",
+    fit: "Fit",
+    sizeAdvice: "Size advice",
+    care: "CARE",
+    careInstructions: "Care instructions",
+    originCraftsmanship: "ORIGIN & CRAFTSMANSHIP",
+    countryManufacture: "Country of manufacture",
+    fabricOrigin: "Fabric origin",
+    craftsmanship: "Craftsmanship",
+    certifications: "CERTIFICATIONS",
+    certification: "Certification",
+    certificationScope: "Certification scope",
+    fabricScope: "Fabric",
+    finishedGarment: "Finished garment",
+    certificateNumber: "Certificate number",
+    testingInstitute: "Testing institute",
+    verifyCertificate: "Verify certificate",
+    shippingReturns: "SHIPPING & RETURNS",
+    processingTime: "Processing time",
+    estimatedDelivery: "Estimated delivery",
+    withdrawal: "Right of withdrawal",
+    returnCosts: "Return shipping costs",
+    days: "days",
+    productInformation: "PRODUCT INFORMATION",
+    manufacturer: "Manufacturer",
+    address: "Address",
+    contact: "Contact",
+    safety: "Safety information",
+  },
+  fr: {
+    ariaLabel: "Informations produit",
+    productDetails: "DÉTAILS DU PRODUIT",
+    productReference: "Référence produit",
+    details: "Détails",
+    materialComposition: "MATIÈRE & COMPOSITION",
+    composition: "Composition",
+    fabric: "Tissu",
+    fabricWeight: "Grammage",
+    characteristics: "Caractéristiques",
+    fitSize: "COUPE & TAILLE",
+    fit: "Coupe",
+    sizeAdvice: "Conseil de taille",
+    care: "ENTRETIEN",
+    careInstructions: "Conseils d'entretien",
+    originCraftsmanship: "ORIGINE & FABRICATION",
+    countryManufacture: "Pays de fabrication",
+    fabricOrigin: "Origine du tissu",
+    craftsmanship: "Fabrication artisanale",
+    certifications: "CERTIFICATIONS",
+    certification: "Certification",
+    certificationScope: "Périmètre de certification",
+    fabricScope: "Tissu",
+    finishedGarment: "Vêtement fini",
+    certificateNumber: "Numéro du certificat",
+    testingInstitute: "Organisme de contrôle",
+    verifyCertificate: "Vérifier le certificat",
+    shippingReturns: "LIVRAISON & RETOURS",
+    processingTime: "Délai de traitement",
+    estimatedDelivery: "Livraison estimée",
+    withdrawal: "Délai de rétractation",
+    returnCosts: "Frais de retour",
+    days: "jours",
+    productInformation: "INFORMATIONS PRODUIT",
+    manufacturer: "Fabricant",
+    address: "Adresse",
+    contact: "Contact",
+    safety: "Informations de sécurité",
+  },
+} as const;
+
 const hasText = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
 
@@ -23,8 +110,20 @@ const toPositiveNumber = (value: unknown): number => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
-const getCommerceInfo = (product: Product): CommerceInfo =>
-  product.commerceInfo ?? {};
+const getCommerceInfo = (
+  product: Product,
+  lang: StoreLanguage,
+): CommerceInfo => {
+  const localizedProduct = product as LocalizedProduct;
+  const baseInfo = product.commerceInfo ?? {};
+
+  if (lang !== "fr") return baseInfo;
+
+  return {
+    ...baseInfo,
+    ...(localizedProduct.commerceInfoFr ?? {}),
+  };
+};
 
 const MultilineText = ({ value }: { value?: string }) => {
   if (!hasText(value)) return null;
@@ -70,9 +169,13 @@ const Detail = ({
   </div>
 );
 
-const ProductAccordion = ({ product }: ProductAccordionProps) => {
+const ProductAccordion = ({
+  product,
+  lang = "en",
+}: ProductAccordionProps) => {
   const [openId, setOpenId] = useState<string | null>(null);
-  const info = getCommerceInfo(product);
+  const t = COPY[lang];
+  const info = getCommerceInfo(product, lang);
 
   const fabricWeight = toPositiveNumber(info.fabricWeight);
   const withdrawalDays = toPositiveNumber(info.withdrawalDays);
@@ -115,18 +218,18 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
   const items: AccordionItem[] = [
     {
       id: "product-details",
-      title: "PRODUCT DETAILS",
+      title: t.productDetails,
       visible: productDetailsVisible,
       content: (
         <div className="space-y-4">
           {hasText(info.productReference) && (
-            <Detail label="Product reference">
+            <Detail label={t.productReference}>
               <p>{info.productReference}</p>
             </Detail>
           )}
 
           {hasText(info.productDetails) && (
-            <Detail label="Details">
+            <Detail label={t.details}>
               <MultilineText value={info.productDetails} />
             </Detail>
           )}
@@ -135,30 +238,30 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
     },
     {
       id: "material-composition",
-      title: "MATERIAL & COMPOSITION",
+      title: t.materialComposition,
       visible: materialVisible,
       content: (
         <div className="space-y-4">
           {hasText(info.materialComposition) && (
-            <Detail label="Composition">
+            <Detail label={t.composition}>
               <p>{info.materialComposition}</p>
             </Detail>
           )}
 
           {hasText(info.fabricName) && (
-            <Detail label="Fabric">
+            <Detail label={t.fabric}>
               <p>{info.fabricName}</p>
             </Detail>
           )}
 
           {fabricWeight > 0 && (
-            <Detail label="Fabric weight">
+            <Detail label={t.fabricWeight}>
               <p>{fabricWeight} GSM</p>
             </Detail>
           )}
 
           {hasText(info.fabricDescription) && (
-            <Detail label="Characteristics">
+            <Detail label={t.characteristics}>
               <MultilineText value={info.fabricDescription} />
             </Detail>
           )}
@@ -167,18 +270,18 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
     },
     {
       id: "fit-size",
-      title: "FIT & SIZE",
+      title: t.fitSize,
       visible: fitVisible,
       content: (
         <div className="space-y-4">
           {hasText(info.fit) && (
-            <Detail label="Fit">
+            <Detail label={t.fit}>
               <p>{info.fit}</p>
             </Detail>
           )}
 
           {hasText(info.fitNotes) && (
-            <Detail label="Size advice">
+            <Detail label={t.sizeAdvice}>
               <MultilineText value={info.fitNotes} />
             </Detail>
           )}
@@ -187,34 +290,34 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
     },
     {
       id: "care",
-      title: "CARE",
+      title: t.care,
       visible: careVisible,
       content: (
-        <Detail label="Care instructions">
+        <Detail label={t.careInstructions}>
           <MultilineText value={info.careInstructions} />
         </Detail>
       ),
     },
     {
       id: "origin-craftsmanship",
-      title: "ORIGIN & CRAFTSMANSHIP",
+      title: t.originCraftsmanship,
       visible: originVisible,
       content: (
         <div className="space-y-4">
           {hasText(info.countryOfManufacture) && (
-            <Detail label="Country of manufacture">
+            <Detail label={t.countryManufacture}>
               <p>{info.countryOfManufacture}</p>
             </Detail>
           )}
 
           {hasText(info.fabricOrigin) && (
-            <Detail label="Fabric origin">
+            <Detail label={t.fabricOrigin}>
               <p>{info.fabricOrigin}</p>
             </Detail>
           )}
 
           {hasText(info.craftsmanship) && (
-            <Detail label="Craftsmanship">
+            <Detail label={t.craftsmanship}>
               <MultilineText value={info.craftsmanship} />
             </Detail>
           )}
@@ -223,36 +326,36 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
     },
     {
       id: "certifications",
-      title: "CERTIFICATIONS",
+      title: t.certifications,
       visible: certificationVisible,
       content: (
         <div className="space-y-4">
           {hasText(info.certificationName) && (
-            <Detail label="Certification">
+            <Detail label={t.certification}>
               <p>{info.certificationName}</p>
             </Detail>
           )}
 
           {hasText(info.certificationScope) && (
-            <Detail label="Certification scope">
+            <Detail label={t.certificationScope}>
               <p>
                 {info.certificationScope === "FABRIC"
-                  ? "Fabric"
+                  ? t.fabricScope
                   : info.certificationScope === "FINISHED_GARMENT"
-                    ? "Finished garment"
+                    ? t.finishedGarment
                     : info.certificationScope}
               </p>
             </Detail>
           )}
 
           {hasText(info.certificateNumber) && (
-            <Detail label="Certificate number">
+            <Detail label={t.certificateNumber}>
               <p>{info.certificateNumber}</p>
             </Detail>
           )}
 
           {hasText(info.certificationInstitute) && (
-            <Detail label="Testing institute">
+            <Detail label={t.testingInstitute}>
               <p>{info.certificationInstitute}</p>
             </Detail>
           )}
@@ -264,7 +367,7 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
               rel="noreferrer noopener"
               className="text-mbg-green inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.04em] uppercase underline underline-offset-4"
             >
-              Verify certificate
+              {t.verifyCertificate}
               <ExternalLink className="h-3 w-3" />
             </a>
           )}
@@ -273,30 +376,32 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
     },
     {
       id: "shipping-returns",
-      title: "SHIPPING & RETURNS",
+      title: t.shippingReturns,
       visible: shippingVisible,
       content: (
         <div className="space-y-4">
           {hasText(info.shippingProcessingTime) && (
-            <Detail label="Processing time">
+            <Detail label={t.processingTime}>
               <p>{info.shippingProcessingTime}</p>
             </Detail>
           )}
 
           {hasText(info.deliveryEstimate) && (
-            <Detail label="Estimated delivery">
+            <Detail label={t.estimatedDelivery}>
               <p>{info.deliveryEstimate}</p>
             </Detail>
           )}
 
           {withdrawalDays > 0 && (
-            <Detail label="Right of withdrawal">
-              <p>{withdrawalDays} days</p>
+            <Detail label={t.withdrawal}>
+              <p>
+                {withdrawalDays} {t.days}
+              </p>
             </Detail>
           )}
 
           {hasText(info.returnCostBearer) && (
-            <Detail label="Return shipping costs">
+            <Detail label={t.returnCosts}>
               <p>{info.returnCostBearer}</p>
             </Detail>
           )}
@@ -305,24 +410,24 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
     },
     {
       id: "product-information",
-      title: "PRODUCT INFORMATION",
+      title: t.productInformation,
       visible: manufacturerVisible,
       content: (
         <div className="space-y-4">
           {hasText(info.manufacturerName) && (
-            <Detail label="Manufacturer">
+            <Detail label={t.manufacturer}>
               <p>{info.manufacturerName}</p>
             </Detail>
           )}
 
           {hasText(info.manufacturerAddress) && (
-            <Detail label="Address">
+            <Detail label={t.address}>
               <MultilineText value={info.manufacturerAddress} />
             </Detail>
           )}
 
           {hasText(info.manufacturerEmail) && (
-            <Detail label="Contact">
+            <Detail label={t.contact}>
               <a
                 href={`mailto:${info.manufacturerEmail}`}
                 className="text-mbg-green underline underline-offset-4"
@@ -333,7 +438,7 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
           )}
 
           {hasText(info.safetyWarnings) && (
-            <Detail label="Safety information">
+            <Detail label={t.safety}>
               <MultilineText value={info.safetyWarnings} />
             </Detail>
           )}
@@ -348,7 +453,7 @@ const ProductAccordion = ({ product }: ProductAccordionProps) => {
 
   return (
     <section
-      aria-label="Product information"
+      aria-label={t.ariaLabel}
       className="bg-mbg-black/3 mt-3 w-full px-4 sm:px-5"
     >
       <div className="border-mbg-green/55 border-t">
