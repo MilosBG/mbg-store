@@ -75,7 +75,11 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  await markMarketingUnsubscribeTokenUsed(values);
+  await markMarketingUnsubscribeTokenUsed({
+    ownerClerkId: values.owner,
+    email: values.email,
+    token: values.token,
+  });
 
   // RFC 8058: mailbox providers expect an empty 200 response.
   if (oneClick && action !== "confirm") {
