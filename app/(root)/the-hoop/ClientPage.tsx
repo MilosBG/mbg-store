@@ -65,9 +65,14 @@ const Cart = () => {
   });
   const [formErrors, setFormErrors] = useState<CheckoutFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // NEW: T&C agreement state
+  // T&C agreement state
   const [agreeTC, setAgreeTC] = useState(false);
   const [tcError, setTcError] = useState<string | null>(null);
+
+  // Optional marketing consent.
+  // Kept separate from the mandatory T&C consent: the customer can order
+  // without agreeing to receive marketing communications.
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
 
   const primaryEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
   const defaultFirstName = user?.firstName ?? "";
@@ -238,6 +243,42 @@ const Cart = () => {
         },
       });
 
+      // Marketing consent must never block the order.
+      // When checked, this endpoint also re-subscribes an address that had
+      // previously used the marketing unsubscribe flow.
+      if (marketingOptIn) {
+        try {
+          const marketingResponse = await fetch("/api/marketing/subscribe", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: formData.email.trim(),
+              firstName: formData.firstName.trim(),
+              consent: true,
+              company: "",
+            }),
+          });
+
+          if (!marketingResponse.ok) {
+            const marketingPayload = await marketingResponse
+              .json()
+              .catch(() => null);
+
+            console.warn(
+              "[checkout] Unable to save marketing consent",
+              marketingPayload,
+            );
+          }
+        } catch (error) {
+          console.warn(
+            "[checkout] Unable to reach marketing subscription endpoint",
+            error,
+          );
+        }
+      }
+
       const orderReference = extractOrderReference(result);
 
       const snapshot: OrderPlacedSnapshot = {
@@ -361,6 +402,7 @@ const Cart = () => {
     ensureCheckoutReady,
     finalTotal,
     formData,
+    marketingOptIn,
     router,
     shippingFee,
     shippingOption,
@@ -546,6 +588,31 @@ const Cart = () => {
               {tcError}
             </p>
           )}
+
+          {/* Optional marketing consent */}
+          <div className="mt-1 border-t border-mbg-black/10 pt-3">
+            <div className="flex items-start gap-2">
+              <input
+                id="marketing-opt-in"
+                type="checkbox"
+                checked={marketingOptIn}
+                onChange={(event) => setMarketingOptIn(event.target.checked)}
+                className="mt-0.5 h-3 w-3 rounded-xs border-mbg-green accent-mbg-green text-mbg-green focus:ring-mbg-green"
+              />
+              <label
+                htmlFor="marketing-opt-in"
+                className="cursor-pointer text-[11px] leading-5 uppercase"
+              >
+                I want to receive Milos BG news, new drops and{" "}
+                <span className="font-bold text-mbg-green">marketing emails</span>.{" "}
+                I can unsubscribe at any time.
+              </label>
+            </div>
+            <p className="mt-1 pl-5 text-[9px] leading-4 text-mbg-black/46">
+              Optional. This choice does not affect your order.
+            </p>
+          </div>
+
           <form className="mt-3 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
             <div>
               <p className="text-xs uppercase font-bold text-mbg-black/46">Contact Details</p>
