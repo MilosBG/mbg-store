@@ -11,28 +11,60 @@ export function cleanMarketingEmail(value: unknown) {
   return EMAIL_REGEX.test(email) ? email : "";
 }
 
-function unsubscribeSecret() {
-  return String(process.env.MARKETING_UNSUBSCRIBE_SECRET || "");
+function hashToken(token: string) {
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-export function verifyMarketingUnsubscribeToken(
+export type MarketingUnsubscribeTokenRecord = {
+  valid: boolean;
+  preview: boolean;
+};
+
+export async function getMarketingUnsubscribeTokenRecord(
   ownerClerkId: string,
   email: string,
   token: string,
-) {
-  const secret = unsubscribeSecret();
-  if (!secret || !ownerClerkId || !email || !token) return false;
+): Promise<MarketingUnsubscribeTokenRecord> {
+  const normalizedEmail = cleanMarketingEmail(email);
+  if (!ownerClerkId || !normalizedEmail || !token) {
+    return { valid: false, preview: false };
+  }
 
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(`${ownerClerkId}:${email.toLowerCase()}`)
-    .digest("hex");
+  const db = await getAdminDb();
+  const row = await db.collection("marketingunsubscribetokens").findOne({
+    ownerClerkId,
+    emailLower: normalizedEmail,
+    tokenHash: hashToken(token),
+  });
 
-  if (expected.length !== token.length) return false;
+  if (!row) return { valid: false, preview: false };
 
-  return crypto.timingSafeEqual(
-    Buffer.from(expected, "utf8"),
-    Buffer.from(token, "utf8"),
+  return {
+    valid: true,
+    preview: Boolean(row.preview),
+  };
+}
+
+export async function markMarketingUnsubscribeTokenUsed({
+  ownerClerkId,
+  email,
+  token,
+}: {
+  ownerClerkId: string;
+  email: string;
+  token: string;
+}) {
+  const normalizedEmail = cleanMarketingEmail(email);
+  if (!ownerClerkId || !normalizedEmail || !token) return;
+
+  const db = await getAdminDb();
+  await db.collection("marketingunsubscribetokens").updateOne(
+    {
+      ownerClerkId,
+      emailLower: normalizedEmail,
+      tokenHash: hashToken(token),
+    },
+    { $set: { usedAt: new Date(), updatedAt: new Date() } },
   );
 }
 

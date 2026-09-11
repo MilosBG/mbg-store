@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   cleanMarketingEmail,
+  getMarketingUnsubscribeTokenRecord,
+  markMarketingUnsubscribeTokenUsed,
   suppressMarketingEmail,
-  verifyMarketingUnsubscribeToken,
 } from "@/lib/marketing-unsubscribe";
 
 export const dynamic = "force-dynamic";
@@ -12,23 +13,8 @@ function readSignedRequest(request: NextRequest) {
   const email = cleanMarketingEmail(request.nextUrl.searchParams.get("email"));
   const owner = String(request.nextUrl.searchParams.get("owner") || "");
   const token = String(request.nextUrl.searchParams.get("token") || "");
-  const preview = request.nextUrl.searchParams.get("preview") === "1";
 
-  return { email, owner, token, preview };
-}
-
-function isValid({
-  email,
-  owner,
-  token,
-}: {
-  email: string;
-  owner: string;
-  token: string;
-}) {
-  return Boolean(
-    email && owner && token && verifyMarketingUnsubscribeToken(owner, email, token),
-  );
+  return { email, owner, token };
 }
 
 function publicPageUrl(
@@ -37,7 +23,6 @@ function publicPageUrl(
     email: string;
     owner: string;
     token: string;
-    preview: boolean;
     status?: string;
   },
 ) {
@@ -45,7 +30,6 @@ function publicPageUrl(
   url.searchParams.set("owner", values.owner);
   url.searchParams.set("email", values.email);
   url.searchParams.set("token", values.token);
-  if (values.preview) url.searchParams.set("preview", "1");
   if (values.status) url.searchParams.set("status", values.status);
   return url;
 }
@@ -57,8 +41,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const values = readSignedRequest(request);
+  const tokenRecord = await getMarketingUnsubscribeTokenRecord(
+    values.owner,
+    values.email,
+    values.token,
+  );
 
-  if (!isValid(values)) {
+  if (!tokenRecord.valid) {
     return NextResponse.json(
       { ok: false, message: "Invalid unsubscribe link." },
       { status: 400 },
@@ -79,12 +68,14 @@ export async function POST(request: NextRequest) {
       String(formData?.get("List-Unsubscribe") || "") === "One-Click";
   }
 
-  if (!values.preview) {
+  if (!tokenRecord.preview) {
     await suppressMarketingEmail({
       ownerClerkId: values.owner,
       email: values.email,
     });
   }
+
+  await markMarketingUnsubscribeTokenUsed(values);
 
   // RFC 8058: mailbox providers expect an empty 200 response.
   if (oneClick && action !== "confirm") {
@@ -94,7 +85,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.redirect(
     publicPageUrl(request, {
       ...values,
-      status: values.preview ? "preview-success" : "success",
+      status: tokenRecord.preview ? "preview-success" : "success",
     }),
     303,
   );

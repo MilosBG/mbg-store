@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import {
   cleanMarketingEmail,
-  verifyMarketingUnsubscribeToken,
+  getMarketingUnsubscribeTokenRecord,
 } from "@/lib/marketing-unsubscribe";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,6 @@ type PageProps = {
     owner?: string | string[];
     email?: string | string[];
     token?: string | string[];
-    preview?: string | string[];
     status?: string | string[];
   }>;
 };
@@ -35,14 +34,12 @@ function queryString(values: {
   owner: string;
   email: string;
   token: string;
-  preview: boolean;
 }) {
   const query = new URLSearchParams({
     owner: values.owner,
     email: values.email,
     token: values.token,
   });
-  if (values.preview) query.set("preview", "1");
   return query.toString();
 }
 
@@ -68,18 +65,18 @@ export default async function MarketingUnsubscribePage({
   const owner = first(params.owner);
   const email = cleanMarketingEmail(first(params.email));
   const token = first(params.token);
-  const preview = first(params.preview) === "1";
   const status = first(params.status);
 
-  const valid = Boolean(
-    owner &&
-      email &&
-      token &&
-      verifyMarketingUnsubscribeToken(owner, email, token),
+  const tokenRecord = await getMarketingUnsubscribeTokenRecord(
+    owner,
+    email,
+    token,
   );
+  const valid = tokenRecord.valid;
+  const preview = tokenRecord.preview;
 
   const success = status === "success" || status === "preview-success";
-  const actionQuery = queryString({ owner, email, token, preview });
+  const actionQuery = queryString({ owner, email, token });
 
   return (
     <main className="min-h-screen bg-[#f4f4f1] px-4 py-8 text-[#101010] sm:px-6 sm:py-12">
