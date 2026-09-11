@@ -5,6 +5,17 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
+
+  // Pages accessibles sans connexion.
+  "/the-hoop",
+  "/the-background",
+  "/terms-conditions",
+  "/search/:query",
+  "/products/:productId",
+  "/privacy-policy",
+  "/contact",
+
+  // Routes API publiques existantes.
   "/api/milos-bg(.*)",
   "/api/checkout(.*)",
 ]);
@@ -13,13 +24,15 @@ const isMaintenanceRoute = createRouteMatcher(["/api/milos-bg(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   const maintenanceProbeHeader = req.headers.get("x-mbg-maintenance-probe");
-  const bypassMaintenance = maintenanceProbeHeader === "1" || isMaintenanceRoute(req);
+  const skipMaintenanceProbe =
+    maintenanceProbeHeader === "1" || isMaintenanceRoute(req);
 
-  if (!isPublicRoute(req) && !bypassMaintenance) {
+  // L'en-tête de maintenance ne dispense jamais de l'authentification.
+  if (!isPublicRoute(req)) {
     await auth.protect();
   }
 
-  if (bypassMaintenance || req.method !== "GET") {
+  if (skipMaintenanceProbe || req.method !== "GET") {
     return NextResponse.next();
   }
 
@@ -62,4 +75,3 @@ export const config = {
     "/(api|trpc)(.*)",
   ],
 };
-
