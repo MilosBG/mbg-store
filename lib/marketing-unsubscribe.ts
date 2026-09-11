@@ -78,10 +78,12 @@ export async function suppressMarketingEmail({
   const db = await getAdminDb();
   const now = new Date();
 
+  const emailLower = email.toLowerCase();
+
   await db.collection("marketingsuppressions").updateOne(
     {
       ownerClerkId,
-      emailLower: email.toLowerCase(),
+      emailLower,
     },
     {
       $set: {
@@ -90,10 +92,23 @@ export async function suppressMarketingEmail({
       },
       $setOnInsert: {
         ownerClerkId,
-        emailLower: email.toLowerCase(),
+        emailLower,
         createdAt: now,
       },
     },
     { upsert: true },
+  );
+
+  // Keep the newsletter source-of-truth aligned with the suppression list.
+  await db.collection("marketingsubscribers").updateOne(
+    { emailLower },
+    {
+      $set: {
+        marketingConsent: false,
+        status: "UNSUBSCRIBED",
+        unsubscribedAt: now,
+        updatedAt: now,
+      },
+    },
   );
 }
