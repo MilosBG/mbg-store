@@ -1,0 +1,45 @@
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Un seul reflet par carte, sans faire clignoter tout le composant. */
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    rgb(255 255 255 / 55%) 50%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+}
+
+@keyframes skeletonSweep {
+  0%,
+  10% {
+    transform: translateX(-100%);
+  }
+
+  75%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer::after {
+    animation: skeletonSweep 2.2s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer::after {
+    display: none;
+  }
+}
