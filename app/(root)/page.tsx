@@ -11,7 +11,7 @@ import MilosBGAnimatedSlogan from "./components/MilosBGAnimatedSlogan/MilosBGAni
 import MilosBGSocialsSection from "./components/MilosBGSocialsSection";
 
 export const metadata = buildMetadata({
-  title: "Home",
+  title: "Milos BG",
 
   description:
     "A story of progression, written one chapter at a time. Discover handcrafted apparel inspired by basketball, craftsmanship and the GRIND UNTIL ACHIEVE Mentality.",
