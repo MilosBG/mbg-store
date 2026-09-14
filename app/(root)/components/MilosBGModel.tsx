@@ -84,7 +84,7 @@ const MilosBGModel = () => {
     >
       <div className="mx-auto max-w-[1440px]">
         {/* Section heading */}
-        <h2 className="heading2-bold mb-4">Yokoso ✿ Welcome ✿ Bienvenue</h2>
+        <h2 className="heading2-bold mb-4">Yokoso <span className="text-mbg-white">✿</span> Welcome <span className="text-mbg-white">✿</span> Bienvenue</h2>
 
         {/* Main presentation */}
         <div className="grid overflow-hidden border border-mbg-black bg-mbg-white shadow-mbg-bx-shadow lg:grid-cols-[42%_58%]">
