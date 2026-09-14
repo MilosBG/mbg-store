@@ -53,6 +53,7 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
   );
 
   const [selectedSrc, setSelectedSrc] = useState<string | null>(null);
+  const [imageRatios, setImageRatios] = useState<Record<string, number>>({});
   const [zoomOpen, setZoomOpen] = useState(false);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
@@ -204,7 +205,10 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
   return (
     <section aria-label={`Galerie d’images : ${productName}`} className="w-full font-[Kanit,sans-serif]">
       <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_84px]">
-        <div className="relative aspect-[4/5] min-w-0 overflow-hidden rounded-xl border border-mbg-black/10 bg-mbg-white shadow-sm sm:aspect-[5/4]">
+        <div
+          className={`relative min-w-0 overflow-hidden ${activeImage ? "" : "bg-mbg-black/5"}`}
+          style={{ aspectRatio: String(activeImage ? imageRatios[activeImage] ?? 4 / 5 : 4 / 5) }}
+        >
           {activeImage ? (
             <>
               <button
@@ -221,7 +225,15 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
                   fill
                   priority={activeIndex === 0}
                   sizes="(min-width: 1024px) 60vw, 100vw"
-                  className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.02] sm:p-10"
+                  onLoad={(event) => {
+                    const { naturalWidth, naturalHeight } = event.currentTarget;
+                    if (!naturalHeight) return;
+                    const ratio = naturalWidth / naturalHeight;
+                    setImageRatios((current) =>
+                      current[activeImage] === ratio ? current : { ...current, [activeImage]: ratio },
+                    );
+                  }}
+                  className="object-cover"
                 />
                 <span className="absolute right-4 top-4 rounded-full border border-mbg-black/10 bg-mbg-white/95 p-2.5 text-mbg-black shadow-sm transition group-hover:text-mbg-green">
                   <Icon name="zoom" className="h-5 w-5" />
@@ -262,13 +274,13 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
                   aria-label={`Afficher la vue ${index + 1} sur ${images.length}`}
                   aria-pressed={index === activeIndex}
                   onClick={() => selectImage(index)}
-                  className={`relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-lg border bg-mbg-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green ${
+                  className={`relative h-[76px] w-[76px] shrink-0 overflow-hidden border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green ${
                     index === activeIndex
                       ? "border-mbg-green ring-1 ring-mbg-green"
                       : "border-mbg-black/10 hover:border-mbg-black/40"
                   }`}
                 >
-                  <Image src={src} alt="" fill sizes="76px" className="object-contain p-1.5" />
+                  <Image src={src} alt="" fill sizes="76px" className="object-cover" />
                 </button>
               ))}
             </div>
