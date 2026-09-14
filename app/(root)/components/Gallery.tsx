@@ -242,7 +242,7 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
 
               {images.length > 1 && (
                 <>
-                  <span aria-live="polite" className="absolute bottom-4 left-4 rounded-full bg-mbg-white/95 px-3 py-2 text-xs font-medium tracking-widest text-mbg-black shadow-sm">
+                  <span aria-live="polite" className="absolute bottom-4 left-4 bg-mbg-white/95 px-3 py-2 text-xs font-medium tracking-widest text-mbg-black shadow-sm">
                     {String(activeIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}
                   </span>
                   <div className="absolute bottom-4 right-4 flex gap-2">
