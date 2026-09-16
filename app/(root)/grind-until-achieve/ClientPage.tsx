@@ -4,6 +4,8 @@ import Container from "@/components/mbg-components/Container";
 import { H2 } from "@/components/mbg-components/H2";
 import { H3 } from "@/components/mbg-components/H3";
 import Separator from "@/components/mbg-components/Separator";
+import { GrindUntilAchieve2 } from "@/images";
+import Image from "next/image";
 
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
@@ -105,33 +107,26 @@ const tocItems = {
 // -----------------------------------------------------------------------------
 // TITLE
 // -----------------------------------------------------------------------------
-
 const GrindTitle = ({
   className = "",
 }: {
   className?: string;
 }) => {
-  const title = "GRIND UNTIL ACHIEVE";
-
   return (
-    <span className={className} aria-label={title}>
-      {title.split("").map((letter, index) => {
-        const highlighted =
-          letter.toUpperCase() === "I" || letter.toUpperCase() === "V";
-
-        return (
-          <span
-            key={`${letter}-${index}`}
-            className={highlighted ? "text-mbg-green" : ""}
-          >
-            {letter}
-          </span>
-        );
-      })}
+    <span
+      className={className}
+      aria-label="GRIND UNTIL ACHIEVE"
+    >
+      GR
+      <span className="text-mbg-green">I</span>
+      ND{" "}
+      <span className="text-mbg-green">UNTIL</span>
+      {" "}ACHIE
+      <span className="text-mbg-green">V</span>
+      E
     </span>
   );
 };
-
 // -----------------------------------------------------------------------------
 // TABLE OF CONTENTS
 // -----------------------------------------------------------------------------
@@ -1608,14 +1603,22 @@ const ClientPage: React.FC = () => {
               text-center
             "
           >
-            <BiSolidBasketball
-              className="
-                mx-auto
-                mb-4
-                text-2xl
-                text-mbg-green
-              "
-            />
+                <Image
+                  src={GrindUntilAchieve2}
+                  alt="GRIND UNTIL ACHIEVE"
+                  width={32}
+                  height={32}
+                  priority
+                  className="
+    h-5
+    w-5
+    cursor-pointer
+    object-contain
+    transition-opacity
+    duration-300
+    group-hover:opacity-80
+  "
+                />
 
             <p
               className="
