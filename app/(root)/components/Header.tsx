@@ -134,20 +134,22 @@ const Header = () => {
             {/* HOME */}
             <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
               <Link href="/grind-until-achieve" aria-label="Home">
-                     <Image
-              src={GrindUntilAchieve2}
-              alt="GRIND UNTIL ACHIEVE"
-              width={250}
-              height={50}
-              priority
-              className="
-                cursor-pointer
-                p-7
-                transition-opacity
-                duration-300
-                group-hover:opacity-80
-              "
-            />
+      <Image
+  src={GrindUntilAchieve2}
+  alt="GRIND UNTIL ACHIEVE"
+  width={32}
+  height={32}
+  priority
+  className="
+    h-8
+    w-8
+    cursor-pointer
+    object-contain
+    transition-opacity
+    duration-300
+    group-hover:opacity-80
+  "
+/>
               </Link>
             </div>
 
