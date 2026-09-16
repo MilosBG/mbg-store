@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import ClientPage from "./ClientPage";
 import { getProducts } from "@/lib/admin";
 import { buildMetadata } from "@/lib/seo";
+import Container from "@/components/mbg-components/Container";
 
 export const dynamic = "force-dynamic";
 
@@ -30,8 +31,10 @@ export default async function ProductsPage() {
   const products = await getProducts();
 
   return (
-    <ClientPage
-      products={Array.isArray(products) ? products : []}
-    />
+    <Container>
+        <ClientPage
+          products={Array.isArray(products) ? products : []}
+        />
+    </Container>
   );
 }
