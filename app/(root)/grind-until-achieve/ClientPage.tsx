@@ -1601,6 +1601,8 @@ const ClientPage: React.FC = () => {
               px-6
               py-10
               text-center
+              flex items-center
+              justify-center
             "
           >
                 <Image
@@ -1642,7 +1644,7 @@ const ClientPage: React.FC = () => {
                 text-mbg-darkgrey
               "
             >
-              1 → 2 → 3 → 4 → 5 → 1
+              From chapter <strong className="text-mbg-green">I</strong> to <strong className="text-mbg-green">V</strong> 
             </p>
           </div>
 
