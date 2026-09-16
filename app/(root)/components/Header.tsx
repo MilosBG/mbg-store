@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
+import { BsShop } from "react-icons/bs";
 
 import { GiBasketballBasket, GiHouse } from "react-icons/gi";
 import { FaUserCircle } from "react-icons/fa";
@@ -131,7 +132,7 @@ const Header = () => {
               text-mbg-black
             "
           >
-            {/* HOME */}
+            {/* BOOKS */}
             <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
               <Link href="/grind-until-achieve" aria-label="Home">
                 <Image
@@ -149,6 +150,18 @@ const Header = () => {
     duration-300
     group-hover:opacity-80
   "
+                />
+              </Link>
+            </div>
+
+            {/* ALL PRODUCTS */}
+            <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
+              <Link href="/products" aria-label="All Products">
+                <BsShop
+                  className="
+                          mbg-icons-style
+                          hoverEffect
+                          "
                 />
               </Link>
             </div>
