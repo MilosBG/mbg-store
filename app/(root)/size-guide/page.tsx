@@ -7,6 +7,7 @@ import {
   normalizeStoreLanguage,
   type StoreLanguage,
 } from "@/lib/store-language";
+import Container from "@/components/mbg-components/Container";
 
 type PageProps = {
   searchParams: Promise<{
@@ -216,7 +217,7 @@ export default async function Page({
         }}
       />
 
-      <ClientPage lang={lang} />
+      <Container><ClientPage lang={lang} /></Container>
     </>
   );
 }

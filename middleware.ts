@@ -14,9 +14,11 @@ const isPublicRoute = createRouteMatcher([
   "/products/:productId",
   "/chapters/:chapterId",
   "/privacy-policy",
+  "/legal-notice",
   "/contact",
   "/grind-until-achieve",
   "/size-guide",
+  "/products",
 
   // Routes API publiques existantes.
   "/api/milos-bg(.*)",
