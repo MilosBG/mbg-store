@@ -41,7 +41,7 @@ function Icon({ name, className = "h-5 w-5" }: { name: IconName; className?: str
 }
 
 const controlClass =
-  "inline-flex h-10 w-10 items-center justify-center rounded-full border border-mbg-black/10 bg-mbg-white text-mbg-black shadow-sm transition hover:border-mbg-green hover:text-mbg-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-10 w-10 items-center justify-center rounded-full border border-mbg-black/10 bg-mbg-white text-mbg-black shadow-sm transition hover:border-mbg-green hover:text-mbg-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green disabled:cursor-not-allowed disabled:opacity-40";
 
 export default function Gallery({ productMedia, productName = "Milos BG" }: GalleryProps) {
   const images = useMemo(
@@ -217,7 +217,9 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
                 aria-label={`Agrandir l’image ${activeIndex + 1} sur ${images.length} de ${productName}`}
                 aria-haspopup="dialog"
                 onClick={() => setZoomOpen(true)}
-                className="group absolute inset-0 w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-mbg-green"
+                className="group absolute inset-0 w-full cursor-zoom-in focus-visible:outline-2
+focus-visible:outline-offset-2
+focus-visible:outline-mbg-green"
               >
                 <Image
                   src={activeImage}
@@ -274,7 +276,7 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
                   aria-label={`Afficher la vue ${index + 1} sur ${images.length}`}
                   aria-pressed={index === activeIndex}
                   onClick={() => selectImage(index)}
-                  className={`relative h-[76px] w-[76px] shrink-0 overflow-hidden border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green ${
+                  className={`relative h-[76px] w-[76px] shrink-0 overflow-hidden border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green ${
                     index === activeIndex
                       ? "border-mbg-green ring-1 ring-mbg-green"
                       : "border-mbg-black/10 hover:border-mbg-black/40"
@@ -309,7 +311,7 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
               type="button"
               aria-label="Fermer l’agrandissement"
               onClick={closeZoom}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-mbg-white/25 transition hover:bg-mbg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-white"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-mbg-white/25 transition hover:bg-mbg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-white"
             >
               <Icon name="close" />
             </button>
@@ -368,10 +370,10 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
 
             {images.length > 1 && (
               <>
-                <button type="button" aria-label="Image précédente" onClick={() => moveImage(-1)} className="absolute left-1 top-1/2 z-10 -translate-y-1/2 rounded-full border border-mbg-white/20 bg-mbg-black/65 p-2.5 transition hover:bg-mbg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-mbg-white sm:left-4">
+                <button type="button" aria-label="Image précédente" onClick={() => moveImage(-1)} className="absolute left-1 top-1/2 z-10 -translate-y-1/2 rounded-full border border-mbg-white/20 bg-mbg-black/65 p-2.5 transition hover:bg-mbg-white/20 focus-visible:outline-2 focus-visible:outline-mbg-white sm:left-4">
                   <Icon name="previous" />
                 </button>
-                <button type="button" aria-label="Image suivante" onClick={() => moveImage(1)} className="absolute right-1 top-1/2 z-10 -translate-y-1/2 rounded-full border border-mbg-white/20 bg-mbg-black/65 p-2.5 transition hover:bg-mbg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-mbg-white sm:right-4">
+                <button type="button" aria-label="Image suivante" onClick={() => moveImage(1)} className="absolute right-1 top-1/2 z-10 -translate-y-1/2 rounded-full border border-mbg-white/20 bg-mbg-black/65 p-2.5 transition hover:bg-mbg-white/20 focus-visible:outline-2 focus-visible:outline-mbg-white sm:right-4">
                   <Icon name="next" />
                 </button>
               </>
@@ -381,11 +383,11 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
           <div className="mt-3 flex shrink-0 items-center justify-between gap-3">
             <p className="hidden text-xs text-mbg-white/60 sm:block">Molette pour zoomer · Glisser pour déplacer · Échap pour fermer</p>
             <div className="ml-auto flex items-center gap-2">
-              <button type="button" aria-label="Réduire le zoom" disabled={scale <= 1} onClick={() => changeScale(-0.25)} className="rounded-full border border-mbg-white/25 p-2.5 transition hover:bg-mbg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-mbg-white disabled:cursor-not-allowed disabled:opacity-40">
+              <button type="button" aria-label="Réduire le zoom" disabled={scale <= 1} onClick={() => changeScale(-0.25)} className="rounded-full border border-mbg-white/25 p-2.5 transition hover:bg-mbg-white/15 focus-visible:outline-2 focus-visible:outline-mbg-white disabled:cursor-not-allowed disabled:opacity-40">
                 <Icon name="minus" />
               </button>
               <span className="min-w-12 text-center text-sm tabular-nums" aria-live="polite">{Math.round(scale * 100)} %</span>
-              <button type="button" aria-label="Augmenter le zoom" disabled={scale >= 4} onClick={() => changeScale(0.25)} className="rounded-full border border-mbg-white/25 p-2.5 transition hover:bg-mbg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-mbg-white disabled:cursor-not-allowed disabled:opacity-40">
+              <button type="button" aria-label="Augmenter le zoom" disabled={scale >= 4} onClick={() => changeScale(0.25)} className="rounded-full border border-mbg-white/25 p-2.5 transition hover:bg-mbg-white/15 focus-visible:outline-2 focus-visible:outline-mbg-white disabled:cursor-not-allowed disabled:opacity-40">
                 <Icon name="plus" />
               </button>
             </div>
