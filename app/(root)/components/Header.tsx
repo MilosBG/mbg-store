@@ -12,7 +12,7 @@ import { IoMdBasketball } from "react-icons/io";
 
 import { UserButton, useUser } from "@clerk/nextjs";
 
-import { MilosBG } from "@/images";
+import { GrindUntilAchieve2, MilosBG } from "@/images";
 import Container from "@/components/mbg-components/Container";
 import Input from "@/components/mbg-components/Input";
 import useCart from "@/lib/hooks/useCart";
@@ -133,9 +133,21 @@ const Header = () => {
           >
             {/* HOME */}
             <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
-              <Link href="/" aria-label="Home">
-                <GiHouse className=" mbg-icons-style
-                          hoverEffect" />
+              <Link href="/grind-until-achieve" aria-label="Home">
+                     <Image
+              src={GrindUntilAchieve2}
+              alt="GRIND UNTIL ACHIEVE"
+              width={10}
+              height={10}
+              priority
+              className="
+                cursor-pointer
+                p-7
+                transition-opacity
+                duration-300
+                group-hover:opacity-80
+              "
+            />
               </Link>
             </div>
 
