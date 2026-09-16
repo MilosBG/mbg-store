@@ -137,8 +137,8 @@ const Header = () => {
                      <Image
               src={GrindUntilAchieve2}
               alt="GRIND UNTIL ACHIEVE"
-              width={10}
-              height={10}
+              width={250}
+              height={50}
               priority
               className="
                 cursor-pointer
