@@ -1601,8 +1601,7 @@ const ClientPage: React.FC = () => {
               px-6
               py-10
               text-center
-              flex items-center
-              justify-center
+              
             "
           >
                 <Image
