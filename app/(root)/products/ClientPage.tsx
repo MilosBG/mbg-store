@@ -4,45 +4,44 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useMemo, useState } from "react";
 import {
-  Check,
   ChevronDown,
   SlidersHorizontal,
   X,
 } from "lucide-react";
 
+import type { StoreLanguage } from "@/lib/store-language";
+
 type ProductVariant = {
   _id?: string;
+
   size?: string;
-  color?: string;
-  colorName?: string;
-  colorHex?: string;
-  hex?: string;
+
   stock?: number;
   quantity?: number;
-  price?: number | string;
-  media?: string[];
-};
 
-type ProductChapter = {
-  _id?: string;
-  title?: string;
-  name?: string;
+  price?: number | string;
+
+  media?: string[];
 };
 
 export type MBGProduct = {
   _id: string;
 
+  slug?: string;
+
   title: string;
+  titleFr?: string;
+
   description?: string;
+  descriptionFr?: string;
 
   media?: string[];
 
   category?: string;
-
-  chapter?: string | ProductChapter;
-  chapters?: Array<string | ProductChapter>;
+  categoryFr?: string;
 
   price?: number | string;
+
   discountedPrice?: number | string;
   salePrice?: number | string;
 
@@ -51,21 +50,12 @@ export type MBGProduct = {
 
   sizes?: string[];
 
-  colors?: Array<
-    | string
-    | {
-        name?: string;
-        title?: string;
-        hex?: string;
-        colorHex?: string;
-      }
-  >;
-
   variants?: ProductVariant[];
 };
 
 type Props = {
   products: MBGProduct[];
+  lang: StoreLanguage;
 };
 
 type SortValue =
@@ -75,15 +65,108 @@ type SortValue =
   | "price-desc"
   | "name-asc";
 
-const CATEGORY_ORDER = [
-  "TOPS",
-  "UPCYCLINGS",
-  "BOTTOMS",
-  "BACKUPS",
-  "CGS",
-];
+type PriceRange =
+  | "all"
+  | "under-50"
+  | "50-100"
+  | "over-100";
 
-const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"];
+type Availability = "all" | "available";
+
+const COPY = {
+  en: {
+    pageTitle: "All Products",
+    mantra: "GRIND UNTIL ACHIEVE",
+
+    hideFilters: "Hide filters",
+    showFilters: "Show filters",
+    filters: "Filters",
+
+    sortBy: "Sort by",
+    featured: "Featured",
+    newest: "Newest",
+    priceLowHigh: "Price: Low to High",
+    priceHighLow: "Price: High to Low",
+    nameAZ: "Name: A → Z",
+
+    categories: "Categories",
+
+    availability: "Availability",
+    allProducts: "All products",
+    inStock: "In stock",
+
+    price: "Shop by price",
+    allPrices: "All prices",
+    under50: "Under €50",
+    between50And100: "€50 – €100",
+    over100: "Over €100",
+
+    size: "Size",
+
+    clearFilters: "Clear filters",
+
+    showProducts: "Show products",
+
+    noProducts: "No products",
+    noProductsDescription:
+      "No products currently match your selection.",
+
+    soldOut: "Sold out",
+
+    other: "Other",
+  },
+
+  fr: {
+    pageTitle: "Tous les produits",
+    mantra: "GRIND UNTIL ACHIEVE",
+
+    hideFilters: "Masquer les filtres",
+    showFilters: "Afficher les filtres",
+    filters: "Filtres",
+
+    sortBy: "Trier par",
+    featured: "Sélection",
+    newest: "Nouveautés",
+    priceLowHigh: "Prix : croissant",
+    priceHighLow: "Prix : décroissant",
+    nameAZ: "Nom : A → Z",
+
+    categories: "Catégories",
+
+    availability: "Disponibilité",
+    allProducts: "Tous les produits",
+    inStock: "En stock",
+
+    price: "Rechercher par prix",
+    allPrices: "Tous les prix",
+    under50: "Moins de 50 €",
+    between50And100: "50 € – 100 €",
+    over100: "Plus de 100 €",
+
+    size: "Taille",
+
+    clearFilters: "Effacer les filtres",
+
+    showProducts: "Afficher les produits",
+
+    noProducts: "Aucun produit",
+    noProductsDescription:
+      "Aucun produit ne correspond actuellement à votre sélection.",
+
+    soldOut: "Épuisé",
+
+    other: "Autres",
+  },
+} satisfies Record<StoreLanguage, Record<string, string>>;
+
+const SIZE_ORDER = [
+  "XS",
+  "S",
+  "M",
+  "L",
+  "XL",
+  "XXL",
+];
 
 const normalize = (value?: string | null) =>
   (value ?? "").trim().toUpperCase();
@@ -91,7 +174,11 @@ const normalize = (value?: string | null) =>
 const getNumber = (
   value?: number | string | null,
 ): number | null => {
-  if (value === null || value === undefined || value === "") {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
     return null;
   }
 
@@ -106,10 +193,14 @@ const getNumber = (
       .replace(/[^\d.-]/g, ""),
   );
 
-  return Number.isFinite(parsed) ? parsed : null;
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
 };
 
-const getProductPrice = (product: MBGProduct) => {
+const getProductPrice = (
+  product: MBGProduct,
+) => {
   return (
     getNumber(product.discountedPrice) ??
     getNumber(product.salePrice) ??
@@ -125,37 +216,50 @@ const formatPrice = (price: number) => {
   }).format(price);
 };
 
-const getChapterName = (product: MBGProduct) => {
-  if (typeof product.chapter === "string") {
-    return product.chapter;
+const getLocalizedTitle = (
+  product: MBGProduct,
+  lang: StoreLanguage,
+) => {
+  if (lang === "fr") {
+    return product.titleFr?.trim() || product.title;
   }
 
-  if (product.chapter?.title) {
-    return product.chapter.title;
-  }
-
-  if (product.chapter?.name) {
-    return product.chapter.name;
-  }
-
-  const firstChapter = product.chapters?.[0];
-
-  if (typeof firstChapter === "string") {
-    return firstChapter;
-  }
-
-  return firstChapter?.title || firstChapter?.name || "";
+  return product.title;
 };
 
-const getProductCategory = (product: MBGProduct) => {
-  return product.category || getChapterName(product) || "AUTRES";
+const getCategoryKey = (
+  product: MBGProduct,
+) => {
+  return normalize(product.category || "OTHER");
 };
 
-const getProductSizes = (product: MBGProduct) => {
+const getLocalizedCategory = (
+  product: MBGProduct,
+  lang: StoreLanguage,
+) => {
+  if (lang === "fr") {
+    return (
+      product.categoryFr?.trim() ||
+      product.category?.trim() ||
+      COPY.fr.other
+    );
+  }
+
+  return (
+    product.category?.trim() ||
+    COPY.en.other
+  );
+};
+
+const getProductSizes = (
+  product: MBGProduct,
+) => {
   const sizes = new Set<string>();
 
   product.sizes?.forEach((size) => {
-    if (size) sizes.add(normalize(size));
+    if (size) {
+      sizes.add(normalize(size));
+    }
   });
 
   product.variants?.forEach((variant) => {
@@ -167,49 +271,9 @@ const getProductSizes = (product: MBGProduct) => {
   return Array.from(sizes);
 };
 
-const getProductColors = (product: MBGProduct) => {
-  const colors = new Map<
-    string,
-    {
-      name: string;
-      hex?: string;
-    }
-  >();
-
-  product.colors?.forEach((color) => {
-    if (typeof color === "string") {
-      colors.set(normalize(color), {
-        name: color,
-      });
-
-      return;
-    }
-
-    const name = color.name || color.title;
-
-    if (!name) return;
-
-    colors.set(normalize(name), {
-      name,
-      hex: color.hex || color.colorHex,
-    });
-  });
-
-  product.variants?.forEach((variant) => {
-    const name = variant.colorName || variant.color;
-
-    if (!name) return;
-
-    colors.set(normalize(name), {
-      name,
-      hex: variant.colorHex || variant.hex,
-    });
-  });
-
-  return Array.from(colors.values());
-};
-
-const getStock = (product: MBGProduct) => {
+const getStock = (
+  product: MBGProduct,
+) => {
   if (typeof product.stock === "number") {
     return product.stock;
   }
@@ -219,259 +283,287 @@ const getStock = (product: MBGProduct) => {
   }
 
   if (product.variants?.length) {
-    return product.variants.reduce((total, variant) => {
-      return total + (variant.stock ?? variant.quantity ?? 0);
-    }, 0);
+    return product.variants.reduce(
+      (total, variant) => {
+        return (
+          total +
+          (variant.stock ??
+            variant.quantity ??
+            0)
+        );
+      },
+      0,
+    );
   }
 
   return null;
 };
 
-const getMainImage = (product: MBGProduct) => {
-  const mediaImage = product.media?.find(Boolean);
+const getMainImage = (
+  product: MBGProduct,
+) => {
+  const mainMedia =
+    product.media?.find(Boolean);
 
-  if (mediaImage) {
-    return mediaImage;
+  if (mainMedia) {
+    return mainMedia;
   }
 
-  const variantImage = product.variants
-    ?.flatMap((variant) => variant.media || [])
+  const variantMedia = product.variants
+    ?.flatMap(
+      (variant) => variant.media || [],
+    )
     .find(Boolean);
 
-  return variantImage || "/placeholder-product.png";
+  return (
+    variantMedia ||
+    "/placeholder-product.png"
+  );
 };
 
-const colorNameToHex = (name: string) => {
-  const colors: Record<string, string> = {
-    BLACK: "#000000",
-    NOIR: "#000000",
+const getProductUrl = (
+  product: MBGProduct,
+  lang: StoreLanguage,
+) => {
+  const identifier =
+    product.slug || product._id;
 
-    WHITE: "#FFFFFF",
-    BLANC: "#FFFFFF",
-
-    GREY: "#BFBFBF",
-    GRAY: "#BFBFBF",
-    GRIS: "#BFBFBF",
-
-    GREEN: "#00821A",
-    VERT: "#00821A",
-
-    BLUE: "#2454A4",
-    BLEU: "#2454A4",
-
-    RED: "#B3261E",
-    ROUGE: "#B3261E",
-
-    BROWN: "#72533F",
-    MARRON: "#72533F",
-
-    BEIGE: "#D7C3A5",
-  };
-
-  return colors[normalize(name)] || "#D9D9D9";
+  return `/products/${encodeURIComponent(
+    identifier,
+  )}?lang=${lang}`;
 };
 
-const ClientPage = ({ products }: Props) => {
-  const [showFilters, setShowFilters] = useState(true);
+const ClientPage = ({
+  products,
+  lang,
+}: Props) => {
+  const copy = COPY[lang];
 
-  const [mobileFiltersOpen, setMobileFiltersOpen] =
-    useState(false);
+  const [showFilters, setShowFilters] =
+    useState(true);
+
+  const [
+    mobileFiltersOpen,
+    setMobileFiltersOpen,
+  ] = useState(false);
 
   const [sort, setSort] =
     useState<SortValue>("featured");
 
-  const [selectedCategories, setSelectedCategories] =
+  const [
+    selectedCategories,
+    setSelectedCategories,
+  ] = useState<string[]>([]);
+
+  const [selectedSizes, setSelectedSizes] =
     useState<string[]>([]);
 
-  const [selectedSizes, setSelectedSizes] = useState<
-    string[]
-  >([]);
+  const [availability, setAvailability] =
+    useState<Availability>("all");
 
-  const [selectedColors, setSelectedColors] = useState<
-    string[]
-  >([]);
+  const [priceRange, setPriceRange] =
+    useState<PriceRange>("all");
 
-  const [availability, setAvailability] = useState<
-    "all" | "available"
-  >("all");
-
-  const [priceRange, setPriceRange] = useState<
-    "all" | "under-50" | "50-100" | "over-100"
-  >("all");
-
+  /*
+   * Les catégories gardent une clé stable
+   * provenant de category, tandis que leur
+   * label est traduit.
+   */
   const categories = useMemo(() => {
-    const found = new Set(
-      products.map((product) =>
-        normalize(getProductCategory(product)),
-      ),
-    );
+    const map = new Map<
+      string,
+      string
+    >();
 
-    const ordered = CATEGORY_ORDER.filter((category) =>
-      found.has(category),
-    );
+    products.forEach((product) => {
+      const key =
+        getCategoryKey(product);
 
-    const extras = Array.from(found)
+      const label =
+        getLocalizedCategory(
+          product,
+          lang,
+        );
+
+      if (!map.has(key)) {
+        map.set(key, label);
+      }
+    });
+
+    return Array.from(
+      map.entries(),
+    )
+      .map(([key, label]) => ({
+        key,
+        label,
+      }))
+      .sort((a, b) =>
+        a.label.localeCompare(b.label),
+      );
+  }, [products, lang]);
+
+  const sizes = useMemo(() => {
+    const allSizes =
+      new Set<string>();
+
+    products.forEach((product) => {
+      getProductSizes(product).forEach(
+        (size) => allSizes.add(size),
+      );
+    });
+
+    const ordered =
+      SIZE_ORDER.filter((size) =>
+        allSizes.has(size),
+      );
+
+    const extras = Array.from(
+      allSizes,
+    )
       .filter(
-        (category) =>
-          category &&
-          !CATEGORY_ORDER.includes(category),
+        (size) =>
+          !SIZE_ORDER.includes(size),
       )
       .sort();
 
     return [...ordered, ...extras];
   }, [products]);
 
-  const sizes = useMemo(() => {
-    const allSizes = new Set<string>();
+  const filteredProducts =
+    useMemo(() => {
+      const filtered =
+        products.filter((product) => {
+          const categoryKey =
+            getCategoryKey(product);
 
-    products.forEach((product) => {
-      getProductSizes(product).forEach((size) =>
-        allSizes.add(size),
+          if (
+            selectedCategories.length &&
+            !selectedCategories.includes(
+              categoryKey,
+            )
+          ) {
+            return false;
+          }
+
+          if (selectedSizes.length) {
+            const productSizes =
+              getProductSizes(product);
+
+            const hasSelectedSize =
+              selectedSizes.some(
+                (size) =>
+                  productSizes.includes(
+                    size,
+                  ),
+              );
+
+            if (!hasSelectedSize) {
+              return false;
+            }
+          }
+
+          if (
+            availability ===
+            "available"
+          ) {
+            const stock =
+              getStock(product);
+
+            if (
+              stock !== null &&
+              stock <= 0
+            ) {
+              return false;
+            }
+          }
+
+          const price =
+            getProductPrice(product);
+
+          if (
+            priceRange ===
+              "under-50" &&
+            price >= 50
+          ) {
+            return false;
+          }
+
+          if (
+            priceRange ===
+              "50-100" &&
+            (price < 50 ||
+              price > 100)
+          ) {
+            return false;
+          }
+
+          if (
+            priceRange ===
+              "over-100" &&
+            price <= 100
+          ) {
+            return false;
+          }
+
+          return true;
+        });
+
+      return [...filtered].sort(
+        (a, b) => {
+          switch (sort) {
+            case "price-asc":
+              return (
+                getProductPrice(a) -
+                getProductPrice(b)
+              );
+
+            case "price-desc":
+              return (
+                getProductPrice(b) -
+                getProductPrice(a)
+              );
+
+            case "name-asc":
+              return getLocalizedTitle(
+                a,
+                lang,
+              ).localeCompare(
+                getLocalizedTitle(
+                  b,
+                  lang,
+                ),
+              );
+
+            case "newest":
+              return b._id.localeCompare(
+                a._id,
+              );
+
+            case "featured":
+            default:
+              return 0;
+          }
+        },
       );
-    });
-
-    const ordered = SIZE_ORDER.filter((size) =>
-      allSizes.has(size),
-    );
-
-    const extras = Array.from(allSizes)
-      .filter((size) => !SIZE_ORDER.includes(size))
-      .sort();
-
-    return [...ordered, ...extras];
-  }, [products]);
-
-  const colors = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        name: string;
-        hex?: string;
-      }
-    >();
-
-    products.forEach((product) => {
-      getProductColors(product).forEach((color) => {
-        map.set(normalize(color.name), color);
-      });
-    });
-
-    return Array.from(map.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [products]);
-
-  const filteredProducts = useMemo(() => {
-    const filtered = products.filter((product) => {
-      const category = normalize(
-        getProductCategory(product),
-      );
-
-      if (
-        selectedCategories.length &&
-        !selectedCategories.includes(category)
-      ) {
-        return false;
-      }
-
-      if (selectedSizes.length) {
-        const productSizes = getProductSizes(product);
-
-        const containsSize = selectedSizes.some((size) =>
-          productSizes.includes(size),
-        );
-
-        if (!containsSize) {
-          return false;
-        }
-      }
-
-      if (selectedColors.length) {
-        const productColors = getProductColors(product).map(
-          (color) => normalize(color.name),
-        );
-
-        const containsColor = selectedColors.some(
-          (color) => productColors.includes(color),
-        );
-
-        if (!containsColor) {
-          return false;
-        }
-      }
-
-      if (availability === "available") {
-        const stock = getStock(product);
-
-        if (stock !== null && stock <= 0) {
-          return false;
-        }
-      }
-
-      const price = getProductPrice(product);
-
-      if (priceRange === "under-50" && price >= 50) {
-        return false;
-      }
-
-      if (
-        priceRange === "50-100" &&
-        (price < 50 || price > 100)
-      ) {
-        return false;
-      }
-
-      if (priceRange === "over-100" && price <= 100) {
-        return false;
-      }
-
-      return true;
-    });
-
-    return [...filtered].sort((a, b) => {
-      switch (sort) {
-        case "price-asc":
-          return (
-            getProductPrice(a) - getProductPrice(b)
-          );
-
-        case "price-desc":
-          return (
-            getProductPrice(b) - getProductPrice(a)
-          );
-
-        case "name-asc":
-          return a.title.localeCompare(b.title);
-
-        case "newest":
-          return b._id.localeCompare(a._id);
-
-        case "featured":
-        default:
-          return 0;
-      }
-    });
-  }, [
-    products,
-    selectedCategories,
-    selectedSizes,
-    selectedColors,
-    availability,
-    priceRange,
-    sort,
-  ]);
+    }, [
+      products,
+      selectedCategories,
+      selectedSizes,
+      availability,
+      priceRange,
+      sort,
+      lang,
+    ]);
 
   const hasFilters =
     selectedCategories.length > 0 ||
     selectedSizes.length > 0 ||
-    selectedColors.length > 0 ||
     availability !== "all" ||
     priceRange !== "all";
 
   const clearFilters = () => {
     setSelectedCategories([]);
     setSelectedSizes([]);
-    setSelectedColors([]);
     setAvailability("all");
     setPriceRange("all");
   };
@@ -485,195 +577,213 @@ const ClientPage = ({ products }: Props) => {
   ) => {
     setValues((current) =>
       current.includes(value)
-        ? current.filter((item) => item !== value)
+        ? current.filter(
+            (item) => item !== value,
+          )
         : [...current, value],
     );
   };
 
   return (
     <main className="min-h-screen bg-mbg-white text-mbg-black">
-      {/* HEADER */}
+      {/* PAGE HEADER */}
       <section className="px-5 pb-7 pt-8 md:px-8 lg:px-12">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1
-              className="
-                text-[24px]
-                font-semibold
-                tracking-[-0.03em]
-                md:text-[28px]
-              "
-            >
-              Tous les produits
+            <h1 className="text-[24px] font-semibold tracking-[-0.03em] md:text-[28px]">
+              {copy.pageTitle}
+
               <span className="ml-2 text-mbg-darkgrey">
-                ({filteredProducts.length})
+                (
+                {
+                  filteredProducts.length
+                }
+                )
               </span>
             </h1>
 
             <p className="mt-1 text-sm text-mbg-darkgrey">
-              GRIND UNTIL ACHIEVE
+              {copy.mantra}
             </p>
           </div>
 
           <div className="flex items-center gap-5">
-            {/* DESKTOP FILTER TOGGLE */}
+            {/* LANGUAGE */}
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <Link
+                href="/products?lang=en"
+                aria-current={
+                  lang === "en"
+                    ? "page"
+                    : undefined
+                }
+                className={
+                  lang === "en"
+                    ? "text-mbg-black"
+                    : "text-mbg-darkgrey"
+                }
+              >
+                EN
+              </Link>
+
+              <span className="text-mbg-black/20">
+                /
+              </span>
+
+              <Link
+                href="/products?lang=fr"
+                aria-current={
+                  lang === "fr"
+                    ? "page"
+                    : undefined
+                }
+                className={
+                  lang === "fr"
+                    ? "text-mbg-black"
+                    : "text-mbg-darkgrey"
+                }
+              >
+                FR
+              </Link>
+            </div>
+
+            {/* DESKTOP FILTERS */}
             <button
               type="button"
               onClick={() =>
-                setShowFilters((current) => !current)
+                setShowFilters(
+                  (current) =>
+                    !current,
+                )
               }
-              className="
-                hidden
-                items-center
-                gap-2
-                text-sm
-                font-medium
-                transition-opacity
-                hover:opacity-60
-                lg:flex
-              "
+              className="hidden items-center gap-2 text-sm font-medium transition-opacity hover:opacity-60 lg:flex"
             >
               {showFilters
-                ? "Masquer les filtres"
-                : "Afficher les filtres"}
+                ? copy.hideFilters
+                : copy.showFilters}
 
-              <SlidersHorizontal size={18} />
+              <SlidersHorizontal
+                size={18}
+              />
             </button>
 
-            {/* MOBILE FILTER BUTTON */}
+            {/* MOBILE FILTERS */}
             <button
               type="button"
               onClick={() =>
-                setMobileFiltersOpen(true)
+                setMobileFiltersOpen(
+                  true,
+                )
               }
-              className="
-                flex
-                flex-1
-                items-center
-                justify-center
-                gap-2
-                border
-                border-mbg-black
-                px-4
-                py-3
-                text-sm
-                font-medium
-                lg:hidden
-              "
+              className="flex flex-1 items-center justify-center gap-2 border border-mbg-black px-4 py-3 text-sm font-medium lg:hidden"
             >
-              Filtres
-              <SlidersHorizontal size={17} />
+              {copy.filters}
+
+              <SlidersHorizontal
+                size={17}
+              />
             </button>
 
             {/* SORT */}
             <div className="relative flex flex-1 items-center lg:flex-none">
               <select
-                aria-label="Trier les produits"
+                aria-label={
+                  copy.sortBy
+                }
                 value={sort}
                 onChange={(event) =>
                   setSort(
-                    event.target.value as SortValue,
+                    event.target
+                      .value as SortValue,
                   )
                 }
-                className="
-                  w-full
-                  cursor-pointer
-                  appearance-none
-                  border
-                  border-mbg-black
-                  bg-mbg-white
-                  py-3
-                  pl-4
-                  pr-10
-                  text-sm
-                  font-medium
-                  outline-none
-                  lg:border-0
-                  lg:py-1
-                "
+                className="w-full cursor-pointer appearance-none border border-mbg-black bg-mbg-white py-3 pl-4 pr-10 text-sm font-medium outline-none lg:border-0 lg:py-1"
               >
                 <option value="featured">
-                  Trier par
+                  {copy.sortBy}
                 </option>
 
                 <option value="newest">
-                  Nouveautés
+                  {copy.newest}
                 </option>
 
                 <option value="price-asc">
-                  Prix : croissant
+                  {
+                    copy.priceLowHigh
+                  }
                 </option>
 
                 <option value="price-desc">
-                  Prix : décroissant
+                  {
+                    copy.priceHighLow
+                  }
                 </option>
 
                 <option value="name-asc">
-                  Nom : A → Z
+                  {copy.nameAZ}
                 </option>
               </select>
 
               <ChevronDown
                 size={18}
-                className="
-                  pointer-events-none
-                  absolute
-                  right-3
-                "
+                className="pointer-events-none absolute right-3"
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* CONTENT */}
+      {/* PRODUCTS */}
       <section className="px-5 pb-24 md:px-8 lg:px-12">
-        <div className="flex items-start gap-7">
-          {/* DESKTOP SIDEBAR */}
+        <div className="flex items-start gap-8">
           {showFilters && (
-            <aside
-              className="
-                sticky
-                top-5
-                hidden
-                h-[calc(100vh-40px)]
-                w-[220px]
-                flex-none
-                overflow-y-auto
-                pr-4
-                lg:block
-                [scrollbar-width:none]
-                [&::-webkit-scrollbar]:hidden
-              "
-            >
+            <aside className="sticky top-5 hidden h-[calc(100vh-40px)] w-[220px] flex-none overflow-y-auto pr-4 lg:block [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <Filters
-                categories={categories}
+                lang={lang}
+                categories={
+                  categories
+                }
                 sizes={sizes}
-                colors={colors}
                 selectedCategories={
                   selectedCategories
                 }
                 setSelectedCategories={
                   setSelectedCategories
                 }
-                selectedSizes={selectedSizes}
-                setSelectedSizes={setSelectedSizes}
-                selectedColors={selectedColors}
-                setSelectedColors={setSelectedColors}
-                availability={availability}
-                setAvailability={setAvailability}
-                priceRange={priceRange}
-                setPriceRange={setPriceRange}
-                toggleValue={toggleValue}
-                hasFilters={hasFilters}
-                clearFilters={clearFilters}
+                selectedSizes={
+                  selectedSizes
+                }
+                setSelectedSizes={
+                  setSelectedSizes
+                }
+                availability={
+                  availability
+                }
+                setAvailability={
+                  setAvailability
+                }
+                priceRange={
+                  priceRange
+                }
+                setPriceRange={
+                  setPriceRange
+                }
+                toggleValue={
+                  toggleValue
+                }
+                hasFilters={
+                  hasFilters
+                }
+                clearFilters={
+                  clearFilters
+                }
               />
             </aside>
           )}
 
-          {/* PRODUCTS */}
           <div className="min-w-0 flex-1">
-            {filteredProducts.length ? (
+            {filteredProducts.length >
+            0 ? (
               <div
                 className={`
                   grid
@@ -689,134 +799,135 @@ const ClientPage = ({ products }: Props) => {
                   }
                 `}
               >
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product._id}
-                    product={product}
-                  />
-                ))}
+                {filteredProducts.map(
+                  (product) => (
+                    <ProductCard
+                      key={
+                        product._id
+                      }
+                      product={
+                        product
+                      }
+                      lang={lang}
+                    />
+                  ),
+                )}
               </div>
             ) : (
               <EmptyState
-                onClear={clearFilters}
-                hasFilters={hasFilters}
+                lang={lang}
+                onClear={
+                  clearFilters
+                }
+                hasFilters={
+                  hasFilters
+                }
               />
             )}
           </div>
         </div>
       </section>
 
-      {/* MOBILE FILTER DRAWER */}
+      {/* MOBILE DRAWER */}
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-[100] lg:hidden">
           <button
             type="button"
-            aria-label="Fermer les filtres"
+            aria-label="Close"
             onClick={() =>
-              setMobileFiltersOpen(false)
+              setMobileFiltersOpen(
+                false,
+              )
             }
             className="absolute inset-0 bg-mbg-black/40"
           />
 
-          <div
-            className="
-              absolute
-              bottom-0
-              right-0
-              top-0
-              w-[90%]
-              max-w-[420px]
-              overflow-y-auto
-              bg-mbg-white
-              px-6
-              pb-32
-              pt-6
-            "
-          >
+          <div className="absolute bottom-0 right-0 top-0 w-[90%] max-w-[420px] overflow-y-auto bg-mbg-white px-6 pb-32 pt-6">
             <div className="mb-7 flex items-center justify-between">
               <div>
                 <p className="text-xl font-semibold">
-                  Filtres
+                  {copy.filters}
                 </p>
 
                 <p className="text-sm text-mbg-darkgrey">
-                  {filteredProducts.length} produits
+                  {
+                    filteredProducts.length
+                  }{" "}
+                  {copy.pageTitle.toLowerCase()}
                 </p>
               </div>
 
               <button
                 type="button"
-                aria-label="Fermer"
+                aria-label="Close"
                 onClick={() =>
-                  setMobileFiltersOpen(false)
+                  setMobileFiltersOpen(
+                    false,
+                  )
                 }
-                className="
-                  flex
-                  h-10
-                  w-10
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-mbg-black
-                  text-mbg-white
-                "
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-mbg-black text-mbg-white"
               >
                 <X size={20} />
               </button>
             </div>
 
             <Filters
-              categories={categories}
+              lang={lang}
+              categories={
+                categories
+              }
               sizes={sizes}
-              colors={colors}
-              selectedCategories={selectedCategories}
+              selectedCategories={
+                selectedCategories
+              }
               setSelectedCategories={
                 setSelectedCategories
               }
-              selectedSizes={selectedSizes}
-              setSelectedSizes={setSelectedSizes}
-              selectedColors={selectedColors}
-              setSelectedColors={setSelectedColors}
-              availability={availability}
-              setAvailability={setAvailability}
-              priceRange={priceRange}
-              setPriceRange={setPriceRange}
-              toggleValue={toggleValue}
-              hasFilters={hasFilters}
-              clearFilters={clearFilters}
+              selectedSizes={
+                selectedSizes
+              }
+              setSelectedSizes={
+                setSelectedSizes
+              }
+              availability={
+                availability
+              }
+              setAvailability={
+                setAvailability
+              }
+              priceRange={
+                priceRange
+              }
+              setPriceRange={
+                setPriceRange
+              }
+              toggleValue={
+                toggleValue
+              }
+              hasFilters={
+                hasFilters
+              }
+              clearFilters={
+                clearFilters
+              }
             />
 
-            <div
-              className="
-                fixed
-                bottom-0
-                right-0
-                w-[90%]
-                max-w-[420px]
-                border-t
-                border-mbg-black/10
-                bg-mbg-white
-                p-5
-              "
-            >
+            <div className="fixed bottom-0 right-0 w-[90%] max-w-[420px] border-t border-mbg-black/10 bg-mbg-white p-5">
               <button
                 type="button"
                 onClick={() =>
-                  setMobileFiltersOpen(false)
+                  setMobileFiltersOpen(
+                    false,
+                  )
                 }
-                className="
-                  w-full
-                  bg-mbg-black
-                  px-6
-                  py-4
-                  text-sm
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-mbg-white
-                "
+                className="w-full bg-mbg-black px-6 py-4 text-sm font-semibold uppercase tracking-wide text-mbg-white"
               >
-                Afficher {filteredProducts.length} produits
+                {copy.showProducts}{" "}
+                (
+                {
+                  filteredProducts.length
+                }
+                )
               </button>
             </div>
           </div>
@@ -828,45 +939,40 @@ const ClientPage = ({ products }: Props) => {
 
 export default ClientPage;
 
+type CategoryOption = {
+  key: string;
+  label: string;
+};
+
 type FiltersProps = {
-  categories: string[];
+  lang: StoreLanguage;
+
+  categories: CategoryOption[];
+
   sizes: string[];
 
-  colors: {
-    name: string;
-    hex?: string;
-  }[];
-
   selectedCategories: string[];
+
   setSelectedCategories: React.Dispatch<
     React.SetStateAction<string[]>
   >;
 
   selectedSizes: string[];
+
   setSelectedSizes: React.Dispatch<
     React.SetStateAction<string[]>
   >;
 
-  selectedColors: string[];
-  setSelectedColors: React.Dispatch<
-    React.SetStateAction<string[]>
-  >;
+  availability: Availability;
 
-  availability: "all" | "available";
   setAvailability: React.Dispatch<
-    React.SetStateAction<"all" | "available">
+    React.SetStateAction<Availability>
   >;
 
-  priceRange:
-    | "all"
-    | "under-50"
-    | "50-100"
-    | "over-100";
+  priceRange: PriceRange;
 
   setPriceRange: React.Dispatch<
-    React.SetStateAction<
-      "all" | "under-50" | "50-100" | "over-100"
-    >
+    React.SetStateAction<PriceRange>
   >;
 
   toggleValue: (
@@ -883,18 +989,16 @@ type FiltersProps = {
 };
 
 const Filters = ({
+  lang,
+
   categories,
   sizes,
-  colors,
 
   selectedCategories,
   setSelectedCategories,
 
   selectedSizes,
   setSelectedSizes,
-
-  selectedColors,
-  setSelectedColors,
 
   availability,
   setAvailability,
@@ -907,107 +1011,157 @@ const Filters = ({
   hasFilters,
   clearFilters,
 }: FiltersProps) => {
+  const copy = COPY[lang];
+
   return (
     <div>
       {/* CATEGORIES */}
       {!!categories.length && (
         <div className="pb-8">
           <p className="mb-4 text-[13px] font-semibold uppercase tracking-[0.12em] text-mbg-darkgrey">
-            Catégories
+            {copy.categories}
           </p>
 
           <div className="space-y-3">
-            {categories.map((category) => (
-              <button
-                type="button"
-                key={category}
-                onClick={() =>
-                  toggleValue(
-                    category,
-                    selectedCategories,
-                    setSelectedCategories,
-                  )
-                }
-                className={`
-                  block
-                  text-left
-                  text-[15px]
-                  font-semibold
-                  transition-opacity
-                  hover:opacity-50
-                  ${
-                    selectedCategories.includes(category)
-                      ? "text-mbg-green"
-                      : "text-mbg-black"
-                  }
-                `}
-              >
-                {category}
-              </button>
-            ))}
+            {categories.map(
+              (category) => {
+                const active =
+                  selectedCategories.includes(
+                    category.key,
+                  );
+
+                return (
+                  <button
+                    type="button"
+                    key={
+                      category.key
+                    }
+                    onClick={() =>
+                      toggleValue(
+                        category.key,
+                        selectedCategories,
+                        setSelectedCategories,
+                      )
+                    }
+                    className={`
+                      block
+                      text-left
+                      text-[15px]
+                      font-semibold
+                      transition-opacity
+                      hover:opacity-50
+                      ${
+                        active
+                          ? "text-mbg-green"
+                          : "text-mbg-black"
+                      }
+                    `}
+                  >
+                    {
+                      category.label
+                    }
+                  </button>
+                );
+              },
+            )}
           </div>
         </div>
       )}
 
+      {/* AVAILABILITY */}
       <FilterAccordion
-        label="Disponibilité"
+        label={copy.availability}
         defaultOpen
       >
         <RadioOption
-          active={availability === "all"}
-          label="Tous les produits"
+          active={
+            availability === "all"
+          }
+          label={copy.allProducts}
           onClick={() =>
             setAvailability("all")
           }
         />
 
         <RadioOption
-          active={availability === "available"}
-          label="En stock"
+          active={
+            availability ===
+            "available"
+          }
+          label={copy.inStock}
           onClick={() =>
-            setAvailability("available")
+            setAvailability(
+              "available",
+            )
           }
         />
       </FilterAccordion>
 
-      <FilterAccordion label="Rechercher par prix">
+      {/* PRICE */}
+      <FilterAccordion
+        label={copy.price}
+      >
         <RadioOption
-          active={priceRange === "all"}
-          label="Tous les prix"
-          onClick={() => setPriceRange("all")}
-        />
-
-        <RadioOption
-          active={priceRange === "under-50"}
-          label="Moins de 50 €"
+          active={
+            priceRange === "all"
+          }
+          label={copy.allPrices}
           onClick={() =>
-            setPriceRange("under-50")
+            setPriceRange("all")
           }
         />
 
         <RadioOption
-          active={priceRange === "50-100"}
-          label="50 € – 100 €"
+          active={
+            priceRange ===
+            "under-50"
+          }
+          label={copy.under50}
+          onClick={() =>
+            setPriceRange(
+              "under-50",
+            )
+          }
+        />
+
+        <RadioOption
+          active={
+            priceRange ===
+            "50-100"
+          }
+          label={
+            copy.between50And100
+          }
           onClick={() =>
             setPriceRange("50-100")
           }
         />
 
         <RadioOption
-          active={priceRange === "over-100"}
-          label="Plus de 100 €"
+          active={
+            priceRange ===
+            "over-100"
+          }
+          label={copy.over100}
           onClick={() =>
-            setPriceRange("over-100")
+            setPriceRange(
+              "over-100",
+            )
           }
         />
       </FilterAccordion>
 
+      {/* SIZE */}
       {!!sizes.length && (
-        <FilterAccordion label="Taille">
+        <FilterAccordion
+          label={copy.size}
+        >
           <div className="grid grid-cols-3 gap-2">
             {sizes.map((size) => {
               const active =
-                selectedSizes.includes(size);
+                selectedSizes.includes(
+                  size,
+                );
 
               return (
                 <button
@@ -1042,96 +1196,17 @@ const Filters = ({
         </FilterAccordion>
       )}
 
-      {!!colors.length && (
-        <FilterAccordion label="Couleur">
-          <div className="space-y-3">
-            {colors.map((color) => {
-              const key = normalize(color.name);
-
-              const active =
-                selectedColors.includes(key);
-
-              const background =
-                color.hex ||
-                colorNameToHex(color.name);
-
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() =>
-                    toggleValue(
-                      key,
-                      selectedColors,
-                      setSelectedColors,
-                    )
-                  }
-                  className="
-                    flex
-                    w-full
-                    items-center
-                    gap-3
-                    text-left
-                    text-sm
-                    font-medium
-                  "
-                >
-                  <span
-                    className="
-                      relative
-                      flex
-                      h-6
-                      w-6
-                      flex-none
-                      items-center
-                      justify-center
-                      rounded-full
-                      border
-                      border-mbg-black/20
-                    "
-                    style={{
-                      backgroundColor: background,
-                    }}
-                  >
-                    {active && (
-                      <Check
-                        size={13}
-                        className={
-                          background.toLowerCase() ===
-                            "#ffffff" ||
-                          background.toLowerCase() ===
-                            "#bfbfbf"
-                            ? "text-mbg-black"
-                            : "text-mbg-white"
-                        }
-                      />
-                    )}
-                  </span>
-
-                  <span>{color.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </FilterAccordion>
-      )}
+      {/* NO COLOR FILTER */}
 
       {hasFilters && (
         <button
           type="button"
           onClick={clearFilters}
-          className="
-            mt-6
-            flex
-            items-center
-            gap-2
-            text-sm
-            font-semibold
-            text-mbg-green
-          "
+          className="mt-6 flex items-center gap-2 text-sm font-semibold text-mbg-green"
         >
           <X size={15} />
-          Effacer les filtres
+
+          {copy.clearFilters}
         </button>
       )}
     </div>
@@ -1155,18 +1230,11 @@ const FilterAccordion = ({
       <button
         type="button"
         onClick={() =>
-          setOpen((current) => !current)
+          setOpen(
+            (current) => !current,
+          )
         }
-        className="
-          flex
-          w-full
-          items-center
-          justify-between
-          py-5
-          text-left
-          text-[15px]
-          font-semibold
-        "
+        className="flex w-full items-center justify-between py-5 text-left text-[15px] font-semibold"
       >
         {label}
 
@@ -1175,7 +1243,11 @@ const FilterAccordion = ({
           className={`
             transition-transform
             duration-200
-            ${open ? "rotate-180" : ""}
+            ${
+              open
+                ? "rotate-180"
+                : ""
+            }
           `}
         />
       </button>
@@ -1202,15 +1274,7 @@ const RadioOption = ({
     <button
       type="button"
       onClick={onClick}
-      className="
-        flex
-        w-full
-        items-center
-        gap-3
-        text-left
-        text-sm
-        font-medium
-      "
+      className="flex w-full items-center gap-3 text-left text-sm font-medium"
     >
       <span
         className={`
@@ -1240,158 +1304,83 @@ const RadioOption = ({
 
 const ProductCard = ({
   product,
+  lang,
 }: {
   product: MBGProduct;
+  lang: StoreLanguage;
 }) => {
-  const image = getMainImage(product);
+  const copy = COPY[lang];
+
+  const image =
+    getMainImage(product);
+
+  const title =
+    getLocalizedTitle(
+      product,
+      lang,
+    );
 
   const category =
-    getProductCategory(product);
+    getLocalizedCategory(
+      product,
+      lang,
+    );
 
-  const chapter = getChapterName(product);
+  const price =
+    getProductPrice(product);
 
-  const price = getProductPrice(product);
-
-  const colors = getProductColors(product);
-
-  const stock = getStock(product);
+  const stock =
+    getStock(product);
 
   return (
     <article className="group min-w-0">
       <Link
-        href={`/products/${product._id}`}
+        href={getProductUrl(
+          product,
+          lang,
+        )}
         className="block"
       >
         {/* IMAGE */}
-        <div
-          className="
-            relative
-            aspect-[4/5]
-            w-full
-            overflow-hidden
-            bg-[#F5F5F5]
-          "
-        >
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F5F5F5]">
           <Image
             src={image}
-            alt={product.title}
+            alt={title}
             fill
             sizes="
               (max-width: 768px) 50vw,
               (max-width: 1280px) 33vw,
               25vw
             "
-            className="
-              object-cover
-              transition-transform
-              duration-500
-              ease-out
-              group-hover:scale-[1.015]
-            "
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.015]"
           />
 
           {stock === 0 && (
-            <div
-              className="
-                absolute
-                left-3
-                top-3
-                bg-mbg-white
-                px-3
-                py-2
-                text-[10px]
-                font-bold
-                uppercase
-                tracking-[0.12em]
-              "
-            >
-              Épuisé
+            <div className="absolute left-3 top-3 bg-mbg-white px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em]">
+              {copy.soldOut}
             </div>
           )}
         </div>
 
-        {/* INFO */}
-        <div className="pt-3">
-          {!!colors.length && (
-            <div className="mb-3 flex items-center gap-1.5">
-              {colors
-                .slice(0, 5)
-                .map((color) => (
-                  <span
-                    key={color.name}
-                    title={color.name}
-                    className="
-                      h-[17px]
-                      w-[17px]
-                      rounded-full
-                      border
-                      border-mbg-black/15
-                    "
-                    style={{
-                      backgroundColor:
-                        color.hex ||
-                        colorNameToHex(
-                          color.name,
-                        ),
-                    }}
-                  />
-                ))}
+        {/* INFORMATIONS */}
+        <div className="pt-4">
+          {/*
+            Plus de :
+            - pastilles de couleur
+            - color ID
+            - chapter ID
+            - MongoDB ObjectId
+          */}
 
-              {colors.length > 5 && (
-                <span className="ml-1 text-xs text-mbg-darkgrey">
-                  +{colors.length - 5}
-                </span>
-              )}
-            </div>
-          )}
-
-          {chapter && (
-            <p
-              className="
-                mb-1
-                text-xs
-                font-semibold
-                uppercase
-                tracking-[0.12em]
-                text-mbg-green
-              "
-            >
-              {chapter}
-            </p>
-          )}
-
-          <h2
-            className="
-              truncate
-              text-[15px]
-              font-semibold
-              text-mbg-black
-              md:text-base
-            "
-          >
-            {product.title}
+          <h2 className="text-[15px] font-semibold text-mbg-black md:text-base">
+            {title}
           </h2>
 
-          <p
-            className="
-              mt-1
-              text-[13px]
-              text-mbg-darkgrey
-              md:text-sm
-            "
-          >
+          <p className="mt-1 text-[13px] text-mbg-darkgrey md:text-sm">
             {category}
           </p>
 
-          <p
-            className="
-              mt-3
-              text-[14px]
-              font-semibold
-              text-mbg-black
-              md:text-[15px]
-            "
-          >
+          <p className="mt-3 text-[14px] font-semibold text-mbg-black md:text-[15px]">
             {formatPrice(price)}
           </p>
         </div>
@@ -1401,49 +1390,33 @@ const ProductCard = ({
 };
 
 const EmptyState = ({
+  lang,
   onClear,
   hasFilters,
 }: {
+  lang: StoreLanguage;
   onClear: () => void;
   hasFilters: boolean;
 }) => {
+  const copy = COPY[lang];
+
   return (
-    <div
-      className="
-        flex
-        min-h-[420px]
-        flex-col
-        items-center
-        justify-center
-        border-t
-        border-mbg-black/10
-        text-center
-      "
-    >
+    <div className="flex min-h-[420px] flex-col items-center justify-center border-t border-mbg-black/10 text-center">
       <p className="text-2xl font-semibold">
-        Aucun produit
+        {copy.noProducts}
       </p>
 
       <p className="mt-2 max-w-md text-sm leading-6 text-mbg-darkgrey">
-        Aucun produit ne correspond actuellement à
-        votre sélection.
+        {copy.noProductsDescription}
       </p>
 
       {hasFilters && (
         <button
           type="button"
           onClick={onClear}
-          className="
-            mt-6
-            bg-mbg-black
-            px-6
-            py-3
-            text-sm
-            font-semibold
-            text-mbg-white
-          "
+          className="mt-6 bg-mbg-black px-6 py-3 text-sm font-semibold text-mbg-white"
         >
-          Effacer les filtres
+          {copy.clearFilters}
         </button>
       )}
     </div>
