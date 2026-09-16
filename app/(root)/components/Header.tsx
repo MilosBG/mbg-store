@@ -133,7 +133,7 @@ const Header = () => {
             "
           >
             
-<div className="flex items-center justify-start gap-5">
+<div className="flex items-center justify-start gap-4">
               {/* ALL PRODUCTS */}
               <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
                 <Link href="/products" aria-label="All Products">
