@@ -41,7 +41,14 @@ type CommerceInfoDocument = {
 };
 
 type ProductDocument = {
-  _id: ObjectId | { toHexString?: () => string } | string;
+  _id: ObjectId;
+
+  /**
+   * Public URL identifier.
+   * Optional in MongoDB so existing products continue to work.
+   * When absent, the storefront generates it from the title.
+   */
+  slug?: string;
 
   title: string;
   description?: string;
@@ -115,9 +122,7 @@ function toFiniteNumber(value: unknown): number | undefined {
 function toFiniteInteger(value: unknown): number | undefined {
   const numeric = toFiniteNumber(value);
 
-  return numeric === undefined
-    ? undefined
-    : Math.trunc(numeric);
+  return numeric === undefined ? undefined : Math.trunc(numeric);
 }
 
 function toOptionalString(value: unknown): string | undefined {
@@ -127,9 +132,7 @@ function toOptionalString(value: unknown): string | undefined {
 
   const trimmed = value.trim();
 
-  return trimmed.length > 0
-    ? trimmed
-    : undefined;
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 function ensureStringId(
@@ -165,10 +168,27 @@ function ensureStringId(
 
   const stringified = String(value);
 
-  return stringified &&
-    stringified !== "[object Object]"
+  return stringified && stringified !== "[object Object]"
     ? stringified
     : undefined;
+}
+
+/**
+ * Converts a product title into a URL-safe slug.
+ *
+ * Examples:
+ * "GRIND T"  -> "grind-t"
+ * "GRIND SL" -> "grind-sl"
+ * "GRIND HD" -> "grind-hd"
+ */
+function createProductSlug(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function serializeCommerceInfo(
@@ -260,22 +280,18 @@ function serializeCommerceInfo(
    * ProductAccordion will therefore remain hidden until at least
    * one useful commercial field has actually been entered.
    */
-  const hasContent = Object.values(commerceInfo).some(
-    (item) => {
-      if (typeof item === "number") {
-        return Number.isFinite(item) && item > 0;
-      }
+  const hasContent = Object.values(commerceInfo).some((item) => {
+    if (typeof item === "number") {
+      return Number.isFinite(item) && item > 0;
+    }
 
-      return (
-        typeof item === "string" &&
-        item.trim().length > 0
-      );
-    },
-  );
+    return (
+      typeof item === "string" &&
+      item.trim().length > 0
+    );
+  });
 
-  return hasContent
-    ? commerceInfo
-    : undefined;
+  return hasContent ? commerceInfo : undefined;
 }
 
 function serializeProduct(
@@ -286,6 +302,15 @@ function serializeProduct(
 
   return {
     _id: productId,
+
+    /**
+     * A slug stored in MongoDB has priority.
+     * Existing products without a slug remain compatible because
+     * one is generated automatically from the product title.
+     */
+    slug:
+      toOptionalString(doc.slug) ??
+      createProductSlug(doc.title),
 
     title: doc.title,
 
@@ -353,11 +378,6 @@ function serializeProduct(
     fetchToStore:
       doc.fetchToStore ?? false,
 
-    /*
-     * NEW:
-     * Sends all commercial/product information
-     * from MongoDB to the storefront.
-     */
     commerceInfo:
       serializeCommerceInfo(
         doc.commerceInfo,
@@ -379,9 +399,9 @@ export async function getProducts(
   const filter: Record<string, unknown> = {};
 
   /*
-   * Your original behaviour is preserved:
-   * when availableOnly is true, only products
-   * explicitly available to mbg-store are returned.
+   * Preserve the existing storefront behaviour:
+   * when availableOnly is true, only products explicitly
+   * available to mbg-store are returned.
    */
   if (availableOnly) {
     filter.fetchToStore = true;
@@ -450,7 +470,7 @@ export async function getProductsByIds(
   };
 
   /*
-   * Preserve your existing option:
+   * Preserve the existing option:
    * hidden products may only be retrieved
    * when includeHidden === true.
    */
@@ -483,6 +503,95 @@ export async function getProductsByIds(
     );
 }
 
+/**
+ * Retrieves a storefront product using either:
+ *
+ * - its new public slug:
+ *   /products/grind-t
+ *
+ * - or its old MongoDB ObjectId:
+ *   /products/68...
+ *
+ * This keeps old links compatible while allowing clean public URLs.
+ */
+export async function getProductBySlugOrId(
+  slugOrId: string,
+): Promise<Product | null> {
+  const value = slugOrId.trim();
+
+  if (!value) {
+    return null;
+  }
+
+  const normalizedValue =
+    value.toLowerCase();
+
+  const { ObjectId } =
+    await loadMongoModule();
+
+  const db =
+    await getAdminDb();
+
+  const collection =
+    db.collection<ProductDocument>(
+      "products",
+    );
+
+  let product:
+    | ProductDocument
+    | null = null;
+
+  /*
+   * 1. Backward compatibility with old MongoDB-ID URLs.
+   */
+  if (ObjectId.isValid(value)) {
+    product = await collection.findOne({
+      _id: new ObjectId(value),
+      fetchToStore: true,
+    });
+  }
+
+  /*
+   * 2. Preferred lookup using a slug stored in MongoDB.
+   */
+  if (!product) {
+    product = await collection.findOne({
+      slug: normalizedValue,
+      fetchToStore: true,
+    });
+  }
+
+  /*
+   * 3. Compatibility for existing products that do not yet have
+   *    a `slug` field in MongoDB.
+   *
+   *    Their public slug is derived from the title, exactly like
+   *    serializeProduct().
+   */
+  if (!product) {
+    const availableProducts =
+      await collection
+        .find({
+          fetchToStore: true,
+        })
+        .toArray();
+
+    product =
+      availableProducts.find(
+        (item) =>
+          createProductSlug(
+            item.title,
+          ) === normalizedValue,
+      ) ?? null;
+  }
+
+  if (!product) {
+    return null;
+  }
+
+  return serializeProduct(product);
+}
+
 export async function getProductById(
   id: string,
 ): Promise<Product | null> {
@@ -496,7 +605,7 @@ export async function getProductById(
   /*
    * This deliberately uses getProductsByIds,
    * so the same serialization is used everywhere,
-   * including commerceInfo.
+   * including slug and commerceInfo.
    */
   const [product] =
     await getProductsByIds([

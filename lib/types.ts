@@ -1,47 +1,63 @@
 export type CommerceInfo = {
   productReference?: string;
   productDetails?: string;
+
   materialComposition?: string;
   fabricName?: string;
   fabricWeight?: number | string;
   fabricDescription?: string;
+
   fit?: string;
   fitNotes?: string;
+
   careInstructions?: string;
+
   countryOfManufacture?: string;
   fabricOrigin?: string;
   craftsmanship?: string;
-  certificationName?: string;
 
+  certificationName?: string;
   certificationScope?:
     | ""
     | "FABRIC"
     | "FINISHED_GARMENT"
     | string;
-
   certificateNumber?: string;
   certificationInstitute?: string;
   certificateUrl?: string;
+
   manufacturerName?: string;
   manufacturerAddress?: string;
   manufacturerEmail?: string;
+
   shippingProcessingTime?: string;
   deliveryEstimate?: string;
   withdrawalDays?: number | string;
   returnCostBearer?: string;
+
   safetyWarnings?: string;
 };
 
 export type Product = {
   _id: string;
+
+  /**
+   * Public identifier used in storefront URLs.
+   * Example: "GRIND T" -> "grind-t"
+   */
+  slug: string;
+
   title: string;
   description?: string;
   media?: string[];
+
   category?: string;
   chapters?: string[];
   tags?: string[];
+
   price?: number;
   cost?: number;
+
   sizes?: string[];
   colors?: string[];
 
@@ -52,6 +68,7 @@ export type Product = {
   }>;
 
   countInStock?: number;
+
   createdAt?: string;
   updatedAt?: string;
 
@@ -65,6 +82,13 @@ export type Product = {
 
 export type Chapter = {
   _id: string;
+
+  /**
+   * Public identifier used in storefront URLs.
+   * Example: "GRIND" -> "grind"
+   */
+  slug: string;
+
   title: string;
   badge?: string;
   image: string;
