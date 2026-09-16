@@ -1501,6 +1501,7 @@ const ClientPage: React.FC = () => {
     transition-opacity
     duration-300
     group-hover:opacity-80
+    mb-4
   "
             />
 
