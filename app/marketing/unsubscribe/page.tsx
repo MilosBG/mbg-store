@@ -529,7 +529,7 @@ export default async function MarketingUnsubscribePage({
                 </p>
                 <div className="mbg-unsub-email">{email}</div>
                 <div className="mbg-unsub-actions">
-                  <Link href="/" className="mbg-unsub-primary">
+                  <Link href="/products" className="mbg-unsub-primary">
                     Retour à la boutique
                   </Link>
                 </div>

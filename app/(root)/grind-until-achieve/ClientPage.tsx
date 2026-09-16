@@ -1187,7 +1187,7 @@ const ClientPage: React.FC = () => {
           <ol className="flex items-center gap-2">
             <li>
               <Link
-                href="/"
+                href="/products"
                 className="
                   font-medium
                   uppercase
@@ -1268,7 +1268,7 @@ const ClientPage: React.FC = () => {
           </div>
 
           <Link
-            href="/"
+            href="/products"
             className="
               inline-flex
               items-center

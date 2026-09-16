@@ -1,25 +1,15 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useTransition,
-} from "react";
+import { useCallback, useEffect, useRef, useTransition } from "react";
 
 import { useRouter } from "next/navigation";
 
 import Image from "next/image";
 import Link from "next/link";
 
-import {
-  OrderTimeline,
-} from "@/components/orders/OrderTimeline";
+import { OrderTimeline } from "@/components/orders/OrderTimeline";
 
-import {
-  StatusBadge,
-  STATUS_MESSAGES,
-} from "@/components/orders/StatusBadge";
+import { StatusBadge, STATUS_MESSAGES } from "@/components/orders/StatusBadge";
 
 import type {
   StorefrontOrder,
@@ -49,10 +39,7 @@ const SHIPPING_LABELS = {
 ========================================================= */
 
 export type OrdersClientError = {
-  type:
-    | "unauthorized"
-    | "network"
-    | "unknown";
+  type: "unauthorized" | "network" | "unknown";
 
   message: string;
 
@@ -69,19 +56,12 @@ type OrdersClientProps = {
    COMPONENT
 ========================================================= */
 
-export default function OrdersClient({
-  orders,
-  error,
-}: OrdersClientProps) {
+export default function OrdersClient({ orders, error }: OrdersClientProps) {
   const router = useRouter();
 
-  const lastRefreshRef =
-    useRef<number>(0);
+  const lastRefreshRef = useRef<number>(0);
 
-  const [
-    isRefreshing,
-    startTransition,
-  ] = useTransition();
+  const [isRefreshing, startTransition] = useTransition();
 
   /* =======================================================
      REFRESH
@@ -91,11 +71,7 @@ export default function OrdersClient({
     (force = false) => {
       const now = Date.now();
 
-      if (
-        !force &&
-        now - lastRefreshRef.current <
-          FOCUS_REFRESH_THROTTLE_MS
-      ) {
+      if (!force && now - lastRefreshRef.current < FOCUS_REFRESH_THROTTLE_MS) {
         return;
       }
 
@@ -105,7 +81,7 @@ export default function OrdersClient({
         router.refresh();
       });
     },
-    [router]
+    [router],
   );
 
   /* =======================================================
@@ -118,33 +94,19 @@ export default function OrdersClient({
     };
 
     const handleVisibility = () => {
-      if (
-        document.visibilityState === "visible"
-      ) {
+      if (document.visibilityState === "visible") {
         triggerRefresh(false);
       }
     };
 
-    window.addEventListener(
-      "focus",
-      handleFocus
-    );
+    window.addEventListener("focus", handleFocus);
 
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibility
-    );
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      window.removeEventListener(
-        "focus",
-        handleFocus
-      );
+      window.removeEventListener("focus", handleFocus);
 
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibility
-      );
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [triggerRefresh]);
 
@@ -182,8 +144,7 @@ export default function OrdersClient({
         </p>
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          {error.type ===
-            "unauthorized" && (
+          {error.type === "unauthorized" && (
             <Link
               href="/sign-in"
               className="
@@ -210,9 +171,7 @@ export default function OrdersClient({
           <button
             type="button"
             disabled={isRefreshing}
-            onClick={() =>
-              triggerRefresh(true)
-            }
+            onClick={() => triggerRefresh(true)}
             className="
               inline-flex
               min-h-11
@@ -235,9 +194,7 @@ export default function OrdersClient({
               disabled:opacity-50
             "
           >
-            {isRefreshing
-              ? "Refreshing..."
-              : "Try Again"}
+            {isRefreshing ? "Refreshing..." : "Try Again"}
           </button>
         </div>
       </section>
@@ -291,12 +248,11 @@ export default function OrdersClient({
         </h3>
 
         <p className="mt-3 max-w-sm text-[11px] leading-relaxed text-mbg-black/55">
-          Your purchases will appear here once
-          you place your first order.
+          Your purchases will appear here once you place your first order.
         </p>
 
         <Link
-          href="/"
+          href="/products"
           className="
             mt-7
             inline-flex
@@ -329,22 +285,15 @@ export default function OrdersClient({
     <div className="flex flex-col gap-6 md:gap-8">
       {orders.map((order) => {
         const status = String(
-          order.fulfillmentStatus ||
-            "PENDING"
+          order.fulfillmentStatus || "PENDING",
         ).toUpperCase();
 
-        const products =
-          order.products ?? [];
+        const products = order.products ?? [];
 
-        const totalQuantity =
-          products.reduce(
-            (total, item) =>
-              total +
-              Number(
-                item.quantity ?? 1
-              ),
-            0
-          );
+        const totalQuantity = products.reduce(
+          (total, item) => total + Number(item.quantity ?? 1),
+          0,
+        );
 
         return (
           <article
@@ -405,9 +354,7 @@ export default function OrdersClient({
                 </div>
 
                 <div className="shrink-0">
-                  <StatusBadge
-                    status={status}
-                  />
+                  <StatusBadge status={status} />
                 </div>
               </div>
             </div>
@@ -428,28 +375,18 @@ export default function OrdersClient({
             >
               <OrderStat
                 label="Total"
-                value={`€ ${formatAmount(
-                  order.totalAmount
-                )}`}
+                value={`€ ${formatAmount(order.totalAmount)}`}
               />
 
               <OrderStat
                 label="Shipping"
-                value={formatShippingMethod(
-                  order.shippingMethod
-                )}
+                value={formatShippingMethod(order.shippingMethod)}
                 border
               />
 
               <OrderStat
-                label={
-                  totalQuantity === 1
-                    ? "Item"
-                    : "Items"
-                }
-                value={String(
-                  totalQuantity
-                )}
+                label={totalQuantity === 1 ? "Item" : "Items"}
+                value={String(totalQuantity)}
                 border
               />
             </div>
@@ -465,20 +402,13 @@ export default function OrdersClient({
                 </span>
 
                 <span className="text-[8px] font-extrabold uppercase tracking-[0.18em] text-mbg-green">
-                  {status.replaceAll(
-                    "_",
-                    " "
-                  )}
+                  {status.replaceAll("_", " ")}
                 </span>
               </div>
 
-              <OrderTimeline
-                order={order}
-              />
+              <OrderTimeline order={order} />
 
-              {STATUS_MESSAGES[
-                status
-              ] && (
+              {STATUS_MESSAGES[status] && (
                 <div
                   className="
                     mt-6
@@ -490,11 +420,7 @@ export default function OrdersClient({
                   "
                 >
                   <p className="text-[11px] font-medium leading-relaxed text-mbg-black/65">
-                    {
-                      STATUS_MESSAGES[
-                        status
-                      ]
-                    }
+                    {STATUS_MESSAGES[status]}
                   </p>
                 </div>
               )}
@@ -513,22 +439,12 @@ export default function OrdersClient({
                 </div>
 
                 <div className="divide-y divide-mbg-black/10 px-5 sm:px-7">
-                  {products.map(
-                    (
-                      orderItem,
-                      index
-                    ) => (
-                      <OrderProduct
-                        key={
-                          orderItem._id ??
-                          index
-                        }
-                        product={
-                          orderItem
-                        }
-                      />
-                    )
-                  )}
+                  {products.map((orderItem, index) => (
+                    <OrderProduct
+                      key={orderItem._id ?? index}
+                      product={orderItem}
+                    />
+                  ))}
                 </div>
               </div>
             )}
@@ -554,8 +470,7 @@ export default function OrdersClient({
               "
             >
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-mbg-black/40">
-                Full order information,
-                products and price summary
+                Full order information, products and price summary
               </p>
 
               <Link
@@ -577,7 +492,6 @@ export default function OrdersClient({
                 "
               >
                 View Order
-
                 <span
                   className="
                     transition-transform
@@ -624,9 +538,7 @@ function OrderStat({
         sm:px-6
         sm:py-5
         ${
-          border
-            ? "border-t border-mbg-black/10 sm:border-l sm:border-t-0"
-            : ""
+          border ? "border-t border-mbg-black/10 sm:border-l sm:border-t-0" : ""
         }
       `}
     >
@@ -645,27 +557,14 @@ function OrderStat({
    PRODUCT
 ========================================================= */
 
-function OrderProduct({
-  product,
-}: {
-  product: StorefrontOrderProduct;
-}) {
-  const imageSrc =
-    product.product?.media?.[0] ||
-    FALLBACK_IMAGE;
+function OrderProduct({ product }: { product: StorefrontOrderProduct }) {
+  const imageSrc = product.product?.media?.[0] || FALLBACK_IMAGE;
 
-  const unitPrice =
-    product.unitPrice ??
-    product.product?.price ??
-    0;
+  const unitPrice = product.unitPrice ?? product.product?.price ?? 0;
 
-  const quantity = Number(
-    product.quantity ?? 1
-  );
+  const quantity = Number(product.quantity ?? 1);
 
-  const lineTotal =
-    Number(unitPrice) *
-    quantity;
+  const lineTotal = Number(unitPrice) * quantity;
 
   return (
     <div
@@ -695,10 +594,7 @@ function OrderProduct({
       >
         <Image
           src={imageSrc}
-          alt={
-            product.product?.title ||
-            "Product"
-          }
+          alt={product.product?.title || "Product"}
           width={100}
           height={100}
           className="h-full w-full object-contain p-1"
@@ -729,29 +625,19 @@ function OrderProduct({
               sm:text-xs
             "
           >
-            {product.product?.title ||
-              "Product"}
+            {product.product?.title || "Product"}
           </h4>
 
           <div className="mt-3 flex flex-wrap gap-2">
             {product.color && (
-              <ProductAttribute
-                label="Color"
-                value={product.color}
-              />
+              <ProductAttribute label="Color" value={product.color} />
             )}
 
             {product.size && (
-              <ProductAttribute
-                label="Size"
-                value={product.size}
-              />
+              <ProductAttribute label="Size" value={product.size} />
             )}
 
-            <ProductAttribute
-              label="Qty"
-              value={String(quantity)}
-            />
+            <ProductAttribute label="Qty" value={String(quantity)} />
           </div>
         </div>
 
@@ -759,15 +645,11 @@ function OrderProduct({
 
         <div className="flex flex-wrap items-end justify-between gap-3">
           <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-mbg-black/45">
-            € {formatAmount(unitPrice)}{" "}
-            × {quantity}
+            € {formatAmount(unitPrice)} × {quantity}
           </p>
 
           <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-mbg-green">
-            €{" "}
-            {formatAmount(
-              lineTotal
-            )}
+            € {formatAmount(lineTotal)}
           </p>
         </div>
       </div>
@@ -807,9 +689,7 @@ function ProductAttribute({
     >
       {label}
 
-      <strong className="font-extrabold text-mbg-black">
-        {value}
-      </strong>
+      <strong className="font-extrabold text-mbg-black">{value}</strong>
     </span>
   );
 }
@@ -818,13 +698,8 @@ function ProductAttribute({
    MONEY
 ========================================================= */
 
-function formatAmount(
-  value: unknown
-): string {
-  const numeric =
-    typeof value === "number"
-      ? value
-      : Number(value ?? 0);
+function formatAmount(value: unknown): string {
+  const numeric = typeof value === "number" ? value : Number(value ?? 0);
 
   if (!Number.isFinite(numeric)) {
     return "0.00";
@@ -837,35 +712,22 @@ function formatAmount(
    SHIPPING
 ========================================================= */
 
-function formatShippingMethod(
-  value: string | undefined | null
-): string {
+function formatShippingMethod(value: string | undefined | null): string {
   if (!value) {
     return "Standard Delivery";
   }
 
-  const normalized =
-    value.trim().toUpperCase();
+  const normalized = value.trim().toUpperCase();
 
-  if (
-    SHIPPING_LABELS[
-      normalized as keyof typeof SHIPPING_LABELS
-    ]
-  ) {
-    return SHIPPING_LABELS[
-      normalized as keyof typeof SHIPPING_LABELS
-    ];
+  if (SHIPPING_LABELS[normalized as keyof typeof SHIPPING_LABELS]) {
+    return SHIPPING_LABELS[normalized as keyof typeof SHIPPING_LABELS];
   }
 
-  if (
-    normalized.includes("EXPRESS")
-  ) {
+  if (normalized.includes("EXPRESS")) {
     return "Express Delivery";
   }
 
-  if (
-    normalized.includes("FREE")
-  ) {
+  if (normalized.includes("FREE")) {
     return "Free Delivery";
   }
 

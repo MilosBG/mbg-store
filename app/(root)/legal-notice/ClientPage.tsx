@@ -148,12 +148,22 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       forceOpen={allOpen ?? undefined}
       title="1. Publisher identification"
     >
-      <p className="uppercase font-semibold text-mbg-green">Full Name : Gamil BEN AHMED</p>
-      <p className="uppercase font-semibold text-mbg-green">Legal Form : Sole Trader</p>
+      <p className="uppercase font-semibold text-mbg-green">
+        Full Name : Gamil BEN AHMED
+      </p>
+      <p className="uppercase font-semibold text-mbg-green">
+        Legal Form : Sole Trader
+      </p>
       <p className="uppercase font-semibold text-mbg-green">APE Code : 3299Z</p>
-      <p className="uppercase font-semibold text-mbg-green">Business Name : Milos BG</p>
-      <p className="uppercase font-semibold text-mbg-green">Domain Name : milos-bg.com</p>
-      <p className="uppercase font-semibold text-mbg-green">SIREN : 984 671 206</p>
+      <p className="uppercase font-semibold text-mbg-green">
+        Business Name : Milos BG
+      </p>
+      <p className="uppercase font-semibold text-mbg-green">
+        Domain Name : milos-bg.com
+      </p>
+      <p className="uppercase font-semibold text-mbg-green">
+        SIREN : 984 671 206
+      </p>
     </Section>
 
     <Section
@@ -188,7 +198,6 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     <Section id="hebergeur" forceOpen={allOpen ?? undefined} title="4. Hosting">
       <p>IONOS SARL — 7 PLACE DE LA GARE 57200 SARREGUEMINES, France</p>
     </Section>
-
   </>
 );
 
@@ -200,12 +209,22 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       forceOpen={allOpen ?? undefined}
       title="1. Identification de l’éditeur"
     >
-      <p className="uppercase font-semibold text-mbg-green">Nom Complet : Gamil BEN AHMED</p>
-      <p className="uppercase font-semibold text-mbg-green">Forme Juridique : Entrepreneur individuel</p>
+      <p className="uppercase font-semibold text-mbg-green">
+        Nom Complet : Gamil BEN AHMED
+      </p>
+      <p className="uppercase font-semibold text-mbg-green">
+        Forme Juridique : Entrepreneur individuel
+      </p>
       <p className="uppercase font-semibold text-mbg-green">Code APE : 3299Z</p>
-      <p className="uppercase font-semibold text-mbg-green">Nom Commercial : Milos BG</p>
-      <p className="uppercase font-semibold text-mbg-green">Nom de Domaine : milos-bg.com</p>
-      <p className="uppercase font-semibold text-mbg-green">SIREN : 984 671 206</p>
+      <p className="uppercase font-semibold text-mbg-green">
+        Nom Commercial : Milos BG
+      </p>
+      <p className="uppercase font-semibold text-mbg-green">
+        Nom de Domaine : milos-bg.com
+      </p>
+      <p className="uppercase font-semibold text-mbg-green">
+        SIREN : 984 671 206
+      </p>
     </Section>
     <Section
       id="coordonnees-contact"
@@ -295,7 +314,7 @@ const LegalNotice: React.FC = () => {
         if ((visible?.target as HTMLElement)?.id)
           setActiveId((visible!.target as HTMLElement).id);
       },
-      { rootMargin: "-20% 0px -60% 0px", threshold: [0.2, 0.5, 0.75] }
+      { rootMargin: "-20% 0px -60% 0px", threshold: [0.2, 0.5, 0.75] },
     );
     IDS.forEach((id) => {
       const el = document.getElementById(id);
@@ -332,7 +351,7 @@ const LegalNotice: React.FC = () => {
       rights: lang === "fr" ? "Tous droits réservés" : "All rights reserved",
       tocAria: lang === "fr" ? "Fil d'Ariane" : "Breadcrumb",
     }),
-    [lang]
+    [lang],
   );
 
   return (
@@ -342,7 +361,10 @@ const LegalNotice: React.FC = () => {
         <nav aria-label={ui.tocAria} className="text-[11px] text-mbg-darkgrey">
           <ol className="flex items-center gap-2">
             <li>
-              <Link href="/" className="text-mbg-green uppercase font-medium">
+              <Link
+                href="/products"
+                className="text-mbg-green uppercase font-medium"
+              >
                 {ui.breadcrumbHome}
               </Link>
             </li>
@@ -385,7 +407,7 @@ const LegalNotice: React.FC = () => {
 
           {/* Back to shop */}
           <Link
-            href="/"
+            href="/products"
             className="inline-flex bg-mbg-rgbablank items-center rounded-xs border border-mbg-green px-3 py-1.5 text-[12px] font-semibold text-mbg-green hover:bg-mbg-green hover:text-mbg-white hoverEffect uppercase transition"
           >
             {ui.backToShop}

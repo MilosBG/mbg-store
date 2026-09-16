@@ -50,7 +50,9 @@ const Cart = () => {
   const cart = useCart();
   const clearCart = cart.clearCart;
 
-  const [shippingOption, setShippingOption] = useState<"FREE" | "EXPRESS">("FREE");
+  const [shippingOption, setShippingOption] = useState<"FREE" | "EXPRESS">(
+    "FREE",
+  );
 
   // Checkout form state
   const [formData, setFormData] = useState<CheckoutFormState>({
@@ -78,7 +80,9 @@ const Cart = () => {
   const defaultFirstName = user?.firstName ?? "";
   const defaultLastName = user?.lastName ?? "";
   const defaultPhone =
-    user?.primaryPhoneNumber?.phoneNumber ?? user?.phoneNumbers?.[0]?.phoneNumber ?? "";
+    user?.primaryPhoneNumber?.phoneNumber ??
+    user?.phoneNumbers?.[0]?.phoneNumber ??
+    "";
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -92,7 +96,7 @@ const Cart = () => {
 
   const subtotal = cart.cartItems.reduce(
     (acc, cartItem) => acc + cartItem.item.price * cartItem.quantity,
-    0
+    0,
   );
   const subtotalRounded = Number(subtotal.toFixed(2));
   const shippingFee = shippingOption === "EXPRESS" ? 10 : 0;
@@ -102,7 +106,9 @@ const Cart = () => {
     const vars = ci?.item?.variants ?? [];
     if (Array.isArray(vars) && vars.length > 0) {
       const match = vars.find(
-        (v: any) => (v.color ?? "") === (ci.color ?? "") && (v.size ?? "") === (ci.size ?? "")
+        (v: any) =>
+          (v.color ?? "") === (ci.color ?? "") &&
+          (v.size ?? "") === (ci.size ?? ""),
       );
       return Number(match?.stock ?? 0);
     }
@@ -140,7 +146,9 @@ const Cart = () => {
     setTcError(null);
 
     if (stockIssues) {
-      toast.error("Please adjust your cart. Some items exceed the available stock.");
+      toast.error(
+        "Please adjust your cart. Some items exceed the available stock.",
+      );
       return false;
     }
 
@@ -162,20 +170,25 @@ const Cart = () => {
     (field: keyof CheckoutFormState) =>
       [
         "w-full rounded-xs border bg-mbg-rgbablank px-3 py-2 text-xs uppercase tracking-widest text-mbg-black transition duration-200 focus:outline-none focus:ring-2",
-        formErrors[field] ? "border-red-500 focus:ring-red-500" : "border-mbg-green focus:ring-mbg-green",
+        formErrors[field]
+          ? "border-red-500 focus:ring-red-500"
+          : "border-mbg-green focus:ring-mbg-green",
       ].join(" "),
     [formErrors],
   );
 
-  const handleFieldChange = useCallback((field: keyof CheckoutFormState, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setFormErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  }, []);
+  const handleFieldChange = useCallback(
+    (field: keyof CheckoutFormState, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      setFormErrors((prev) => {
+        if (!prev[field]) return prev;
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    },
+    [],
+  );
 
   const validateForm = useCallback((): CheckoutFormErrors => {
     const errors: CheckoutFormErrors = {};
@@ -186,9 +199,17 @@ const Cart = () => {
       errors.email = "Enter a valid email address.";
     }
 
-    (["firstName", "lastName", "address", "city", "postalCode", "country", "phone"] as Array<
-      keyof CheckoutFormState
-    >).forEach((field) => {
+    (
+      [
+        "firstName",
+        "lastName",
+        "address",
+        "city",
+        "postalCode",
+        "country",
+        "phone",
+      ] as Array<keyof CheckoutFormState>
+    ).forEach((field) => {
       const value = formData[field].trim();
       if (!value) {
         errors[field] = `${FIELD_LABELS[field]} is required.`;
@@ -198,218 +219,205 @@ const Cart = () => {
     return errors;
   }, [formData]);
 
- const handleSubmit = useCallback(
-  async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
 
-    if (!ensureCheckoutReady()) {
-      return;
-    }
+      if (!ensureCheckoutReady()) {
+        return;
+      }
 
-    const validationErrors = validateForm();
+      const validationErrors = validateForm();
 
-    if (Object.keys(validationErrors).length > 0) {
-      setFormErrors(validationErrors);
-      return;
-    }
+      if (Object.keys(validationErrors).length > 0) {
+        setFormErrors(validationErrors);
+        return;
+      }
 
-    setIsSubmitting(true);
+      setIsSubmitting(true);
 
-    try {
-      const result = await createCheckoutOrder({
-        lines: checkoutLines,
+      try {
+        const result = await createCheckoutOrder({
+          lines: checkoutLines,
 
-        shippingOption,
+          shippingOption,
 
-        customer: checkoutCustomer,
+          customer: checkoutCustomer,
 
-        contact: {
-          email: formData.email.trim(),
-          phone: formData.phone.trim()
-            ? formData.phone.trim()
-            : null,
-        },
+          contact: {
+            email: formData.email.trim(),
+            phone: formData.phone.trim() ? formData.phone.trim() : null,
+          },
 
-        shippingAddress: {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          address: formData.address.trim(),
-          city: formData.city.trim(),
-          postalCode: formData.postalCode.trim(),
-          country: formData.country.trim(),
-          phone: formData.phone.trim()
-            ? formData.phone.trim()
-            : null,
-        },
-      });
+          shippingAddress: {
+            firstName: formData.firstName.trim(),
+            lastName: formData.lastName.trim(),
+            address: formData.address.trim(),
+            city: formData.city.trim(),
+            postalCode: formData.postalCode.trim(),
+            country: formData.country.trim(),
+            phone: formData.phone.trim() ? formData.phone.trim() : null,
+          },
+        });
 
-      // Marketing consent must never block the order.
-      // When checked, this endpoint also re-subscribes an address that had
-      // previously used the marketing unsubscribe flow.
-      if (marketingOptIn) {
-        try {
-          const marketingResponse = await fetch("/api/marketing/subscribe", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: formData.email.trim(),
-              firstName: formData.firstName.trim(),
-              consent: true,
-              company: "",
-            }),
-          });
+        // Marketing consent must never block the order.
+        // When checked, this endpoint also re-subscribes an address that had
+        // previously used the marketing unsubscribe flow.
+        if (marketingOptIn) {
+          try {
+            const marketingResponse = await fetch("/api/marketing/subscribe", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: formData.email.trim(),
+                firstName: formData.firstName.trim(),
+                consent: true,
+                company: "",
+              }),
+            });
 
-          if (!marketingResponse.ok) {
-            const marketingPayload = await marketingResponse
-              .json()
-              .catch(() => null);
+            if (!marketingResponse.ok) {
+              const marketingPayload = await marketingResponse
+                .json()
+                .catch(() => null);
 
+              console.warn(
+                "[checkout] Unable to save marketing consent",
+                marketingPayload,
+              );
+            }
+          } catch (error) {
             console.warn(
-              "[checkout] Unable to save marketing consent",
-              marketingPayload,
+              "[checkout] Unable to reach marketing subscription endpoint",
+              error,
             );
           }
-        } catch (error) {
-          console.warn(
-            "[checkout] Unable to reach marketing subscription endpoint",
-            error,
-          );
         }
-      }
 
-      const orderReference = extractOrderReference(result);
+        const orderReference = extractOrderReference(result);
 
-      const snapshot: OrderPlacedSnapshot = {
-        orderReference,
+        const snapshot: OrderPlacedSnapshot = {
+          orderReference,
 
-        createdAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
 
-        contact: {
-          email: formData.email.trim(),
-          phone: formData.phone.trim()
-            ? formData.phone.trim()
-            : null,
-        },
+          contact: {
+            email: formData.email.trim(),
+            phone: formData.phone.trim() ? formData.phone.trim() : null,
+          },
 
-        shippingAddress: {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          address: formData.address.trim(),
-          city: formData.city.trim(),
-          postalCode: formData.postalCode.trim(),
-          country: formData.country.trim(),
-          phone: formData.phone.trim()
-            ? formData.phone.trim()
-            : null,
-        },
+          shippingAddress: {
+            firstName: formData.firstName.trim(),
+            lastName: formData.lastName.trim(),
+            address: formData.address.trim(),
+            city: formData.city.trim(),
+            postalCode: formData.postalCode.trim(),
+            country: formData.country.trim(),
+            phone: formData.phone.trim() ? formData.phone.trim() : null,
+          },
 
-        shippingOption,
+          shippingOption,
 
-        items: checkoutLines.map((line) => ({
-          productId: line.productId,
+          items: checkoutLines.map((line) => ({
+            productId: line.productId,
 
-          title: line.title ?? "Milos BG Product",
+            title: line.title ?? "Milos BG Product",
 
-          image: line.image ?? null,
+            image: line.image ?? null,
 
-          color: line.color ?? null,
+            color: line.color ?? null,
 
-          size: line.size ?? null,
+            size: line.size ?? null,
 
-          quantity: line.quantity,
+            quantity: line.quantity,
 
-          unitPrice: Number(line.unitPrice),
+            unitPrice: Number(line.unitPrice),
 
-          lineTotal: Number(
-            (
-              Number(line.unitPrice) *
-              Number(line.quantity)
-            ).toFixed(2),
-          ),
-        })),
+            lineTotal: Number(
+              (Number(line.unitPrice) * Number(line.quantity)).toFixed(2),
+            ),
+          })),
 
-        subtotal: subtotalRounded,
+          subtotal: subtotalRounded,
 
-        shippingFee,
+          shippingFee,
 
-        total: finalTotal,
+          total: finalTotal,
 
-        currency: "EUR",
-      };
+          currency: "EUR",
+        };
 
-      /*
-       * On sauvegarde le bon de commande AVANT
-       * de vider le panier.
-       *
-       * sessionStorage est volontairement utilisé :
-       * les données disparaissent à la fermeture de l'onglet.
-       */
-      if (typeof window !== "undefined") {
-        try {
-          window.sessionStorage.setItem(
-            ORDER_PLACED_SESSION_KEY,
-            JSON.stringify(snapshot),
-          );
-        } catch (error) {
-          console.warn(
-            "[checkout] Unable to save order placed snapshot",
-            error,
-          );
+        /*
+         * On sauvegarde le bon de commande AVANT
+         * de vider le panier.
+         *
+         * sessionStorage est volontairement utilisé :
+         * les données disparaissent à la fermeture de l'onglet.
+         */
+        if (typeof window !== "undefined") {
+          try {
+            window.sessionStorage.setItem(
+              ORDER_PLACED_SESSION_KEY,
+              JSON.stringify(snapshot),
+            );
+          } catch (error) {
+            console.warn(
+              "[checkout] Unable to save order placed snapshot",
+              error,
+            );
+          }
         }
+
+        setFormErrors({});
+
+        /*
+         * La commande existe maintenant côté serveur.
+         * On peut donc vider le panier.
+         */
+        clearCart();
+
+        toast.success("Order placed successfully.");
+
+        /*
+         * replace() plutôt que push():
+         * un retour arrière évite de retomber directement
+         * sur l'étape de validation de commande.
+         */
+        if (orderReference) {
+          router.replace(
+            `/order_placed?order=${encodeURIComponent(orderReference)}`,
+          );
+        } else {
+          router.replace("/order_placed");
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to create order. Please try again.";
+
+        toast.error(message);
+      } finally {
+        setIsSubmitting(false);
       }
-
-      setFormErrors({});
-
-      /*
-       * La commande existe maintenant côté serveur.
-       * On peut donc vider le panier.
-       */
-      clearCart();
-
-      toast.success("Order placed successfully.");
-
-      /*
-       * replace() plutôt que push():
-       * un retour arrière évite de retomber directement
-       * sur l'étape de validation de commande.
-       */
-      if (orderReference) {
-        router.replace(
-          `/order_placed?order=${encodeURIComponent(
-            orderReference,
-          )}`,
-        );
-      } else {
-        router.replace("/order_placed");
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unable to create order. Please try again.";
-
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  },
-  [
-    checkoutCustomer,
-    checkoutLines,
-    clearCart,
-    ensureCheckoutReady,
-    finalTotal,
-    formData,
-    marketingOptIn,
-    router,
-    shippingFee,
-    shippingOption,
-    subtotalRounded,
-    validateForm,
-  ],
-);
+    },
+    [
+      checkoutCustomer,
+      checkoutLines,
+      clearCart,
+      ensureCheckoutReady,
+      finalTotal,
+      formData,
+      marketingOptIn,
+      router,
+      shippingFee,
+      shippingOption,
+      subtotalRounded,
+      validateForm,
+    ],
+  );
 
   return (
     <Container className="min-h-screen">
@@ -424,10 +432,10 @@ const Cart = () => {
                 Empty Hoop...
               </p>
               <div className="min-h-[50%] bg-mbg-white/90 p-10">
-              <Image
-  src={MBG}
-  alt="Grind Until Achieve"
-  className="
+                <Image
+                  src={MBG}
+                  alt="Grind Until Achieve"
+                  className="
     mx-auto
     h-auto
     w-[46%]
@@ -438,8 +446,8 @@ const Cart = () => {
     md:w-[64%]
     lg:w-[60%]
   "
-/>
-                <Link href="/" className="mbg-prime-full mbg-p-center">
+                />
+                <Link href="/products" className="mbg-prime-full mbg-p-center">
                   Shoot Now
                 </Link>
               </div>
@@ -466,7 +474,9 @@ const Cart = () => {
                         />
                         <Trash2
                           className="mbg-icon hover:text-mbg-green hoverEffect cursor-pointer absolute top-1 right-1 bg-mbg-black/7 p-0.5 "
-                          onClick={() => cart.removeItem(_id, cartItem.color, cartItem.size)}
+                          onClick={() =>
+                            cart.removeItem(_id, cartItem.color, cartItem.size)
+                          }
                         />
                       </div>
 
@@ -488,7 +498,13 @@ const Cart = () => {
                     <div className="flex w-full justify-between items-center p-2 mt-2 bg-mbg-black/7">
                       <div
                         role="button"
-                        onClick={() => cart.decreaseQuantity(_id, cartItem.color, cartItem.size)}
+                        onClick={() =>
+                          cart.decreaseQuantity(
+                            _id,
+                            cartItem.color,
+                            cartItem.size,
+                          )
+                        }
                         className="mbg-p-center bg-mbg-black/7 py-0.5 px-2.5 font-bold hover:bg-mbg-green hover:text-mbg-white hoverEffect rounded-xs cursor-pointer"
                       >
                         -
@@ -498,18 +514,29 @@ const Cart = () => {
                       </p>
                       <div
                         role="button"
-                        onClick={() => cart.increaseQuantity(_id, cartItem.color, cartItem.size)}
+                        onClick={() =>
+                          cart.increaseQuantity(
+                            _id,
+                            cartItem.color,
+                            cartItem.size,
+                          )
+                        }
                         className="mbg-p-center bg-mbg-black/7 py-0.5 px-2.5 font-bold hover:bg-mbg-green hover:text-mbg-white hoverEffect rounded-xs cursor-pointer"
                       >
                         +
                       </div>
                     </div>
                     {lineStock(cartItem) <= 0 && (
-                      <p className="text-[10px] text-red-600 mt-1">Out of stock</p>
+                      <p className="text-[10px] text-red-600 mt-1">
+                        Out of stock
+                      </p>
                     )}
-                    {lineStock(cartItem) > 0 && cartItem.quantity > lineStock(cartItem) && (
-                      <p className="text-[10px] text-red-600 mt-1">Only {lineStock(cartItem)} left</p>
-                    )}
+                    {lineStock(cartItem) > 0 &&
+                      cartItem.quantity > lineStock(cartItem) && (
+                        <p className="text-[10px] text-red-600 mt-1">
+                          Only {lineStock(cartItem)} left
+                        </p>
+                      )}
                   </div>
                 );
               })}
@@ -542,7 +569,9 @@ const Cart = () => {
             </label>
             <select
               value={shippingOption}
-              onChange={(e) => setShippingOption(e.target.value as "FREE" | "EXPRESS")}
+              onChange={(e) =>
+                setShippingOption(e.target.value as "FREE" | "EXPRESS")
+              }
               className="text-mbg-green bg-mbg-rgbablank focus:ring-mbg-green focus:border-mbg-green rounded-xs border px-3 py-1 text-xs transition duration-200 focus:ring-2 focus:outline-none"
             >
               <option value="FREE">FREE DELIVERY (0€)</option>
@@ -560,7 +589,9 @@ const Cart = () => {
             </span>
           </div>
           <hr className=" border-mbg-green" />
-          <p className="text-[9px] uppercase text-mbg-green">All taxes included</p>
+          <p className="text-[9px] uppercase text-mbg-green">
+            All taxes included
+          </p>
           <p className="text-[9px] uppercase text-mbg-green">VAT 20%</p>
 
           {/* NEW: Terms & Conditions agreement */}
@@ -575,9 +606,17 @@ const Cart = () => {
               }}
               className="mt-0.5 h-3 w-3 accent-mbg-black rounded-xs border-mbg-green text-mbg-green focus:ring-mbg-green"
             />
-            <label htmlFor="agree-tc" className="text-[11px] leading-5 uppercase">
+            <label
+              htmlFor="agree-tc"
+              className="text-[11px] leading-5 uppercase"
+            >
               I have read and agree to the{" "}
-              <Link href="/terms-conditions" className="mbg-link" target="_blank" rel="noopener noreferrer">
+              <Link
+                href="/terms-conditions"
+                className="mbg-link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Terms & Conditions
               </Link>
               .
@@ -604,8 +643,10 @@ const Cart = () => {
                 className="cursor-pointer text-[11px] leading-5 uppercase"
               >
                 I want to receive Milos BG news, new drops and{" "}
-                <span className="font-bold text-mbg-green">marketing emails</span>.{" "}
-                I can unsubscribe at any time.
+                <span className="font-bold text-mbg-green">
+                  marketing emails
+                </span>
+                . I can unsubscribe at any time.
               </label>
             </div>
             <p className="mt-1 pl-5 text-[9px] leading-4 text-mbg-black/46">
@@ -613,9 +654,15 @@ const Cart = () => {
             </p>
           </div>
 
-          <form className="mt-3 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+          <form
+            className="mt-3 flex flex-col gap-4"
+            onSubmit={handleSubmit}
+            noValidate
+          >
             <div>
-              <p className="text-xs uppercase font-bold text-mbg-black/46">Contact Details</p>
+              <p className="text-xs uppercase font-bold text-mbg-black/46">
+                Contact Details
+              </p>
               <div className="mt-2 flex flex-col gap-2">
                 <label
                   htmlFor="checkout-email"
@@ -629,7 +676,9 @@ const Cart = () => {
                   autoComplete="email"
                   value={formData.email}
                   placeholder="admin@example.com"
-                  onChange={(event) => handleFieldChange("email", event.target.value)}
+                  onChange={(event) =>
+                    handleFieldChange("email", event.target.value)
+                  }
                   className={inputClass("email")}
                 />
                 {formErrors.email && (
@@ -641,7 +690,9 @@ const Cart = () => {
             </div>
 
             <div>
-              <p className="text-xs uppercase font-bold text-mbg-black/46">Delivery</p>
+              <p className="text-xs uppercase font-bold text-mbg-black/46">
+                Delivery
+              </p>
               <div className="mt-2 grid grid-cols-1 gap-2">
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <div className="flex flex-col gap-2">
@@ -656,7 +707,9 @@ const Cart = () => {
                       type="text"
                       autoComplete="given-name"
                       value={formData.firstName}
-                      onChange={(event) => handleFieldChange("firstName", event.target.value)}
+                      onChange={(event) =>
+                        handleFieldChange("firstName", event.target.value)
+                      }
                       className={inputClass("firstName")}
                     />
                     {formErrors.firstName && (
@@ -677,7 +730,9 @@ const Cart = () => {
                       type="text"
                       autoComplete="family-name"
                       value={formData.lastName}
-                      onChange={(event) => handleFieldChange("lastName", event.target.value)}
+                      onChange={(event) =>
+                        handleFieldChange("lastName", event.target.value)
+                      }
                       className={inputClass("lastName")}
                     />
                     {formErrors.lastName && (
@@ -700,7 +755,9 @@ const Cart = () => {
                     type="text"
                     autoComplete="street-address"
                     value={formData.address}
-                    onChange={(event) => handleFieldChange("address", event.target.value)}
+                    onChange={(event) =>
+                      handleFieldChange("address", event.target.value)
+                    }
                     className={inputClass("address")}
                   />
                   {formErrors.address && (
@@ -723,7 +780,9 @@ const Cart = () => {
                       type="text"
                       autoComplete="address-level2"
                       value={formData.city}
-                      onChange={(event) => handleFieldChange("city", event.target.value)}
+                      onChange={(event) =>
+                        handleFieldChange("city", event.target.value)
+                      }
                       className={inputClass("city")}
                     />
                     {formErrors.city && (
@@ -744,7 +803,9 @@ const Cart = () => {
                       type="text"
                       autoComplete="postal-code"
                       value={formData.postalCode}
-                      onChange={(event) => handleFieldChange("postalCode", event.target.value)}
+                      onChange={(event) =>
+                        handleFieldChange("postalCode", event.target.value)
+                      }
                       className={inputClass("postalCode")}
                     />
                     {formErrors.postalCode && (
@@ -768,7 +829,9 @@ const Cart = () => {
                       type="text"
                       autoComplete="country-name"
                       value={formData.country}
-                      onChange={(event) => handleFieldChange("country", event.target.value)}
+                      onChange={(event) =>
+                        handleFieldChange("country", event.target.value)
+                      }
                       className={inputClass("country")}
                     />
                     {formErrors.country && (
@@ -789,7 +852,9 @@ const Cart = () => {
                       type="tel"
                       autoComplete="tel"
                       value={formData.phone}
-                      onChange={(event) => handleFieldChange("phone", event.target.value)}
+                      onChange={(event) =>
+                        handleFieldChange("phone", event.target.value)
+                      }
                       className={inputClass("phone")}
                     />
                     {formErrors.phone && (

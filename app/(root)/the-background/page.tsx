@@ -53,7 +53,7 @@ const AboutUs = () => {
         </nav>
 
         <Link
-          href="/"
+          href="/products"
           className="inline-flex bg-mbg-rgbablank items-center rounded-xs border border-mbg-green px-3 py-1.5 text-[12px] font-semibold text-mbg-green hover:bg-mbg-green hover:text-mbg-white hoverEffect uppercase transition"
         >
           ← Back to shop
@@ -294,31 +294,31 @@ const AboutUs = () => {
               <Image
                 src={GRIND}
                 alt="GRIND"
-                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
+                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
                 src={RESILIENCE}
                 alt="RESILIENCE"
-                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
+                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
                 src={CONSISTENCY}
                 alt="CONSISTENCY"
-                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.10)] transition-transform duration-300 hover:-translate-y-1"
+                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.10)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
                 src={FOCUS}
                 alt="FOCUS"
-                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
+                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
 
               <Image
                 src={ACHIEVE}
                 alt="ACHIEVE"
-                 className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
+                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
               />
             </div>
           </div>
@@ -388,11 +388,10 @@ const AboutUs = () => {
                 <strong>sport</strong>, <strong>basketball</strong>,{" "}
                 <strong>movement</strong>, and{" "}
                 <strong>Japanese philosophy</strong>, Milos BG draws deeply from
-                the spirit of{" "}
-                <strong>Kaizen</strong>, the pursuit of continuous improvement
-                through discipline, patience, and repetition. As well as{" "}
-                <strong>Kintsugi</strong>, the art of repairing what has been
-                broken while embracing its scars as part of its history,
+                the spirit of <strong>Kaizen</strong>, the pursuit of continuous
+                improvement through discipline, patience, and repetition. As
+                well as <strong>Kintsugi</strong>, the art of repairing what has
+                been broken while embracing its scars as part of its history,
                 character, and strength. The brand also finds inspiration in the{" "}
                 <strong>Madagascar periwinkle</strong>, a flower whose
                 remarkable resilience and ability to endure challenging
@@ -696,7 +695,7 @@ const AboutUs = () => {
 
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
-            href="/"
+            href="/products"
             className="rounded-xs border border-mbg-green px-3 py-1.5 text-[12px] font-semibold text-mbg-green hover:bg-mbg-green hover:text-mbg-white hoverEffect uppercase transition"
           >
             Discover

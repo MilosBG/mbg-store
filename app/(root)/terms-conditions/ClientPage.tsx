@@ -456,7 +456,8 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
       <p className="font-medium">PayPal</p>
       <p>
-        Avec PayPal, les informations financières ne sont jamais communiquées à Milos BG.
+        Avec PayPal, les informations financières ne sont jamais communiquées à
+        Milos BG.
       </p>
       <H3 className="mt-3 text-mbg-black/96">8.2&nbsp;: Défaut de paiement</H3>
       <p>
@@ -483,9 +484,9 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="9. Sécurité des paiements"
     >
       <p>
-        Le site Milos BG utilise le service de paiement sécurisé de PayPal. Le gestionnaire de
-        télépaiement délivre un certificat électronique valant preuve du montant et de la date de la
-        transaction.
+        Le site Milos BG utilise le service de paiement sécurisé de PayPal. Le
+        gestionnaire de télépaiement délivre un certificat électronique valant
+        preuve du montant et de la date de la transaction.
       </p>
     </Section>
 
@@ -1369,20 +1370,14 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="16. Intellectual property"
     >
       <p>
-        All elements of the Milos BG site
-        (visuals, sounds, underlying technologies)
-        are protected
-        (copyrights, trademarks, databases, patents)
-        and are the property of Milos BG or its partners.
-        Any reproduction/representation/
-        translation/adaptation/transformation and/or
-        exploitation without prior consent constitutes
-        an infringement subject
-        to legal action. Framing, deep‑linking,
-        in‑line linking or deep links
-        are prohibited. Any link, even tacitly authorized,
-        must be removed upon
-        simple request from Milos BG.
+        All elements of the Milos BG site (visuals, sounds, underlying
+        technologies) are protected (copyrights, trademarks, databases, patents)
+        and are the property of Milos BG or its partners. Any
+        reproduction/representation/ translation/adaptation/transformation
+        and/or exploitation without prior consent constitutes an infringement
+        subject to legal action. Framing, deep‑linking, in‑line linking or deep
+        links are prohibited. Any link, even tacitly authorized, must be removed
+        upon simple request from Milos BG.
       </p>
     </Section>
 
@@ -1518,7 +1513,7 @@ const TermsAndConditions: React.FC = () => {
         if ((visible?.target as HTMLElement)?.id)
           setActiveId((visible!.target as HTMLElement).id);
       },
-      { rootMargin: "-20% 0px -60% 0px", threshold: [0.2, 0.5, 0.75] }
+      { rootMargin: "-20% 0px -60% 0px", threshold: [0.2, 0.5, 0.75] },
     );
     IDS.forEach((id) => {
       const el = document.getElementById(id);
@@ -1595,7 +1590,7 @@ const TermsAndConditions: React.FC = () => {
       tocAria: lang === "fr" ? "Fil d'Ariane" : "Breadcrumb",
       summaryLabel: lang === "fr" ? "Sommaire" : "Summary",
     }),
-    [lang]
+    [lang],
   );
 
   return (
@@ -1605,7 +1600,10 @@ const TermsAndConditions: React.FC = () => {
         <nav aria-label={ui.tocAria} className="text-[11px] text-mbg-darkgrey">
           <ol className="flex items-center gap-2">
             <li>
-              <Link href="/" className="text-mbg-green uppercase font-medium">
+              <Link
+                href="/products"
+                className="text-mbg-green uppercase font-medium"
+              >
                 {ui.breadcrumbHome}
               </Link>
             </li>
@@ -1648,7 +1646,7 @@ const TermsAndConditions: React.FC = () => {
 
           {/* Back to shop */}
           <Link
-            href="/"
+            href="/products"
             className="inline-flex bg-mbg-rgbablank items-center rounded-xs border border-mbg-green px-3 py-1.5 text-[12px] font-semibold text-mbg-green hover:bg-mbg-green hover:text-mbg-white hoverEffect uppercase transition"
           >
             {ui.backToShop}
@@ -1724,4 +1722,3 @@ const TermsAndConditions: React.FC = () => {
 };
 
 export default TermsAndConditions;
-
