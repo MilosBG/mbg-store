@@ -132,39 +132,43 @@ const Header = () => {
               text-mbg-black
             "
           >
-            {/* BOOKS */}
-            <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
-              <Link href="/grind-until-achieve" aria-label="Home">
-                <Image
-                  src={GrindUntilAchieve2}
-                  alt="GRIND UNTIL ACHIEVE"
-                  width={32}
-                  height={32}
-                  priority
-                  className="
-    h-5
-    w-5
-    cursor-pointer
-    object-contain
-    transition-opacity
-    duration-300
-    group-hover:opacity-80
-  "
-                />
-              </Link>
-            </div>
+            
+<div className="flex items-center justify-start gap-5">
+              {/* ALL PRODUCTS */}
+              <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
+                <Link href="/products" aria-label="All Products">
+                  <BsShop
+                    className="
+                            mbg-icons-style
+                            hoverEffect
+                            "
+                  />
+                </Link>
+              </div>
+              {/* BOOKS */}
+              <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
+                <Link href="/grind-until-achieve" aria-label="Home">
+                  <Image
+                    src={GrindUntilAchieve2}
+                    alt="GRIND UNTIL ACHIEVE"
+                    width={32}
+                    height={32}
+                    priority
+                    className="
+      h-5
+      w-5
+      cursor-pointer
+      object-contain
+      transition-opacity
+      duration-300
+      group-hover:opacity-80
+    "
+                  />
+                </Link>
+              </div>
+</div>
 
-            {/* ALL PRODUCTS */}
-            <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
-              <Link href="/products" aria-label="All Products">
-                <BsShop
-                  className="
-                          mbg-icons-style
-                          hoverEffect
-                          "
-                />
-              </Link>
-            </div>
+  
 
             {/* ACCOUNT */}
             <div className="relative flex w-44 items-center justify-end gap-4">
