@@ -29,7 +29,11 @@ async function loadMongoModule(): Promise<MongoModule> {
   return mongoModulePromise;
 }
 
-export const getChapters = async (): Promise<Chapter[]> => {
+type ChapterWithSlug = Chapter & {
+  slug: string;
+};
+
+export const getChapters = async (): Promise<ChapterWithSlug[]> => {
   noStore();
 
   const db = await getAdminDb();
@@ -42,17 +46,48 @@ export const getChapters = async (): Promise<Chapter[]> => {
   return chapters.map((chapter) => serializeChapter(chapter));
 };
 
-export const getChapterDetails = async (chapterId: string): Promise<Chapter | null> => {
+/**
+ * Récupère un chapitre via son slug public ou son ancien ObjectId MongoDB.
+ * Exemples : /chapters/grind ou /chapters/69248735606e9c4e3e739e67
+ */
+export const getChapterDetails = async (
+  slugOrId: string,
+): Promise<ChapterWithSlug | null> => {
   noStore();
 
-  const { ObjectId } = await loadMongoModule();
-  if (!ObjectId.isValid(chapterId)) {
+  const value = slugOrId.trim();
+  if (!value) {
     return null;
   }
 
   const db = await getAdminDb();
-  const mongoId = new ObjectId(chapterId);
-  const chapter = await db.collection<ChapterDocument>("chapters").findOne({ _id: mongoId });
+  const chaptersCollection = db.collection<ChapterDocument>("chapters");
+  const normalizedValue = createChapterSlug(value);
+
+  let chapter: ChapterDocument | null = null;
+
+  // Compatibilité avec les anciennes URLs basées sur l'ObjectId MongoDB.
+  const { ObjectId } = await loadMongoModule();
+  if (ObjectId.isValid(value)) {
+    chapter = await chaptersCollection.findOne({
+      _id: new ObjectId(value),
+    });
+  }
+
+  // Recherche principale via le slug stocké en base.
+  if (!chapter) {
+    chapter = await chaptersCollection.findOne({
+      slug: normalizedValue,
+    });
+  }
+
+  // Fallback pour les anciens chapitres qui n'ont pas encore de champ `slug`.
+  if (!chapter) {
+    const chapters = await chaptersCollection.find({}).toArray();
+    chapter =
+      chapters.find((item) => createChapterSlug(item.title) === normalizedValue) ?? null;
+  }
+
   if (!chapter) {
     return null;
   }
@@ -94,6 +129,7 @@ export const getSearchedProducts = async (query: string): Promise<Product[]> => 
 type ChapterDocument = {
   _id: ObjectId;
   title: string;
+  slug?: string;
   badge?: string;
   description?: string;
   image: string;
@@ -102,9 +138,23 @@ type ChapterDocument = {
   updatedAt?: Date;
 };
 
-function serializeChapter(doc: ChapterDocument, products?: Product[]): Chapter {
+function createChapterSlug(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function serializeChapter(
+  doc: ChapterDocument,
+  products?: Product[],
+): ChapterWithSlug {
   return {
     _id: doc._id.toHexString(),
+    slug: doc.slug?.trim() || createChapterSlug(doc.title),
     title: doc.title,
     badge: doc.badge?.trim() || undefined,
     description: doc.description ?? undefined,

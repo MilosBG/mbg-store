@@ -15,22 +15,25 @@ import type { Product } from "@/lib/types";
 export const revalidate = 3600;
 
 type PageProps = {
-  params: {
-    chapterId: string;
-  };
+  params: Promise<{
+    slug: string;
+  }>;
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                   METADATA                                 */
+/* -------------------------------------------------------------------------- */
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { chapterId } = params;
+  const { slug } = await params;
 
-  const encodedId = encodeURIComponent(chapterId);
-  const path = `/chapters/${encodedId}`;
+  const encodedSlug = encodeURIComponent(slug);
+  const path = `/chapters/${encodedSlug}`;
 
   try {
-    const details =
-      await getChapterDetails(chapterId);
+    const details = await getChapterDetails(slug);
 
     if (details?.title) {
       const rawDescription =
@@ -43,15 +46,13 @@ export async function generateMetadata({
         .trim();
 
       const summary = cleanDescription
-        ? cleanDescription.slice(0, 155) +
-          (cleanDescription.length > 155
-            ? "..."
-            : "")
+        ? `${cleanDescription.slice(0, 155)}${
+            cleanDescription.length > 155 ? "..." : ""
+          }`
         : "Discover curated looks for every Milos BG chapter.";
 
       const image =
-        typeof details.image === "string" &&
-        details.image
+        typeof details.image === "string" && details.image
           ? details.image
           : "/Grinder.png";
 
@@ -63,7 +64,9 @@ export async function generateMetadata({
         keywords: [
           "Milos BG",
           details.title,
-          "chapters",
+          "Milos BG chapters",
+          "basketball clothing",
+          "artisan clothing",
         ],
       });
     }
@@ -85,17 +88,25 @@ export async function generateMetadata({
   });
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                    PAGE                                    */
+/* -------------------------------------------------------------------------- */
+
 const ChapterDetails = async ({
   params,
 }: PageProps) => {
-  const { chapterId } = params;
+  const { slug } = await params;
 
   const chapterDetails =
-    await getChapterDetails(chapterId);
+    await getChapterDetails(slug);
 
   if (!chapterDetails) {
     notFound();
   }
+
+  /* ------------------------------------------------------------------------ */
+  /*                                CHAPTER THEME                             */
+  /* ------------------------------------------------------------------------ */
 
   const themeByTitle: Record<
     string,
@@ -150,7 +161,7 @@ const ChapterDetails = async ({
       {/* CHAPTER NAVIGATION */}
       <div className="bg-mbg-white">
         <ChaptersTitle
-          activeChapterId={chapterId}
+          activeChapterId={chapterDetails._id}
         />
       </div>
 
@@ -163,8 +174,10 @@ const ChapterDetails = async ({
           alt={`${chapterDetails.title} Chapter`}
           priority
           className={`
-            h-[200px] w-full
-            border-b border-mbg-black
+            h-[200px]
+            w-full
+            border-b
+            border-mbg-black
             object-contain
             ${bgClass}
           `}
