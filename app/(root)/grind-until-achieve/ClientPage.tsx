@@ -78,13 +78,7 @@ const EBOOK_URL = process.env.NEXT_PUBLIC_GRIND_EBOOK_URL;
 // SECTIONS
 // -----------------------------------------------------------------------------
 
-const IDS = [
-  "story",
-  "progression",
-  "chapters",
-  "book",
-  "ebook",
-] as const;
+const IDS = ["story", "progression", "chapters", "book", "ebook"] as const;
 
 const tocItems = {
   en: [
@@ -107,23 +101,13 @@ const tocItems = {
 // -----------------------------------------------------------------------------
 // TITLE
 // -----------------------------------------------------------------------------
-const GrindTitle = ({
-  className = "",
-}: {
-  className?: string;
-}) => {
+const GrindTitle = ({ className = "" }: { className?: string }) => {
   return (
-    <span
-      className={className}
-      aria-label="GRIND UNTIL ACHIEVE"
-    >
+    <span className={className} aria-label="GRIND UNTIL ACHIEVE">
       GR
       <span className="text-mbg-green">I</span>
-      ND{" "}
-      <span className="text-mbg-green">UNTIL</span>
-      {" "}ACHIE
-      <span className="text-mbg-green">V</span>
-      E
+      ND <span className="text-mbg-green">UNTIL</span> ACHIE
+      <span className="text-mbg-green">V</span>E
     </span>
   );
 };
@@ -177,16 +161,10 @@ const Toc: React.FC<{
                 transition
                 hover:text-mbg-lightgrey
                 hover:underline
-                ${
-                  activeId === id
-                    ? "text-mbg-green"
-                    : ""
-                }
+                ${activeId === id ? "text-mbg-green" : ""}
               `}
             >
-              <span className="mr-2 tabular-nums">
-                {number}
-              </span>
+              <span className="mr-2 tabular-nums">{number}</span>
 
               {label}
             </a>
@@ -273,9 +251,7 @@ const Section: React.FC<SectionProps> = ({
             py-3
           "
         >
-          <H3 className="m-0 text-base text-mbg-green">
-            {title}
-          </H3>
+          <H3 className="m-0 text-base text-mbg-green">{title}</H3>
 
           <BiSolidBasketball
             aria-hidden
@@ -318,11 +294,7 @@ type ChapterCardProps = {
   sentence: string;
 };
 
-const ChapterCard = ({
-  number,
-  name,
-  sentence,
-}: ChapterCardProps) => {
+const ChapterCard = ({ number, name, sentence }: ChapterCardProps) => {
   return (
     <div
       className="
@@ -380,9 +352,7 @@ const ChapterCard = ({
         {name}
       </p>
 
-      <p className="text-xs leading-5 text-mbg-darkgrey">
-        {sentence}
-      </p>
+      <p className="text-xs leading-5 text-mbg-darkgrey">{sentence}</p>
     </div>
   );
 };
@@ -397,11 +367,7 @@ type PurchaseButtonProps = {
   icon: React.ReactNode;
 };
 
-const PurchaseButton = ({
-  href,
-  children,
-  icon,
-}: PurchaseButtonProps) => {
+const PurchaseButton = ({ href, children, icon }: PurchaseButtonProps) => {
   if (!href) {
     return (
       <span
@@ -471,10 +437,9 @@ const ContentEN: React.FC<{
         title="1. The direction"
       >
         <p className="max-w-2xl leading-6">
-          <strong>GRIND UNTIL ACHIEVE</strong> is the direction
-          behind Milos BG. It is a way of understanding
-          progression: start, endure, repeat, focus, achieve —
-          then begin again.
+          <strong>GRIND UNTIL ACHIEVE</strong> is the direction behind Milos BG.
+          It is a way of understanding progression: start, endure, repeat,
+          focus, achieve — then begin again.
         </p>
 
         <div
@@ -495,17 +460,10 @@ const ContentEN: React.FC<{
             ["Design", "provides the language."],
             ["The five chapters", "provide the structure."],
           ].map(([title, text]) => (
-            <div
-              key={title}
-              className="bg-mbg-white p-4"
-            >
-              <p className="font-bold uppercase text-mbg-black">
-                {title}
-              </p>
+            <div key={title} className="bg-mbg-white p-4">
+              <p className="font-bold uppercase text-mbg-black">{title}</p>
 
-              <p className="mt-1 text-mbg-darkgrey">
-                {text}
-              </p>
+              <p className="mt-1 text-mbg-darkgrey">{text}</p>
             </div>
           ))}
         </div>
@@ -539,8 +497,8 @@ const ContentEN: React.FC<{
         title="2. From 1 to 5"
       >
         <p className="leading-6">
-          Progress does not happen in one movement. It happens
-          through five stages.
+          Progress does not happen in one movement. It happens through five
+          stages.
         </p>
 
         <div className="grid w-full gap-3 sm:grid-cols-5">
@@ -567,17 +525,14 @@ const ContentEN: React.FC<{
                 {number}
               </span>
 
-              <span className="font-bold uppercase">
-                {label}
-              </span>
+              <span className="font-bold uppercase">{label}</span>
             </div>
           ))}
         </div>
 
         <p className="leading-6">
-          Achievement is not presented as the end of the
-          journey. Once a goal is reached, the experience
-          becomes the foundation for the next cycle.
+          Achievement is not presented as the end of the journey. Once a goal is
+          reached, the experience becomes the foundation for the next cycle.
         </p>
       </Section>
 
@@ -587,11 +542,7 @@ const ContentEN: React.FC<{
         title="3. The five chapters"
       >
         <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <ChapterCard
-            number="1"
-            name="GRIND"
-            sentence="Decide to begin."
-          />
+          <ChapterCard number="1" name="GRIND" sentence="Decide to begin." />
 
           <ChapterCard
             number="2"
@@ -702,17 +653,13 @@ const ContentEN: React.FC<{
             </div>
 
             <p className="max-w-xl leading-6 text-mbg-darkgrey">
-              A physical object dedicated to the philosophy
-              behind Milos BG and its five-stage progression.
-              Designed to be read, kept and revisited as the
-              journey evolves.
+              A physical object dedicated to the philosophy behind Milos BG and
+              its five-stage progression. Designed to be read, kept and
+              revisited as the journey evolves.
             </p>
 
             <div>
-              <PurchaseButton
-                href={BOOK_URL}
-                icon={<FiShoppingBag />}
-              >
+              <PurchaseButton href={BOOK_URL} icon={<FiShoppingBag />}>
                 Buy the book
               </PurchaseButton>
             </div>
@@ -720,11 +667,7 @@ const ContentEN: React.FC<{
         </div>
       </Section>
 
-      <Section
-        id="ebook"
-        forceOpen={allOpen ?? undefined}
-        title="5. Ebook"
-      >
+      <Section id="ebook" forceOpen={allOpen ?? undefined} title="5. Ebook">
         <div
           className="
             flex
@@ -778,16 +721,13 @@ const ContentEN: React.FC<{
                 text-mbg-lightgrey
               "
             >
-              Access the philosophy, the five chapters and the
-              progression model wherever you are.
+              Access the philosophy, the five chapters and the progression model
+              wherever you are.
             </p>
           </div>
 
           <div className="shrink-0">
-            <PurchaseButton
-              href={EBOOK_URL}
-              icon={<FiDownload />}
-            >
+            <PurchaseButton href={EBOOK_URL} icon={<FiDownload />}>
               Get the ebook
             </PurchaseButton>
           </div>
@@ -812,10 +752,9 @@ const ContentFR: React.FC<{
         title="1. La direction"
       >
         <p className="max-w-2xl leading-6">
-          <strong>GRIND UNTIL ACHIEVE</strong> représente la
-          direction de Milos BG. C&apos;est une manière de
-          comprendre la progression : commencer, résister,
-          répéter, se concentrer, accomplir — puis recommencer.
+          <strong>GRIND UNTIL ACHIEVE</strong> représente la direction de Milos
+          BG. C&apos;est une manière de comprendre la progression : commencer,
+          résister, répéter, se concentrer, accomplir — puis recommencer.
         </p>
 
         <div
@@ -836,17 +775,10 @@ const ContentFR: React.FC<{
             ["Le design", "fournit le langage."],
             ["Les cinq chapitres", "fournissent la structure."],
           ].map(([title, text]) => (
-            <div
-              key={title}
-              className="bg-mbg-white p-4"
-            >
-              <p className="font-bold uppercase text-mbg-black">
-                {title}
-              </p>
+            <div key={title} className="bg-mbg-white p-4">
+              <p className="font-bold uppercase text-mbg-black">{title}</p>
 
-              <p className="mt-1 text-mbg-darkgrey">
-                {text}
-              </p>
+              <p className="mt-1 text-mbg-darkgrey">{text}</p>
             </div>
           ))}
         </div>
@@ -880,8 +812,8 @@ const ContentFR: React.FC<{
         title="2. De 1 à 5"
       >
         <p className="leading-6">
-          La progression ne se fait pas en un seul mouvement.
-          Elle se construit à travers cinq étapes.
+          La progression ne se fait pas en un seul mouvement. Elle se construit
+          à travers cinq étapes.
         </p>
 
         <div className="grid w-full gap-3 sm:grid-cols-5">
@@ -908,17 +840,14 @@ const ContentFR: React.FC<{
                 {number}
               </span>
 
-              <span className="font-bold uppercase">
-                {label}
-              </span>
+              <span className="font-bold uppercase">{label}</span>
             </div>
           ))}
         </div>
 
         <p className="leading-6">
-          ACHIEVE n&apos;est pas présenté comme une fin.
-          Lorsqu&apos;un objectif est atteint, ce qui a été
-          appris devient la base du prochain cycle.
+          ACHIEVE n&apos;est pas présenté comme une fin. Lorsqu&apos;un objectif
+          est atteint, ce qui a été appris devient la base du prochain cycle.
         </p>
       </Section>
 
@@ -1043,17 +972,13 @@ const ContentFR: React.FC<{
             </div>
 
             <p className="max-w-xl leading-6 text-mbg-darkgrey">
-              Un objet physique consacré à la philosophie de
-              Milos BG et à sa progression en cinq étapes. Un
-              livre conçu pour être lu, conservé et revisité à
-              mesure que le parcours évolue.
+              Un objet physique consacré à la philosophie de Milos BG et à sa
+              progression en cinq étapes. Un livre conçu pour être lu, conservé
+              et revisité à mesure que le parcours évolue.
             </p>
 
             <div>
-              <PurchaseButton
-                href={BOOK_URL}
-                icon={<FiShoppingBag />}
-              >
+              <PurchaseButton href={BOOK_URL} icon={<FiShoppingBag />}>
                 Acheter le livre
               </PurchaseButton>
             </div>
@@ -1061,11 +986,7 @@ const ContentFR: React.FC<{
         </div>
       </Section>
 
-      <Section
-        id="ebook"
-        forceOpen={allOpen ?? undefined}
-        title="5. Ebook"
-      >
+      <Section id="ebook" forceOpen={allOpen ?? undefined} title="5. Ebook">
         <div
           className="
             flex
@@ -1119,16 +1040,13 @@ const ContentFR: React.FC<{
                 text-mbg-lightgrey
               "
             >
-              Retrouvez la philosophie, les cinq chapitres et
-              la progression de 1 à 5 où que vous soyez.
+              Retrouvez la philosophie, les cinq chapitres et la progression de
+              1 à 5 où que vous soyez.
             </p>
           </div>
 
           <div className="shrink-0">
-            <PurchaseButton
-              href={EBOOK_URL}
-              icon={<FiDownload />}
-            >
+            <PurchaseButton href={EBOOK_URL} icon={<FiDownload />}>
               Obtenir l&apos;ebook
             </PurchaseButton>
           </div>
@@ -1145,11 +1063,9 @@ const ContentFR: React.FC<{
 const ClientPage: React.FC = () => {
   const [lang, setLang] = useLang();
 
-  const [allOpen, setAllOpen] =
-    useState<boolean | null>(null);
+  const [allOpen, setAllOpen] = useState<boolean | null>(null);
 
-  const [activeId, setActiveId] =
-    useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const [showTop, setShowTop] = useState(false);
 
@@ -1182,10 +1098,7 @@ const ClientPage: React.FC = () => {
       (entries) => {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
-          .sort(
-            (a, b) =>
-              b.intersectionRatio - a.intersectionRatio
-          )[0];
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
 
         const id = (visible?.target as HTMLElement)?.id;
 
@@ -1196,7 +1109,7 @@ const ClientPage: React.FC = () => {
       {
         rootMargin: "-20% 0px -60% 0px",
         threshold: [0.2, 0.5, 0.75],
-      }
+      },
     );
 
     IDS.forEach((id) => {
@@ -1216,25 +1129,15 @@ const ClientPage: React.FC = () => {
 
   const ui = useMemo(
     () => ({
-      breadcrumbHome:
-        lang === "fr" ? "Accueil" : "Home",
+      breadcrumbHome: lang === "fr" ? "Accueil" : "Home",
 
       breadcrumbCurrent: "GRIND UNTIL ACHIEVE",
 
-      backToShop:
-        lang === "fr"
-          ? "← Retour à la boutique"
-          : "← Back to shop",
+      backToShop: lang === "fr" ? "← Retour à la boutique" : "← Back to shop",
 
-      expandAll:
-        lang === "fr"
-          ? "Déplier tout"
-          : "Expand all",
+      expandAll: lang === "fr" ? "Déplier tout" : "Expand all",
 
-      collapseAll:
-        lang === "fr"
-          ? "Replier tout"
-          : "Collapse all",
+      collapseAll: lang === "fr" ? "Replier tout" : "Collapse all",
 
       pageTitle: "GRIND UNTIL ACHIEVE",
 
@@ -1249,21 +1152,13 @@ const ClientPage: React.FC = () => {
           : "Start. Endure. Repeat. Focus. Achieve. Then begin again.",
 
       lastUpdateLabel:
-        lang === "fr"
-          ? "Dernière mise à jour :"
-          : "Last update:",
+        lang === "fr" ? "Dernière mise à jour :" : "Last update:",
 
-      rights:
-        lang === "fr"
-          ? "Tous droits réservés"
-          : "All rights reserved",
+      rights: lang === "fr" ? "Tous droits réservés" : "All rights reserved",
 
-      breadcrumbAria:
-        lang === "fr"
-          ? "Fil d'Ariane"
-          : "Breadcrumb",
+      breadcrumbAria: lang === "fr" ? "Fil d'Ariane" : "Breadcrumb",
     }),
-    [lang]
+    [lang],
   );
 
   return (
@@ -1418,9 +1313,7 @@ const ClientPage: React.FC = () => {
 
         <button
           type="button"
-          onClick={() =>
-            setAllOpen(allOpenBool ? false : true)
-          }
+          onClick={() => setAllOpen(allOpenBool ? false : true)}
           className="
             border
             border-mbg-green
@@ -1435,9 +1328,7 @@ const ClientPage: React.FC = () => {
             hover:text-mbg-white
           "
         >
-          {allOpenBool
-            ? ui.collapseAll
-            : ui.expandAll}
+          {allOpenBool ? ui.collapseAll : ui.expandAll}
         </button>
       </div>
 
@@ -1523,11 +1414,10 @@ const ClientPage: React.FC = () => {
           </p>
 
           <div className="mt-8 flex items-center gap-2">
-            {["1", "2", "3", "4", "5"].map(
-              (number, index) => (
-                <React.Fragment key={number}>
-                  <span
-                    className={`
+            {["1", "2", "3", "4", "5"].map((number, index) => (
+              <React.Fragment key={number}>
+                <span
+                  className={`
                       flex
                       size-8
                       items-center
@@ -1536,22 +1426,18 @@ const ClientPage: React.FC = () => {
                       text-xs
                       font-bold
                       ${
-                        number === "1" ||
-                        number === "5"
+                        number === "1" || number === "5"
                           ? "border-mbg-green bg-mbg-green text-mbg-white"
                           : "border-mbg-white/20 text-mbg-white"
                       }
                     `}
-                  >
-                    {number}
-                  </span>
+                >
+                  {number}
+                </span>
 
-                  {index < 4 && (
-                    <span className="h-px w-4 bg-mbg-white/20" />
-                  )}
-                </React.Fragment>
-              )
-            )}
+                {index < 4 && <span className="h-px w-4 bg-mbg-white/20" />}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </header>
@@ -1561,10 +1447,7 @@ const ClientPage: React.FC = () => {
       {/* ------------------------------------------------------------------ */}
 
       <div className="mb-6 lg:hidden">
-        <Toc
-          activeId={activeId}
-          lang={lang}
-        />
+        <Toc activeId={activeId} lang={lang} />
       </div>
 
       {/* ------------------------------------------------------------------ */}
@@ -1574,10 +1457,7 @@ const ClientPage: React.FC = () => {
       <div className="grid gap-6 lg:grid-cols-12">
         <aside className="hidden lg:col-span-4 lg:block">
           <div className="lg:sticky lg:top-4">
-            <Toc
-              activeId={activeId}
-              lang={lang}
-            />
+            <Toc activeId={activeId} lang={lang} />
           </div>
         </aside>
 
@@ -1594,23 +1474,26 @@ const ClientPage: React.FC = () => {
 
           <div
             className="
-              mt-10
-              border
-              border-mbg-green
-              bg-mbg-white
-              px-6
-              py-10
-              text-center
-              
+       mt-10
+    flex
+    flex-col
+    items-center
+    justify-center
+    border
+    border-mbg-green
+    bg-mbg-white
+    px-6
+    py-10
+    text-center
             "
           >
-                <Image
-                  src={GrindUntilAchieve2}
-                  alt="GRIND UNTIL ACHIEVE"
-                  width={32}
-                  height={32}
-                  priority
-                  className="
+            <Image
+              src={GrindUntilAchieve2}
+              alt="GRIND UNTIL ACHIEVE"
+              width={32}
+              height={32}
+              priority
+              className="
     h-5
     w-5
     cursor-pointer
@@ -1619,7 +1502,7 @@ const ClientPage: React.FC = () => {
     duration-300
     group-hover:opacity-80
   "
-                />
+            />
 
             <p
               className="
@@ -1643,7 +1526,8 @@ const ClientPage: React.FC = () => {
                 text-mbg-darkgrey
               "
             >
-              From chapter <strong className="text-mbg-green">I</strong> to <strong className="text-mbg-green">V</strong> 
+              From chapter <strong className="text-mbg-green">I</strong> to{" "}
+              <strong className="text-mbg-green">V</strong>
             </p>
           </div>
 
@@ -1660,9 +1544,7 @@ const ClientPage: React.FC = () => {
               text-mbg-green
             "
           >
-            <p>
-              {ui.lastUpdateLabel}&nbsp;16/09/2026
-            </p>
+            <p>{ui.lastUpdateLabel}&nbsp;16/09/2026</p>
 
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Milos BG
@@ -1680,11 +1562,7 @@ const ClientPage: React.FC = () => {
       {showTop && (
         <button
           type="button"
-          aria-label={
-            lang === "fr"
-              ? "Revenir en haut"
-              : "Back to top"
-          }
+          aria-label={lang === "fr" ? "Revenir en haut" : "Back to top"}
           onClick={() =>
             window.scrollTo({
               top: 0,
