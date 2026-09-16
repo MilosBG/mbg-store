@@ -585,7 +585,7 @@ const ClientPage = ({
   };
 
   return (
-    <main className="min-h-screen bg-mbg-white/70 text-mbg-black">
+    <main className="min-h-screen bg-mbg-white/50 text-mbg-black">
       {/* PAGE HEADER */}
       <section className="px-5 pb-7 pt-8 md:px-8 lg:px-12">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">

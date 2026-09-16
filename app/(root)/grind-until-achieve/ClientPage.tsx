@@ -542,28 +542,28 @@ const ContentEN: React.FC<{
         title="3. The five chapters"
       >
         <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <ChapterCard number="1" name="GRIND" sentence="Decide to begin." />
+          <ChapterCard number="I" name="GRIND" sentence="Decide to begin." />
 
           <ChapterCard
-            number="2"
+            number="II"
             name="RESILIENCE"
             sentence="Continue after impact or failure."
           />
 
           <ChapterCard
-            number="3"
+            number="III"
             name="CONSISTENCY"
             sentence="Transform effort into habit."
           />
 
           <ChapterCard
-            number="4"
+            number="IV"
             name="FOCUS"
             sentence="Give the accumulated force a direction."
           />
 
           <ChapterCard
-            number="5"
+            number="V"
             name="ACHIEVE"
             sentence="Reach, understand, then begin again."
           />
@@ -858,31 +858,31 @@ const ContentFR: React.FC<{
       >
         <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-5">
           <ChapterCard
-            number="1"
+            number="I"
             name="GRIND"
             sentence="Décider de commencer."
           />
 
           <ChapterCard
-            number="2"
+            number="II"
             name="RESILIENCE"
             sentence="Continuer après le choc ou l’échec."
           />
 
           <ChapterCard
-            number="3"
+            number="III"
             name="CONSISTENCY"
             sentence="Transformer l’effort en habitude."
           />
 
           <ChapterCard
-            number="4"
+            number="IV"
             name="FOCUS"
             sentence="Orienter correctement cette force."
           />
 
           <ChapterCard
-            number="5"
+            number="V"
             name="ACHIEVE"
             sentence="Atteindre, comprendre, puis repartir."
           />
@@ -1414,7 +1414,7 @@ const ClientPage: React.FC = () => {
           </p>
 
           <div className="mt-8 flex items-center gap-2">
-            {["1", "2", "3", "4", "5"].map((number, index) => (
+            {["I", "II", "III", "IV", "V"].map((number, index) => (
               <React.Fragment key={number}>
                 <span
                   className={`
