@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import React from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import Container from "@/components/mbg-components/Container";
 
@@ -39,29 +39,17 @@ type LocalizedProduct = Product & {
 /*                              LOCALIZED CONTENT                             */
 /* -------------------------------------------------------------------------- */
 
-const getLocalizedProductContent = (
-  product: Product,
-  lang: StoreLanguage,
-) => {
-  const localizedProduct =
-    product as LocalizedProduct;
+const getLocalizedProductContent = (product: Product, lang: StoreLanguage) => {
+  const localizedProduct = product as LocalizedProduct;
 
   if (lang === "fr") {
     return {
-      title:
-        localizedProduct.titleFr?.trim() ||
-        product.title ||
-        "Produit",
+      title: localizedProduct.titleFr?.trim() || product.title || "Produit",
 
       description:
-        localizedProduct.descriptionFr?.trim() ||
-        product.description ||
-        "",
+        localizedProduct.descriptionFr?.trim() || product.description || "",
 
-      category:
-        localizedProduct.categoryFr?.trim() ||
-        product.category ||
-        "",
+      category: localizedProduct.categoryFr?.trim() || product.category || "",
     };
   }
 
@@ -82,20 +70,14 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
 
-  const { lang: rawLang } =
-    await searchParams;
+  const { lang: rawLang } = await searchParams;
 
-  const lang =
-    normalizeStoreLanguage(rawLang);
+  const lang = normalizeStoreLanguage(rawLang);
 
-  const encodedSlug =
-    encodeURIComponent(slug);
+  const encodedSlug = encodeURIComponent(slug);
 
   const fallback = buildMetadata({
-    title:
-      lang === "fr"
-        ? "Produit"
-        : "Product",
+    title: lang === "fr" ? "Produit" : "Product",
 
     description:
       lang === "fr"
@@ -108,59 +90,34 @@ export async function generateMetadata({
 
     keywords:
       lang === "fr"
-        ? [
-            "Milos BG",
-            "produit",
-            "vêtement",
-            "basketball",
-          ]
-        : [
-            "Milos BG",
-            "product",
-            "apparel",
-            "basketball",
-          ],
+        ? ["Milos BG", "produit", "vêtement", "basketball"]
+        : ["Milos BG", "product", "apparel", "basketball"],
 
     robotsIndex: false,
   });
 
   try {
-    const product =
-      await getProductBySlugOrId(slug);
+    const product = await getProductBySlugOrId(slug);
 
     if (!product) {
       return fallback;
     }
 
-    const content =
-      getLocalizedProductContent(
-        product,
-        lang,
-      );
+    const content = getLocalizedProductContent(product, lang);
 
-    const cleanDescription =
-      content.description
-        .replace(/\s+/g, " ")
-        .trim();
+    const cleanDescription = content.description.replace(/\s+/g, " ").trim();
 
     const summary = cleanDescription
-      ? `${cleanDescription.slice(
-          0,
-          155,
-        )}${
-          cleanDescription.length > 155
-            ? "..."
-            : ""
+      ? `${cleanDescription.slice(0, 155)}${
+          cleanDescription.length > 155 ? "..." : ""
         }`
       : lang === "fr"
         ? "Découvrez les créations Milos BG conçues pour le terrain et en dehors."
         : "Shop authentic Milos BG gear built for on and off the court.";
 
     const heroImage =
-      Array.isArray(product.media) &&
-      product.media.length > 0
-        ? product.media[0] ??
-          "/Grinder.png"
+      Array.isArray(product.media) && product.media.length > 0
+        ? (product.media[0] ?? "/Grinder.png")
         : "/Grinder.png";
 
     /**
@@ -168,10 +125,7 @@ export async function generateMetadata({
      * la canonical utilise maintenant le slug,
      * plus jamais le MongoDB _id.
      */
-    const canonicalSlug =
-      encodeURIComponent(
-        product.slug || slug,
-      );
+    const canonicalSlug = encodeURIComponent(product.slug || slug);
 
     return buildMetadata({
       title: content.title,
@@ -184,24 +138,11 @@ export async function generateMetadata({
 
       keywords:
         lang === "fr"
-          ? [
-              "Milos BG",
-              content.title,
-              "basketball",
-              "vêtement",
-            ]
-          : [
-              "Milos BG",
-              content.title,
-              "basketball",
-              "apparel",
-            ],
+          ? ["Milos BG", content.title, "basketball", "vêtement"]
+          : ["Milos BG", content.title, "basketball", "apparel"],
     });
   } catch (error) {
-    console.error(
-      "Failed to build product metadata",
-      error,
-    );
+    console.error("Failed to build product metadata", error);
 
     return fallback;
   }
@@ -218,10 +159,7 @@ const LanguageSwitcher = ({
   slug: string;
   lang: StoreLanguage;
 }) => {
-  const basePath =
-    `/products/${encodeURIComponent(
-      slug,
-    )}`;
+  const basePath = `/products/${encodeURIComponent(slug)}`;
 
   const itemClass =
     "flex h-8 min-w-10 items-center justify-center px-3 text-[10px] font-bold uppercase transition-colors";
@@ -231,19 +169,11 @@ const LanguageSwitcher = ({
       <div
         className="flex border border-mbg-green"
         role="group"
-        aria-label={
-          lang === "fr"
-            ? "Choisir la langue"
-            : "Choose language"
-        }
+        aria-label={lang === "fr" ? "Choisir la langue" : "Choose language"}
       >
         <Link
           href={`${basePath}?lang=en`}
-          aria-current={
-            lang === "en"
-              ? "page"
-              : undefined
-          }
+          aria-current={lang === "en" ? "page" : undefined}
           className={`${itemClass} ${
             lang === "en"
               ? "bg-mbg-green text-mbg-white"
@@ -255,11 +185,7 @@ const LanguageSwitcher = ({
 
         <Link
           href={`${basePath}?lang=fr`}
-          aria-current={
-            lang === "fr"
-              ? "page"
-              : undefined
-          }
+          aria-current={lang === "fr" ? "page" : undefined}
           className={`${itemClass} ${
             lang === "fr"
               ? "bg-mbg-black text-mbg-white"
@@ -277,20 +203,14 @@ const LanguageSwitcher = ({
 /*                                PRODUCT PAGE                                */
 /* -------------------------------------------------------------------------- */
 
-const ProductDetails = async ({
-  params,
-  searchParams,
-}: PageProps) => {
+const ProductDetails = async ({ params, searchParams }: PageProps) => {
   const { slug } = await params;
 
-  const { lang: rawLang } =
-    await searchParams;
+  const { lang: rawLang } = await searchParams;
 
-  const lang =
-    normalizeStoreLanguage(rawLang);
+  const lang = normalizeStoreLanguage(rawLang);
 
-  const productDetails =
-    await getProductBySlugOrId(slug);
+  const productDetails = await getProductBySlugOrId(slug);
 
   if (!productDetails) {
     notFound();
@@ -300,37 +220,27 @@ const ProductDetails = async ({
    * On préfère toujours le slug réel
    * renvoyé par la DB.
    */
-  const productSlug =
-    productDetails.slug || slug;
+  if (productDetails.slug && slug !== productDetails.slug) {
+    const langParam =
+      typeof rawLang === "string" ? `?lang=${encodeURIComponent(rawLang)}` : "";
+
+    redirect(
+      `/products/${encodeURIComponent(productDetails.slug)}${langParam}`,
+    );
+  }
+  const productSlug = productDetails.slug || slug;
 
   return (
     <Container className="min-h-[60vh]">
-      <LanguageSwitcher
-        slug={productSlug}
-        lang={lang}
-      />
+      <LanguageSwitcher slug={productSlug} lang={lang} />
 
       <div className="grid grid-cols-1 gap-7 py-7 md:grid-cols-2 md:gap-5">
-        <Gallery
-          productMedia={
-            productDetails.media
-          }
-        />
+        <Gallery productMedia={productDetails.media} />
 
         <div className="min-w-0">
-          <ProductInfo
-            productInfo={
-              productDetails
-            }
-            lang={lang}
-          />
+          <ProductInfo productInfo={productDetails} lang={lang} />
 
-          <ProductAccordion
-            product={
-              productDetails
-            }
-            lang={lang}
-          />
+          <ProductAccordion product={productDetails} lang={lang} />
         </div>
       </div>
     </Container>

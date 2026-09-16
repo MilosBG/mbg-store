@@ -6,21 +6,24 @@ import BasketBall from "./BasketBall";
 import type { Product, User } from "@/lib/types";
 
 interface ProductCardProps {
-  product: Product
-  updateSignedInUser?: (updatedUser: User) => void
+  product: Product;
+  updateSignedInUser?: (updatedUser: User) => void;
 }
 
 const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
   const fallbackSvg =
     "data:image/svg+xml;utf8," +
     encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="250" height="300"><rect width="100%" height="100%" fill="#f3f4f6"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#9ca3af" font-size="14">No image</text></svg>'
+      '<svg xmlns="http://www.w3.org/2000/svg" width="250" height="300"><rect width="100%" height="100%" fill="#f3f4f6"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#9ca3af" font-size="14">No image</text></svg>',
     );
-  const imgSrc = (Array.isArray(product.media) && product.media[0]) ? product.media[0] : fallbackSvg;
+  const imgSrc =
+    Array.isArray(product.media) && product.media[0]
+      ? product.media[0]
+      : fallbackSvg;
   return (
     <>
       <Link
-        href={`/products/${product._id}`}
+        href={`/products/${product.slug}`}
         className="bg-mbg-white p-2  rounded-t-md shadow-lg w-fit flex flex-col "
       >
         <Image
@@ -40,7 +43,10 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
         </div>
         <div className="mt-3 bg-mbg-green/7 py-2 px-2 mbg-p-between">
           <p className="font-bold text-mbg-green">€ {product.price}</p>
-          <BasketBall product={product} updateSignedInUser={updateSignedInUser} />
+          <BasketBall
+            product={product}
+            updateSignedInUser={updateSignedInUser}
+          />
         </div>
       </Link>
     </>

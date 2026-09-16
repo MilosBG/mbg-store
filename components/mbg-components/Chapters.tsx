@@ -26,7 +26,7 @@ const Chapters = async () => {
         <div className="grid grid-cols-2 justify-items-center gap-4 md:grid-cols-5">
           {chapters.map((chapter) => (
             <Link
-              href={`/chapters/${chapter._id}`}
+              href={`/chapters/${chapter.slug}`}
               key={chapter._id}
               className="
                 group relative

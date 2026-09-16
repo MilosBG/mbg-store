@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import React from "react";
 
 import ChaptersTitle from "@/components/mbg-components/ChaptersTitle";
@@ -37,13 +37,9 @@ export async function generateMetadata({
 
     if (details?.title) {
       const rawDescription =
-        typeof details.description === "string"
-          ? details.description
-          : "";
+        typeof details.description === "string" ? details.description : "";
 
-      const cleanDescription = rawDescription
-        .replace(/\s+/g, " ")
-        .trim();
+      const cleanDescription = rawDescription.replace(/\s+/g, " ").trim();
 
       const summary = cleanDescription
         ? `${cleanDescription.slice(0, 155)}${
@@ -71,16 +67,12 @@ export async function generateMetadata({
       });
     }
   } catch (error) {
-    console.error(
-      "Failed to build chapter metadata",
-      error,
-    );
+    console.error("Failed to build chapter metadata", error);
   }
 
   return buildMetadata({
     title: "Chapter",
-    description:
-      "Explore Milos BG chapter collections and curated looks.",
+    description: "Explore Milos BG chapter collections and curated looks.",
     path,
     image: "/Grinder.png",
     keywords: ["Milos BG", "chapters"],
@@ -92,13 +84,10 @@ export async function generateMetadata({
 /*                                    PAGE                                    */
 /* -------------------------------------------------------------------------- */
 
-const ChapterDetails = async ({
-  params,
-}: PageProps) => {
+const ChapterDetails = async ({ params }: PageProps) => {
   const { slug } = await params;
 
-  const chapterDetails =
-    await getChapterDetails(slug);
+  const chapterDetails = await getChapterDetails(slug);
 
   if (!chapterDetails) {
     notFound();
@@ -108,6 +97,9 @@ const ChapterDetails = async ({
   /*                                CHAPTER THEME                             */
   /* ------------------------------------------------------------------------ */
 
+  if (chapterDetails.slug && slug !== chapterDetails.slug) {
+    redirect(`/chapters/${encodeURIComponent(chapterDetails.slug)}`);
+  }
   const themeByTitle: Record<
     string,
     {
@@ -141,28 +133,19 @@ const ChapterDetails = async ({
     },
   };
 
-  const normalizedTitle =
-    chapterDetails.title
-      ?.trim()
-      .toLowerCase();
+  const normalizedTitle = chapterDetails.title?.trim().toLowerCase();
 
-  const theme = normalizedTitle
-    ? themeByTitle[normalizedTitle]
-    : undefined;
+  const theme = normalizedTitle ? themeByTitle[normalizedTitle] : undefined;
 
-  const bgClass =
-    theme?.bg ?? "bg-mbg-black";
+  const bgClass = theme?.bg ?? "bg-mbg-black";
 
-  const textClass =
-    theme?.text ?? "text-mbg-black";
+  const textClass = theme?.text ?? "text-mbg-black";
 
   return (
     <Container>
       {/* CHAPTER NAVIGATION */}
       <div className="bg-mbg-white">
-        <ChaptersTitle
-          activeChapterId={chapterDetails._id}
-        />
+        <ChaptersTitle activeChapterId={chapterDetails._id} />
       </div>
 
       {/* CHAPTER CONTENT */}
@@ -201,14 +184,9 @@ const ChapterDetails = async ({
         </div>
 
         <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-          {(chapterDetails.products ?? []).map(
-            (product: Product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-              />
-            ),
-          )}
+          {(chapterDetails.products ?? []).map((product: Product) => (
+            <ProductCard key={product._id} product={product} />
+          ))}
         </div>
       </div>
     </Container>
