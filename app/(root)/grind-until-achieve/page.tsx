@@ -2,11 +2,24 @@ import { buildMetadata } from "@/lib/seo";
 import ClientPage from "./ClientPage";
 
 export const metadata = buildMetadata({
-  title: "Contact",
-  description: "Reach the Milos BG support team for questions about orders, returns, or partnerships.",
-  path: "/contact",
+  title: "GRIND UNTIL ACHIEVE | Book & Ebook",
+  description:
+    "Discover GRIND UNTIL ACHIEVE by Milos BG — a story of progression through GRIND, RESILIENCE, CONSISTENCY, FOCUS and ACHIEVE.",
+  path: "/grind-until-achieve",
   image: "/Grinder.png",
-  keywords: ["contact", "customer support", "Milos BG"],
+  keywords: [
+    "GRIND UNTIL ACHIEVE",
+    "Milos BG",
+    "book",
+    "ebook",
+    "basketball mindset",
+    "progression",
+    "GRIND",
+    "RESILIENCE",
+    "CONSISTENCY",
+    "FOCUS",
+    "ACHIEVE",
+  ],
 });
 
 export default function Page() {
