@@ -68,7 +68,7 @@ export default function GrindModeHero({
       "
     >
       {/* BACKGROUND */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 -z-20">
         <Image
           src={GrindUntilAchieve2}
           alt=""
@@ -132,7 +132,10 @@ export default function GrindModeHero({
         <div className="w-full max-w-[720px]">
           {/* EYEBROW */}
           <div className="mb-5 flex items-center gap-3">
-            <span aria-hidden="true" className="h-px w-8 bg-mbg-green" />
+            <span
+              aria-hidden="true"
+              className="h-px w-8 bg-mbg-green"
+            />
 
             <p
               className="
@@ -193,9 +196,9 @@ export default function GrindModeHero({
               sm:items-center
             "
           >
-            <Link
-              href={withStoreLanguage("/grind-mode", lang)}
-              className="
+        <Link
+  href={withStoreLanguage("/grind-mode", lang)}
+  className="
     group
     relative
     inline-flex
@@ -224,11 +227,11 @@ export default function GrindModeHero({
     focus-visible:ring-offset-2
     focus-visible:ring-offset-black
   "
-            >
-              {/* GLOWING GRADIENT ANIMÉ EN PERMANENCE */}
-              <span
-                aria-hidden="true"
-                className="
+>
+  {/* GLOWING GRADIENT ANIMÉ EN PERMANENCE */}
+  <span
+    aria-hidden="true"
+    className="
       pointer-events-none
       absolute
       -inset-[80%]
@@ -237,28 +240,36 @@ export default function GrindModeHero({
       opacity-80
       blur-xl
     "
-              />
+  />
 
-              {/* FOND INTERNE */}
-              <span
-                aria-hidden="true"
-                className="
-      absolute
-      inset-[2px]
-      bg-mbg-green
-      transition-colors
-      duration-300
-      group-hover:bg-black
-    "
-              />
+  {/* FOND INTERNE */}
+ <span
+  aria-hidden="true"
+  className="
+    pointer-events-none
+    absolute
+    inset-y-[-80%]
+    -left-[70%]
+    w-[55%]
+    animate-mbg-sweep
+    -skew-x-12
+    bg-gradient-to-r
+    from-transparent
+    via-white/55
+    to-transparent
+    blur-xl
+  "
+/>
 
-              {/* TEXTE */}
-              <span className="relative z-10">{t.primary}</span>
+  {/* TEXTE */}
+  <span className="relative z-10">
+    {t.primary}
+  </span>
 
-              {/* FLÈCHE */}
-              <span
-                aria-hidden="true"
-                className="
+  {/* FLÈCHE */}
+  <span
+    aria-hidden="true"
+    className="
       relative
       z-10
       ml-4
@@ -268,10 +279,10 @@ export default function GrindModeHero({
       duration-300
       group-hover:translate-x-1
     "
-              >
-                →
-              </span>
-            </Link>
+  >
+    →
+  </span>
+</Link>
 
             <Link
               href={withStoreLanguage("/the-background", lang)}
@@ -319,7 +330,9 @@ export default function GrindModeHero({
             "
           >
             <div>
-              <p className="text-xl font-black text-white">05</p>
+              <p className="text-xl font-black text-white">
+                05
+              </p>
 
               <p
                 className="
@@ -338,7 +351,9 @@ export default function GrindModeHero({
             <div className="h-8 w-px bg-white/15" />
 
             <div>
-              <p className="text-xl font-black text-mbg-green">01</p>
+              <p className="text-xl font-black text-mbg-green">
+                01
+              </p>
 
               <p
                 className="
