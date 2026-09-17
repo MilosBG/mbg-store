@@ -344,7 +344,7 @@ export default function GrindModeClient({
 
         <div>
           <label className="block">
-            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">01 // {t.createCycleTitle}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">01{" // "}{t.createCycleTitle}</span>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
@@ -353,7 +353,7 @@ export default function GrindModeClient({
             />
           </label>
           <label className="mt-5 block">
-            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">02 // {t.createCycleReason}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">02{" // "}{t.createCycleReason}</span>
             <textarea
               value={reason}
               onChange={(event) => setReason(event.target.value)}
@@ -394,7 +394,7 @@ export default function GrindModeClient({
                   <p className="mt-2 max-w-2xl text-sm text-white/55">{t.returnCopy}</p>
                 </div>
               </div>
-              <span className="border border-mbg-green/60 px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">02 // RESILIENCE</span>
+              <span className="border border-mbg-green/60 px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">02{" // "}RESILIENCE</span>
             </div>
           </Panel>
         )}
@@ -554,7 +554,7 @@ export default function GrindModeClient({
             </div>
             <div className="text-left sm:text-right">
               <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/35">{t.currentChapter}</p>
-              <p className="mt-1 text-xl font-black uppercase text-mbg-green">0{chapterIndex + 1} // {data.activeCycle.currentChapter}</p>
+              <p className="mt-1 text-xl font-black uppercase text-mbg-green">0{chapterIndex + 1}{" // "}{data.activeCycle.currentChapter}</p>
             </div>
           </div>
 
@@ -680,7 +680,7 @@ export default function GrindModeClient({
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.archive}</p>
           <h2 className="mt-2 text-3xl font-black uppercase text-white">{t.navArchive}</h2>
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">{data.archive.length.toString().padStart(2, "0")} // {t.statusComplete}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">{data.archive.length.toString().padStart(2, "0")}{" // "}{t.statusComplete}</p>
       </div>
       <div className="mt-5 space-y-2">
         {data.archive.length ? (
@@ -711,7 +711,7 @@ export default function GrindModeClient({
           <div>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">MILOS BG // {t.cardTitle}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">MILOS BG{" // "}{t.cardTitle}</p>
                 <h2 className="mt-2 text-4xl font-black uppercase text-white">{displayName}</h2>
               </div>
               <div className="flex h-16 w-16 items-center justify-center rounded-full border border-mbg-green/60 bg-mbg-green/10">
@@ -746,7 +746,7 @@ export default function GrindModeClient({
                 );
               })}
             </div>
-            <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">GRIND UNTIL ACHIEVE // KEEP MOVING.</p>
+            <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">GRIND UNTIL ACHIEVE{" // "}KEEP MOVING.</p>
           </div>
         </div>
       </Panel>
@@ -848,7 +848,7 @@ export default function GrindModeClient({
                 <p className="text-lg font-black uppercase tracking-tight text-white">GRIND MODE</p>
                 <span className="border border-mbg-green/45 px-2 py-1 text-[8px] font-black uppercase tracking-[0.13em] text-mbg-green">{t.unlockedBadge}</span>
               </div>
-              <p className="mt-1 truncate text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{t.campaign} // {displayName}</p>
+              <p className="mt-1 truncate text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{t.campaign}{" // "}{displayName}</p>
             </div>
           </div>
 
@@ -887,7 +887,7 @@ export default function GrindModeClient({
 
       <div className="relative grid lg:grid-cols-[180px_minmax(0,1fr)_220px]">
         <aside className="hidden border-r border-white/10 bg-black/25 p-3 lg:block">
-          <p className="px-2 py-3 text-[8px] font-black uppercase tracking-[0.18em] text-white/25">// MENU</p>
+          <p className="px-2 py-3 text-[8px] font-black uppercase tracking-[0.18em] text-white/25">{"// MENU"}</p>
           <nav className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -980,7 +980,7 @@ export default function GrindModeClient({
       </div>
 
       <footer className="relative flex flex-col gap-2 border-t border-white/10 bg-black/30 px-4 py-3 text-[8px] font-bold uppercase tracking-[0.14em] text-white/25 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <span>GRIND MODE // MILOS BG</span>
+        <span>GRIND MODE{" // "}MILOS BG</span>
         <span>{t.noLeaderboard}</span>
       </footer>
     </div>
