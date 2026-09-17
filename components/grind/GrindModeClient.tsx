@@ -8,7 +8,6 @@ import {
   BookOpen,
   Check,
   ChevronRight,
-  Circle,
   Compass,
   Flame,
   Gem,
@@ -42,6 +41,8 @@ type Props = {
 };
 
 type Screen = "ADVENTURE" | "MAP" | "BADGES" | "JOURNAL" | "BOOK";
+
+type OnboardingStep = "WELCOME" | "GOAL" | "WHY" | "CLUE" | "READY" | null;
 
 type Chapter = "GRIND" | "RESILIENCE" | "CONSISTENCY" | "FOCUS" | "ACHIEVE";
 
@@ -305,9 +306,6 @@ function buildBadges(data: GrindDashboardDTO, t: typeof grindCopy.en): BadgeItem
   ];
 }
 
-function taskKindLabel(kind: GrindTaskKind, t: typeof grindCopy.en) {
-  return kind === "MAIN" ? t.main : kind === "MINIMUM" ? t.minimum : t.support;
-}
 
 function getNextActionLabel(primaryTask: GrindTask | undefined, t: typeof grindCopy.en) {
   if (!primaryTask?.label.trim()) return t.choosePrimary;
@@ -329,6 +327,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   const [eventQueue, setEventQueue] = useState<GameEvent[]>([]);
   const [activeEvent, setActiveEvent] = useState<GameEvent | null>(null);
   const [flashTaskId, setFlashTaskId] = useState<string | null>(null);
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [onboardingClue, setOnboardingClue] = useState("");
   const timerRef = useRef<number | null>(null);
 
   const displayName = (playerName || t.playerFallback).trim().toUpperCase();
@@ -356,6 +357,24 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     void load(false);
   }, [load]);
 
+  useEffect(() => {
+    if (!data || onboardingDismissed || onboardingStep || !data.profile.unlocked) return;
+
+    const firstAdventure = data.profile.cyclesCompleted === 0 && data.profile.grindsCompleted === 0;
+    if (!firstAdventure) return;
+
+    if (!data.activeCycle) {
+      setOnboardingStep("WELCOME");
+      return;
+    }
+
+    const savedMainClue = data.today?.tasks?.find(
+      (task) => task.kind === "MAIN" && task.label.trim(),
+    );
+    setOnboardingClue(savedMainClue?.label ?? "");
+    setOnboardingStep(savedMainClue ? "READY" : "CLUE");
+  }, [data, onboardingDismissed, onboardingStep]);
+
   const pushEvents = useCallback((events: GameEvent[]) => {
     if (!events.length) return;
     setEventQueue((current) => [...current, ...events]);
@@ -379,6 +398,59 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   }, []);
 
   const badges = useMemo(() => (data ? buildBadges(data, t) : []), [data, t]);
+
+  const createOnboardingQuest = async () => {
+    if (!title.trim() || !reason.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/grind/cycles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: title.trim(), reason: reason.trim() }),
+      });
+      if (!res.ok) throw new Error("create");
+      await res.json();
+      setTasks(defaultTasks());
+      await load(true);
+      setOnboardingStep("CLUE");
+    } catch {
+      toast.error(t.error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const persistFirstClue = async () => {
+    if (!data?.activeCycle || !onboardingClue.trim()) return;
+
+    const nextTasks = tasks.map((task) =>
+      task.kind === "MAIN"
+        ? { ...task, label: onboardingClue.trim(), completed: false, completedAt: null }
+        : task,
+    );
+    setTasks(nextTasks);
+    setSaving(true);
+    try {
+      const res = await fetch("/api/grind/check-ins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cycleId: data.activeCycle.id,
+          tasks: nextTasks.filter((task) => task.label.trim()),
+          note: "",
+          showedUp: false,
+        }),
+      });
+      if (!res.ok) throw new Error("save");
+      await res.json();
+      await load(true);
+      setOnboardingStep("READY");
+    } catch {
+      toast.error(t.error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const createCycle = async () => {
     if (!title.trim() || !reason.trim()) return;
@@ -564,6 +636,253 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     setScreen("ADVENTURE");
   };
 
+  const renderOnboarding = () => {
+    if (!onboardingStep || !data?.profile.unlocked) return null;
+
+    const stepNumber =
+      onboardingStep === "WELCOME"
+        ? 1
+        : onboardingStep === "GOAL" || onboardingStep === "WHY"
+          ? 2
+          : onboardingStep === "CLUE"
+            ? 3
+            : 4;
+
+    const clueChoices = [
+      { label: t.presetThing, body: t.presetThingBody, color: "#F59E42", icon: Target },
+      { label: t.presetSeven, body: t.presetSevenBody, color: "#43C6B9", icon: Flame },
+      { label: t.presetFocus, body: t.presetFocusBody, color: "#9A6BFF", icon: Compass },
+      { label: t.presetReturn, body: t.presetReturnBody, color: "#EF6F5E", icon: RotateCcw },
+    ];
+
+    const savedFirstClue =
+      onboardingClue ||
+      data.today?.tasks?.find((task) => task.kind === "MAIN" && task.label.trim())?.label ||
+      "";
+
+    return (
+      <div className="fixed inset-0 z-[220] overflow-y-auto bg-[#4B372A]/45 p-4 backdrop-blur-sm">
+        <div className="mx-auto flex min-h-full max-w-5xl items-center justify-center py-6">
+          <div className="quest-event relative w-full overflow-hidden rounded-[36px] border border-[#E7D6BE] bg-[linear-gradient(180deg,#FFF9E7_0%,#F6E7C9_52%,#BFE7F4_100%)] p-6 text-[#4B372A] shadow-[0_35px_100px_rgba(75,55,42,.38)] sm:p-8 lg:p-10">
+            <div className="pointer-events-none absolute -left-12 top-20 h-40 w-40 rounded-full bg-[#F59E42]/18 blur-3xl" />
+            <div className="pointer-events-none absolute -right-12 bottom-12 h-44 w-44 rounded-full bg-[#43C6B9]/22 blur-3xl" />
+
+            <div className="relative z-[1] flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F4C542] text-[#4B372A] shadow-md">
+                  <Map className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C28A2B]">GRIND QUEST</p>
+                  <p className="text-sm font-bold text-[#6B5B4D]">{displayName}</p>
+                </div>
+              </div>
+              <div className="rounded-full bg-white/75 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D] shadow-sm">
+                {t.onboardingStep} {stepNumber} {t.onboardingOf} 4
+              </div>
+            </div>
+
+            <div className="relative z-[1] mt-6 flex gap-2" aria-hidden="true">
+              {[1, 2, 3, 4].map((step) => (
+                <div key={step} className={`h-2 flex-1 rounded-full ${step <= stepNumber ? "bg-[#F4C542]" : "bg-white/55"}`} />
+              ))}
+            </div>
+
+            {onboardingStep === "WELCOME" ? (
+              <div className="relative z-[1] grid gap-8 py-8 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B] shadow-sm">
+                    <Sparkles className="h-4 w-4" />
+                    {t.eventChapterUnlocked}
+                  </div>
+                  <h2 className="mt-5 max-w-2xl text-4xl font-black uppercase tracking-[-0.045em] sm:text-6xl">{t.onboardingMapUnlocked}</h2>
+                  <p className="mt-5 max-w-xl text-base leading-7 text-[#6B5B4D]">{t.onboardingMapUnlockedBody}</p>
+
+                  <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                    {[
+                      { title: t.onboardingRule1Title, body: t.onboardingRule1Body, Icon: Target },
+                      { title: t.onboardingRule2Title, body: t.onboardingRule2Body, Icon: Star },
+                      { title: t.onboardingRule3Title, body: t.onboardingRule3Body, Icon: RotateCcw },
+                    ].map(({ title: ruleTitle, body: ruleBody, Icon }) => (
+                      <div key={ruleTitle} className="rounded-[22px] border border-[#E7D6BE] bg-white/75 p-4 shadow-sm">
+                        <Icon className="h-5 w-5 text-[#C28A2B]" />
+                        <p className="mt-3 text-sm font-black uppercase text-[#4B372A]">{ruleTitle}</p>
+                        <p className="mt-2 text-xs leading-5 text-[#6B5B4D]">{ruleBody}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setOnboardingStep("GOAL")}
+                    className="mt-8 inline-flex min-h-14 items-center gap-3 rounded-full bg-[linear-gradient(90deg,#F59E42,#F4C542)] px-7 text-xs font-black uppercase tracking-[0.16em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px]"
+                  >
+                    {t.onboardingBegin}
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="relative mx-auto w-full max-w-md rounded-[30px] border border-[#E7D6BE] bg-white/65 p-6 shadow-lg">
+                  <div className="rounded-[26px] border-2 border-dashed border-[#D6B57C] bg-[linear-gradient(180deg,#BFE7F4_0%,#F6E7C9_100%)] p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F59E42] text-white shadow-md">
+                        <Target className="h-7 w-7" />
+                      </div>
+                      <div className="h-1 flex-1 bg-[#D6B57C]" />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F4C542] text-[#4B372A] shadow-md">
+                        <Trophy className="h-7 w-7" />
+                      </div>
+                    </div>
+                    <p className="mt-6 text-center text-2xl font-black uppercase text-[#4B372A]">GRIND → ACHIEVE</p>
+                    <p className="mt-2 text-center text-sm leading-6 text-[#6B5B4D]">{t.subtitle}</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {onboardingStep === "GOAL" || onboardingStep === "WHY" ? (
+              <div className="relative z-[1] mx-auto max-w-3xl py-8">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C28A2B]">{t.activeQuest}</p>
+                <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.045em] sm:text-5xl">{t.onboardingGoalTitle}</h2>
+                <p className="mt-4 text-base leading-7 text-[#6B5B4D]">{t.onboardingGoalBody}</p>
+
+                <div className="mt-7 rounded-[28px] border border-[#E7D6BE] bg-white/78 p-5 shadow-sm sm:p-6">
+                  <label className="block">
+                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.onboardingGoalTitle}</span>
+                    <input
+                      autoFocus
+                      value={title}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => setTitle(event.target.value)}
+                      placeholder={t.createQuestPlaceholder}
+                      className="mt-3 w-full rounded-2xl border border-[#E7D6BE] bg-[#FFFDF9] px-4 py-4 text-base font-black text-[#4B372A] outline-none placeholder:font-semibold placeholder:text-[#B39B8A] focus:border-[#F4C542]"
+                    />
+                  </label>
+
+                  <label className="mt-5 block">
+                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.onboardingWhyTitle}</span>
+                    <p className="mt-2 text-sm leading-6 text-[#6B5B4D]">{t.onboardingWhyBody}</p>
+                    <textarea
+                      value={reason}
+                      onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReason(event.target.value)}
+                      rows={4}
+                      placeholder={t.createReasonPlaceholder}
+                      className="mt-3 w-full resize-none rounded-2xl border border-[#E7D6BE] bg-[#FFFDF9] px-4 py-4 text-sm text-[#4B372A] outline-none placeholder:text-[#B39B8A] focus:border-[#F4C542]"
+                    />
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={saving || !title.trim() || !reason.trim()}
+                  onClick={() => void createOnboardingQuest()}
+                  className="mt-6 flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(90deg,#F59E42,#F4C542)] px-7 text-xs font-black uppercase tracking-[0.16em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px] disabled:opacity-40"
+                >
+                  {t.onboardingWhyNext}
+                  <Map className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
+
+            {onboardingStep === "CLUE" ? (
+              <div className="relative z-[1] py-8">
+                <div className="mx-auto max-w-3xl text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C28A2B]">{data.activeCycle?.title}</p>
+                  <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.045em] sm:text-5xl">{t.onboardingClueTitle}</h2>
+                  <p className="mt-4 text-base leading-7 text-[#6B5B4D]">{t.onboardingClueBody}</p>
+                </div>
+
+                <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {clueChoices.map(({ label, body, color, icon: ChoiceIcon }) => {
+                    const selected = onboardingClue === label;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setOnboardingClue(label)}
+                        className={`rounded-[26px] border p-5 text-left shadow-sm transition ${selected ? "-translate-y-1 bg-white" : "bg-white/70 hover:bg-white"}`}
+                        style={{ borderColor: selected ? color : "#E7D6BE" }}
+                      >
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full text-white shadow-sm" style={{ background: color }}>
+                          <ChoiceIcon className="h-5 w-5" />
+                        </div>
+                        <p className="mt-4 text-sm font-black uppercase text-[#4B372A]">{label}</p>
+                        <p className="mt-2 text-xs leading-5 text-[#6B5B4D]">{body}</p>
+                        {selected ? <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FFF6DA] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#C28A2B]"><Check className="h-3 w-3" /> SELECTED</div> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <label className="mx-auto mt-6 block max-w-2xl">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.onboardingCustomClue}</span>
+                  <input
+                    value={onboardingClue}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => setOnboardingClue(event.target.value)}
+                    placeholder={t.onboardingCustomPlaceholder}
+                    className="mt-3 w-full rounded-2xl border border-[#E7D6BE] bg-white/80 px-4 py-4 text-base font-black text-[#4B372A] outline-none placeholder:font-semibold placeholder:text-[#B39B8A] focus:border-[#F4C542]"
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  disabled={saving || !onboardingClue.trim()}
+                  onClick={() => void persistFirstClue()}
+                  className="mx-auto mt-6 flex min-h-14 w-full max-w-2xl items-center justify-center gap-3 rounded-full bg-[#43C6B9] px-7 text-xs font-black uppercase tracking-[0.16em] text-white shadow-lg transition hover:translate-y-[-1px] disabled:opacity-40"
+                >
+                  {t.onboardingEquipClue}
+                  <Star className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
+
+            {onboardingStep === "READY" ? (
+              <div className="relative z-[1] mx-auto max-w-4xl py-8 text-center">
+                <div className="quest-bounce mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#F4C542] text-[#4B372A] shadow-xl">
+                  <Star className="h-10 w-10" />
+                </div>
+                <p className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#C28A2B]">{t.eventQuestStarted}</p>
+                <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.045em] sm:text-6xl">{t.onboardingReadyTitle}</h2>
+                <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#6B5B4D]">{t.onboardingReadyBody}</p>
+
+                <div className="mx-auto mt-7 max-w-2xl rounded-[30px] border border-[#E7D6BE] bg-white/82 p-6 text-left shadow-lg">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.primaryClue}</p>
+                  <p className="mt-2 text-2xl font-black uppercase text-[#4B372A]">{savedFirstClue || t.choosePrimary}</p>
+                  <div className="mt-5 flex items-center gap-3 rounded-2xl bg-[#E4FAF6] px-4 py-3 text-sm font-bold text-[#2A736B]">
+                    <Target className="h-5 w-5 shrink-0" />
+                    {lang === "fr" ? "Fais cette action dans la vraie vie. Reviens ensuite la valider." : "Do this action in real life. Then come back and validate it."}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOnboardingDismissed(true);
+                    setOnboardingStep(null);
+                    setScreen("ADVENTURE");
+                    pushEvents([
+                      {
+                        id: eventId("QUEST_STARTED"),
+                        kind: "QUEST_STARTED",
+                        eyebrow: t.eventQuestStarted,
+                        title: data.activeCycle?.title ?? t.title,
+                        body: t.eventQuestStartedBody,
+                        duration: 2100,
+                      },
+                    ]);
+                  }}
+                  className="mt-8 inline-flex min-h-14 items-center gap-3 rounded-full bg-[linear-gradient(90deg,#F59E42,#F4C542)] px-8 text-xs font-black uppercase tracking-[0.16em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px]"
+                >
+                  {t.onboardingEnterAdventure}
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="relative my-8 overflow-hidden rounded-[30px] border border-[#E7D6BE] bg-[#FFF8E8] px-6 py-20 text-center text-[#4B372A] shadow-lg">
@@ -641,12 +960,12 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   const bonusEntries = tasks.map((task, index) => ({ task, index })).filter(({ task }) => task.kind === "SUPPORT");
   const fallbackEntry = tasks.map((task, index) => ({ task, index })).find(({ task }) => task.kind === "MINIMUM");
   const filledTasks = tasks.filter((task) => task.label.trim());
-  const completedTasks = tasks.filter((task) => task.label.trim() && task.completed).length;
   const earnedBadges = badges.filter((badge) => badge.earned).length;
 
   const primaryAction = () => {
     if (!mainEntry?.task.label.trim()) {
-      setScreen("BADGES");
+      setOnboardingClue("");
+      setOnboardingStep("CLUE");
       return;
     }
     if (!mainEntry.task.completed) {
@@ -1127,6 +1446,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   return (
     <div className="quest-shell relative my-8 overflow-hidden rounded-[34px] border border-[#E7D6BE] bg-[linear-gradient(180deg,#F6E7C9_0%,#F2DFC2_35%,#BFE7F4_100%)] text-[#4B372A] shadow-[0_25px_70px_rgba(75,55,42,.12)]">
       <QuestStyles />
+      {renderOnboarding()}
       {activeEvent ? <EventOverlay event={activeEvent} onDismiss={() => setActiveEvent(null)} skipLabel={t.skipEvent} /> : null}
 
       <div className="relative z-[1] border-b border-[#E7D6BE] bg-white/55 px-5 py-5 backdrop-blur-sm sm:px-7">
