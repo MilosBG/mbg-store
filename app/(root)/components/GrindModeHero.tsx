@@ -196,11 +196,14 @@ export default function GrindModeHero({
               sm:items-center
             "
           >
-        <Link
+<Link
   href={withStoreLanguage("/grind-mode", lang)}
+  style={{
+    animation: "mbgGlowPulse 2.4s ease-in-out infinite",
+  }}
   className="
-    group
     relative
+    isolate
     inline-flex
     min-h-12
     items-center
@@ -215,10 +218,10 @@ export default function GrindModeHero({
     uppercase
     tracking-[0.18em]
     text-white
-    transition
+    transition-colors
     duration-300
 
-    hover:bg-transparent
+    hover:bg-black
     hover:text-mbg-green
 
     focus-visible:outline-none
@@ -228,38 +231,53 @@ export default function GrindModeHero({
     focus-visible:ring-offset-black
   "
 >
-  {/* GLOWING GRADIENT ANIMÉ EN PERMANENCE */}
+  {/* BALAYAGE PERMANENT */}
   <span
     aria-hidden="true"
     className="
       pointer-events-none
       absolute
-      -inset-[80%]
-      animate-mbg-glow
-      bg-[conic-gradient(from_0deg,transparent_0deg,#00821A_80deg,transparent_150deg,#00821A_240deg,transparent_320deg)]
-      opacity-80
-      blur-xl
+      inset-0
+      z-0
+      overflow-hidden
+    "
+  >
+    <span
+      style={{
+        animation: "mbgGlowSweep 2.6s ease-in-out infinite",
+      }}
+      className="
+        absolute
+        -inset-y-1/2
+        -left-1/2
+        w-[45%]
+        -skew-x-[20deg]
+        bg-gradient-to-r
+        from-transparent
+        via-white/60
+        to-transparent
+        blur-md
+      "
+    />
+  </span>
+
+  {/* GLOW VERT INTERNE */}
+  <span
+    aria-hidden="true"
+    style={{
+      animation: "mbgInnerGlow 2.4s ease-in-out infinite",
+    }}
+    className="
+      pointer-events-none
+      absolute
+      inset-0
+      z-0
+      bg-gradient-to-r
+      from-mbg-green/0
+      via-white/10
+      to-mbg-green/0
     "
   />
-
-  {/* FOND INTERNE */}
- <span
-  aria-hidden="true"
-  className="
-    pointer-events-none
-    absolute
-    inset-y-[-80%]
-    -left-[70%]
-    w-[55%]
-    animate-mbg-sweep
-    -skew-x-12
-    bg-gradient-to-r
-    from-transparent
-    via-white/55
-    to-transparent
-    blur-xl
-  "
-/>
 
   {/* TEXTE */}
   <span className="relative z-10">
@@ -277,13 +295,12 @@ export default function GrindModeHero({
       leading-none
       transition-transform
       duration-300
-      group-hover:translate-x-1
+      hover:translate-x-1
     "
   >
     →
   </span>
 </Link>
-
             <Link
               href={withStoreLanguage("/the-background", lang)}
               className="
