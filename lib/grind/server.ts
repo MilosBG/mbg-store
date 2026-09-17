@@ -10,7 +10,7 @@ import type {
   GrindProfileDTO,
   GrindTask,
 } from "@/types/grind";
-import type { ObjectId } from "mongodb";
+import type { ObjectId, WithId } from "mongodb";
 
 const PROFILE_COLLECTION = "grindProfiles";
 const CYCLE_COLLECTION = "grindCycles";
@@ -86,7 +86,6 @@ type ProfileDoc = {
 };
 
 type CycleDoc = {
-  _id: ObjectId;
   clerkId: string;
   title: string;
   reason: string;
@@ -102,7 +101,6 @@ type CycleDoc = {
 };
 
 type CheckInDoc = {
-  _id: ObjectId;
   cycleId: ObjectId;
   clerkId: string;
   dateKey: string;
@@ -130,7 +128,7 @@ function profileDTO(doc: ProfileDoc): GrindProfileDTO {
   };
 }
 
-function cycleDTO(doc: CycleDoc): GrindCycleDTO {
+function cycleDTO(doc: WithId<CycleDoc>): GrindCycleDTO {
   return {
     id: String(doc._id),
     clerkId: doc.clerkId,
@@ -146,7 +144,7 @@ function cycleDTO(doc: CycleDoc): GrindCycleDTO {
   };
 }
 
-function checkInDTO(doc: CheckInDoc): GrindCheckInDTO {
+function checkInDTO(doc: WithId<CheckInDoc>): GrindCheckInDTO {
   return {
     id: String(doc._id),
     cycleId: String(doc.cycleId),
@@ -165,7 +163,7 @@ function checkInDTO(doc: CheckInDoc): GrindCheckInDTO {
 export async function ensureGrindProfile(clerkId: string) {
   const db = await getAdminDb();
   const profiles = db.collection<ProfileDoc>(PROFILE_COLLECTION);
-  let profile = await profiles.findOne({ clerkId });
+  let profile: ProfileDoc | null = await profiles.findOne({ clerkId });
   const unlock = await resolveUnlock(clerkId);
 
   if (!profile) {
