@@ -4,26 +4,21 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, ComponentType, ReactNode } from "react";
 import {
-  Activity,
-  ArrowRight,
-  BadgeCheck,
-  Archive,
+  Award,
   BookOpen,
   Check,
   ChevronRight,
   Circle,
   Compass,
-  Crosshair,
   Flame,
-  Gamepad2,
-  Layers3,
-  LockKeyhole,
+  Gem,
+  Lock,
+  Map,
   RotateCcw,
-  Save,
-  ShieldCheck,
-  Play,
-  Radio,
+  ScrollText,
+  Shield,
   Sparkles,
+  Star,
   Target,
   Trophy,
 } from "lucide-react";
@@ -46,7 +41,9 @@ type Props = {
   playerName?: string;
 };
 
-type Screen = "TODAY" | "QUEST" | "MISSIONS" | "ARCHIVE" | "CARD" | "LORE";
+type Screen = "ADVENTURE" | "MAP" | "BADGES" | "JOURNAL" | "BOOK";
+
+type Chapter = "GRIND" | "RESILIENCE" | "CONSISTENCY" | "FOCUS" | "ACHIEVE";
 
 type GameEventKind =
   | "QUEST_STARTED"
@@ -62,12 +59,11 @@ type GameEvent = {
   kind: GameEventKind;
   eyebrow: string;
   title: string;
-  body?: string;
-  code?: string;
+  body: string;
   duration?: number;
 };
 
-type PlayerMark = {
+type BadgeItem = {
   id: string;
   label: string;
   requirement: string;
@@ -75,21 +71,72 @@ type PlayerMark = {
   Icon: ComponentType<{ className?: string }>;
 };
 
-const chapterOrder = ["GRIND", "RESILIENCE", "CONSISTENCY", "FOCUS", "ACHIEVE"] as const;
+type ChapterMeta = {
+  key: Chapter;
+  number: string;
+  color: string;
+  bg: string;
+  ring: string;
+  mapTitle: string;
+  shortTitle: string;
+};
 
-const chapterPalette = {
-  GRIND: { accent: "#58F28B", soft: "rgba(88,242,139,.12)", muted: "rgba(88,242,139,.35)" },
-  RESILIENCE: { accent: "#FFB454", soft: "rgba(255,180,84,.12)", muted: "rgba(255,180,84,.35)" },
-  CONSISTENCY: { accent: "#63D8FF", soft: "rgba(99,216,255,.12)", muted: "rgba(99,216,255,.35)" },
-  FOCUS: { accent: "#B39BFF", soft: "rgba(179,155,255,.12)", muted: "rgba(179,155,255,.35)" },
-  ACHIEVE: { accent: "#F4F6F2", soft: "rgba(244,246,242,.12)", muted: "rgba(244,246,242,.35)" },
-} as const;
+const chapterOrder: Chapter[] = ["GRIND", "RESILIENCE", "CONSISTENCY", "FOCUS", "ACHIEVE"];
 
-const chapterRank = (chapter: (typeof chapterOrder)[number] | undefined) =>
-  chapter ? Math.max(0, chapterOrder.indexOf(chapter)) : 0;
+const chapterMeta: Record<Chapter, ChapterMeta> = {
+  GRIND: {
+    key: "GRIND",
+    number: "01",
+    color: "#F59E42",
+    bg: "#FFF2D8",
+    ring: "rgba(245,158,66,.35)",
+    mapTitle: "Start Beach",
+    shortTitle: "GRIND",
+  },
+  RESILIENCE: {
+    key: "RESILIENCE",
+    number: "02",
+    color: "#EF6F5E",
+    bg: "#FFE6E2",
+    ring: "rgba(239,111,94,.35)",
+    mapTitle: "Return Bridge",
+    shortTitle: "RESILIENCE",
+  },
+  CONSISTENCY: {
+    key: "CONSISTENCY",
+    number: "03",
+    color: "#43C6B9",
+    bg: "#E4FAF6",
+    ring: "rgba(67,198,185,.35)",
+    mapTitle: "Rhythm Island",
+    shortTitle: "CONSISTENCY",
+  },
+  FOCUS: {
+    key: "FOCUS",
+    number: "04",
+    color: "#9A6BFF",
+    bg: "#EFE8FF",
+    ring: "rgba(154,107,255,.35)",
+    mapTitle: "Compass Cove",
+    shortTitle: "FOCUS",
+  },
+  ACHIEVE: {
+    key: "ACHIEVE",
+    number: "05",
+    color: "#F4C542",
+    bg: "#FFF7D7",
+    ring: "rgba(244,197,66,.35)",
+    mapTitle: "Treasure Bay",
+    shortTitle: "ACHIEVE",
+  },
+};
 
-const eventId = (kind: GameEventKind) =>
-  `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+const eventId = (kind: GameEventKind) => `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const chapterRank = (chapter?: Chapter | string | null) => {
+  const key = chapter as Chapter | undefined;
+  return key ? Math.max(0, chapterOrder.indexOf(key)) : 0;
+};
 
 const emptyTask = (kind: GrindTaskKind, index: number): GrindTask => ({
   id: `${kind.toLowerCase()}-${index}`,
@@ -98,12 +145,7 @@ const emptyTask = (kind: GrindTaskKind, index: number): GrindTask => ({
   completed: false,
 });
 
-const defaultTasks = () => [
-  emptyTask("MAIN", 1),
-  emptyTask("SUPPORT", 1),
-  emptyTask("SUPPORT", 2),
-  emptyTask("MINIMUM", 1),
-];
+const defaultTasks = () => [emptyTask("MAIN", 1), emptyTask("SUPPORT", 1), emptyTask("SUPPORT", 2), emptyTask("MINIMUM", 1)];
 
 const formatDate = (value: string | null | undefined, lang: GrindLanguage) => {
   if (!value) return "—";
@@ -116,171 +158,86 @@ const formatDate = (value: string | null | undefined, lang: GrindLanguage) => {
   });
 };
 
-const taskKindLabel = (
-  kind: GrindTaskKind,
-  t: (typeof grindCopy)[GrindLanguage],
-) => (kind === "MAIN" ? t.main : kind === "MINIMUM" ? t.minimum : t.support);
-
-function HudGrid() {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 opacity-[0.065]"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)",
-        backgroundSize: "44px 44px",
-      }}
-    />
-  );
-}
-
-function CornerMarks() {
-  return (
-    <>
-      <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l border-t border-[#58F28B]/60" />
-      <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r border-t border-[#58F28B]/60" />
-      <span className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b border-l border-[#58F28B]/60" />
-      <span className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b border-r border-[#58F28B]/60" />
-    </>
-  );
-}
-
-function Panel({
-  children,
-  className = "",
-  accent = false,
-}: {
-  children: ReactNode;
-  className?: string;
-  accent?: boolean;
-}) {
-  return (
-    <section
-      className={`gm-panel relative overflow-hidden rounded-[2px] border bg-[#151A1B]/96 ${
-        accent ? "gm-panel-accent border-[#58F28B]/40" : "border-white/[0.08]"
-      } ${className}`}
-    >
-      {accent ? <CornerMarks /> : null}
-      {children}
-    </section>
-  );
-}
-
-function SignalTrace({ hot = false }: { hot?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 96 22"
-      aria-hidden="true"
-      className={`h-5 w-24 ${hot ? "text-[#58F28B]" : "text-white/20"}`}
-    >
-      <path
-        d="M1 12 H18 L23 12 L27 5 L32 18 L37 9 L42 12 H55 L60 12 L64 7 L68 15 L73 10 L78 12 H95"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="square"
-        className="gm-signal-path"
-      />
-    </svg>
-  );
-}
-
-function GrindFxStyles() {
+function QuestStyles() {
   return (
     <style>{`
-      @keyframes gm-scan {
+      @keyframes quest-float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+      }
+      @keyframes quest-pop {
+        0% { opacity: 0; transform: translateY(20px) scale(.96); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes quest-shine {
         0% { transform: translateX(-130%); opacity: 0; }
-        22% { opacity: .28; }
-        60% { opacity: .10; }
-        100% { transform: translateX(260%); opacity: 0; }
+        25% { opacity: .45; }
+        100% { transform: translateX(250%); opacity: 0; }
       }
-      @keyframes gm-signal {
-        0% { stroke-dashoffset: 180; opacity: .25; }
-        35% { opacity: .85; }
-        100% { stroke-dashoffset: 0; opacity: .35; }
+      @keyframes quest-bounce {
+        0%,100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
       }
-      @keyframes gm-event-in {
-        0% { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(6px); }
-        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-      }
-      @keyframes gm-pulse-ring {
-        0%, 100% { transform: scale(.96); opacity: .22; }
-        50% { transform: scale(1.04); opacity: .7; }
-      }
-      @keyframes gm-cleared {
-        0% { box-shadow: inset 0 0 0 1px rgba(88,242,139,.16); }
-        35% { box-shadow: inset 0 0 0 1px rgba(88,242,139,.92), 0 0 30px rgba(88,242,139,.16); }
-        100% { box-shadow: inset 0 0 0 1px rgba(88,242,139,.30); }
-      }
-      @keyframes gm-active-chapter {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-2px); }
-      }
-      @keyframes gm-boot {
-        0% { opacity: 1; }
-        72% { opacity: 1; }
-        100% { opacity: 0; }
-      }
-      @keyframes gm-breathe {
-        0%,100% { box-shadow: 0 0 0 0 rgba(88,242,139,0); }
-        50% { box-shadow: 0 0 0 8px rgba(88,242,139,.04); }
-      }
-      .gm-shell::before {
+      .quest-shell::before {
         content: "";
-        pointer-events: none;
         position: absolute;
         inset: 0;
-        z-index: 1;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(255,255,255,.22), transparent 24%),
+          radial-gradient(circle at 88% 14%, rgba(255,255,255,.16), transparent 18%),
+          radial-gradient(circle at 14% 82%, rgba(67,198,185,.12), transparent 22%),
+          radial-gradient(circle at 82% 76%, rgba(154,107,255,.12), transparent 18%);
+        opacity: .9;
+      }
+      .quest-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -30%;
+        width: 16%;
+        pointer-events: none;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
         opacity: .55;
-        background: radial-gradient(circle at 78% 8%, rgba(88,242,139,.06), transparent 24%), radial-gradient(circle at 20% 70%, rgba(99,216,255,.025), transparent 28%);
+        animation: quest-shine 8.5s ease-in-out infinite;
       }
-      .gm-shell::after {
-        content: "";
-        pointer-events: none;
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        opacity: .06;
-        background: repeating-linear-gradient(180deg, transparent 0 4px, rgba(255,255,255,.02) 5px);
-      }
-      .gm-panel::after {
-        content: "";
-        pointer-events: none;
-        position: absolute;
-        top: 0; bottom: 0; left: -45%;
-        width: 22%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,.025), rgba(88,242,139,.05), transparent);
-        animation: gm-scan 8.5s ease-in-out infinite;
-      }
-      .gm-panel-accent::after { animation-duration: 6.8s; }
-      .gm-signal-path { stroke-dasharray: 180; animation: gm-signal 3.2s linear infinite; }
-      .gm-event-card { animation: gm-event-in .34s ease-out both; }
-      .gm-event-ring { animation: gm-pulse-ring 1.6s ease-in-out infinite; }
-      .gm-mission-cleared { animation: gm-cleared .8s ease-out both; }
-      .gm-chapter-active { animation: gm-active-chapter 2.6s ease-in-out infinite; }
-      .gm-primary-action { animation: gm-breathe 2.8s ease-in-out infinite; }
-      .gm-boot { animation: gm-boot .95s ease-out forwards; }
+      .quest-float { animation: quest-float 3s ease-in-out infinite; }
+      .quest-bounce { animation: quest-bounce 2.2s ease-in-out infinite; }
+      .quest-event { animation: quest-pop .28s ease-out both; }
       @media (prefers-reduced-motion: reduce) {
-        .gm-panel::after, .gm-signal-path, .gm-event-ring, .gm-mission-cleared, .gm-chapter-active, .gm-primary-action, .gm-boot { animation: none !important; }
+        .quest-card::after, .quest-float, .quest-bounce, .quest-event { animation: none !important; }
       }
     `}</style>
   );
 }
 
-function GameEventOverlay({
-  event,
-  onDismiss,
-  skipLabel,
-}: {
-  event: GameEvent;
-  onDismiss: () => void;
-  skipLabel: string;
-}) {
-  const minor = event.kind === "MISSION_CLEARED" || event.kind === "CHECKPOINT";
+function Card({ children, className = "", accent = false }: { children: ReactNode; className?: string; accent?: boolean }) {
+  return (
+    <section
+      className={`quest-card relative overflow-hidden rounded-[28px] border bg-[#FFFDF9] shadow-[0_18px_45px_rgba(75,55,42,.10)] ${
+        accent ? "border-[#F4C542]/70" : "border-[#E7D6BE]"
+      } ${className}`}
+    >
+      {children}
+    </section>
+  );
+}
+
+function TinyStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-[#E7D6BE] bg-white/80 px-4 py-3 shadow-sm">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{label}</p>
+      <p className="mt-2 text-2xl font-black text-[#4B372A]">{value}</p>
+    </div>
+  );
+}
+
+function EventOverlay({ event, onDismiss, skipLabel }: { event: GameEvent; onDismiss: () => void; skipLabel: string }) {
+  const major = event.kind === "QUEST_STARTED" || event.kind === "CHAPTER_UNLOCKED" || event.kind === "QUEST_COMPLETE" || event.kind === "RESILIENCE";
   const Icon =
     event.kind === "QUEST_STARTED"
-      ? Target
+      ? Map
       : event.kind === "MISSION_CLEARED"
         ? Check
         : event.kind === "RESILIENCE"
@@ -288,30 +245,24 @@ function GameEventOverlay({
           : event.kind === "CHAPTER_UNLOCKED"
             ? Compass
             : event.kind === "MARK_UNLOCKED"
-              ? Sparkles
+              ? Award
               : event.kind === "QUEST_COMPLETE"
                 ? Trophy
-                : Save;
+                : Sparkles;
 
-  if (minor) {
+  if (!major) {
     return (
       <div className="pointer-events-none fixed inset-x-4 bottom-5 z-[180] flex justify-end" aria-live="polite">
-        <div className="gm-event-card pointer-events-auto w-full max-w-sm overflow-hidden border border-[#58F28B]/65 bg-[#111617]/95 p-4 text-white shadow-2xl shadow-black/60 backdrop-blur-md">
+        <div className="quest-event pointer-events-auto w-full max-w-sm rounded-[24px] border border-[#F4C542]/75 bg-[#FFF9E8] p-4 text-[#4B372A] shadow-2xl">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#58F28B]/60 bg-[#58F28B]/10 text-[#58F28B]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F4C542] text-[#4B372A] shadow-sm">
               <Icon className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#58F28B]">{event.eyebrow}</p>
-                <SignalTrace hot />
-              </div>
-              <p className="mt-1 truncate text-sm font-black uppercase text-white">{event.title}</p>
-              {event.body ? <p className="mt-1 text-[10px] leading-4 text-white/45">{event.body}</p> : null}
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C28A2B]">{event.eyebrow}</p>
+              <p className="mt-1 text-base font-black text-[#4B372A]">{event.title}</p>
+              <p className="mt-1 text-sm leading-5 text-[#6B5B4D]">{event.body}</p>
             </div>
-          </div>
-          <div className="mt-3 h-px overflow-hidden bg-white/10">
-            <div className="h-full w-full bg-[#58F28B]/70" />
           </div>
         </div>
       </div>
@@ -319,44 +270,20 @@ function GameEventOverlay({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[190] flex items-center justify-center bg-black/92 p-4 text-white backdrop-blur-md"
-      role="dialog"
-      aria-modal="true"
-      aria-label={event.eyebrow}
-    >
-      <HudGrid />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,130,26,.18),transparent_42%)]" />
-      <div className="gm-event-card relative w-full max-w-3xl overflow-hidden border border-[#58F28B]/65 bg-[#111617] p-6 shadow-2xl shadow-black sm:p-10">
-        <CornerMarks />
-        <div className="absolute inset-x-0 top-0 h-px bg-[#58F28B]" />
-        <div className="grid gap-8 sm:grid-cols-[160px_1fr] sm:items-center">
-          <div className="relative mx-auto flex h-36 w-36 items-center justify-center">
-            <div className="gm-event-ring absolute inset-0 rounded-full border border-[#58F28B]/45" />
-            <div className="absolute inset-4 rounded-full border border-dashed border-[#58F28B]/30" />
-            <div className="absolute h-px w-full bg-[#58F28B]/25" />
-            <div className="absolute h-full w-px bg-[#58F28B]/25" />
-            <Icon className="relative h-12 w-12 text-[#58F28B]" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-[9px] font-black uppercase tracking-[0.23em] text-[#58F28B]">{event.eyebrow}</span>
-              {event.code ? <span className="border border-white/15 px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/40">{event.code}</span> : null}
-            </div>
-            <h2 className={`mt-4 font-black uppercase tracking-[-0.04em] text-white ${event.kind === "QUEST_COMPLETE" ? "text-5xl sm:text-7xl" : "text-4xl sm:text-6xl"}`}>
-              {event.title}
-            </h2>
-            {event.body ? <p className="mt-4 max-w-xl text-sm leading-6 text-white/50">{event.body}</p> : null}
-            <div className="mt-7 flex items-center gap-4">
-              <SignalTrace hot />
-              <span className="text-[8px] font-black uppercase tracking-[0.18em] text-white/30">GRIND UNTIL ACHIEVE</span>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-[190] flex items-center justify-center bg-[#4B372A]/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="quest-event relative w-full max-w-2xl overflow-hidden rounded-[34px] border border-[#F4C542]/70 bg-[linear-gradient(180deg,#FFF9E7_0%,#FDEFCB_100%)] p-8 text-center text-[#4B372A] shadow-[0_25px_80px_rgba(75,55,42,.35)] sm:p-10">
+        <div className="absolute -left-12 top-10 h-24 w-24 rounded-full bg-[#F59E42]/20 blur-2xl" />
+        <div className="absolute -right-10 bottom-8 h-24 w-24 rounded-full bg-[#43C6B9]/25 blur-2xl" />
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-[#F4C542] text-[#4B372A] shadow-lg">
+          <Icon className="h-10 w-10" />
         </div>
+        <p className="mt-6 text-[11px] font-black uppercase tracking-[0.23em] text-[#C28A2B]">{event.eyebrow}</p>
+        <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.04em] sm:text-6xl">{event.title}</h2>
+        <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-[#6B5B4D] sm:text-base">{event.body}</p>
         <button
           type="button"
           onClick={onDismiss}
-          className="mt-8 min-h-10 border border-white/15 px-4 text-[8px] font-black uppercase tracking-[0.16em] text-white/40 transition hover:border-[#58F28B] hover:text-[#58F28B]"
+          className="mt-8 rounded-full border border-[#D6B57C] bg-white/75 px-5 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#7A604A] transition hover:bg-white"
         >
           {skipLabel}
         </button>
@@ -365,45 +292,69 @@ function GameEventOverlay({
   );
 }
 
-function buildPlayerMarks(
-  data: GrindDashboardDTO,
-  t: (typeof grindCopy)[GrindLanguage],
-): PlayerMark[] {
-  const currentRank = chapterRank(data.activeCycle?.currentChapter);
+function buildBadges(data: GrindDashboardDTO, t: typeof grindCopy.en): BadgeItem[] {
+  const currentRank = chapterRank(data.activeCycle?.currentChapter as Chapter | undefined);
   return [
-    { id: "FIRST", label: t.markFirst, requirement: t.markFirstReq, earned: data.profile.grindsCompleted >= 1, Icon: Target },
+    { id: "FIRST", label: t.markFirst, requirement: t.markFirstReq, earned: data.profile.grindsCompleted >= 1, Icon: Star },
     { id: "RETURN", label: t.markReturn, requirement: t.markReturnReq, earned: data.profile.returns >= 1, Icon: RotateCcw },
     { id: "SEVEN", label: t.markSeven, requirement: t.markSevenReq, earned: data.profile.longestStreak >= 7, Icon: Flame },
-    { id: "CONSISTENCY", label: t.markConsistency, requirement: t.markConsistencyReq, earned: currentRank >= 2 || data.profile.cyclesCompleted > 0, Icon: Activity },
-    { id: "FOCUS", label: t.markFocus, requirement: t.markFocusReq, earned: currentRank >= 3 || data.profile.cyclesCompleted > 0, Icon: Crosshair },
+    { id: "CONSISTENCY", label: t.markConsistency, requirement: t.markConsistencyReq, earned: currentRank >= 2 || data.profile.cyclesCompleted > 0, Icon: Sparkles },
+    { id: "FOCUS", label: t.markFocus, requirement: t.markFocusReq, earned: currentRank >= 3 || data.profile.cyclesCompleted > 0, Icon: Compass },
     { id: "ACHIEVE", label: t.markAchieve, requirement: t.markAchieveReq, earned: data.profile.cyclesCompleted >= 1, Icon: Trophy },
-    { id: "KEEP_MOVING", label: t.markKeepMoving, requirement: t.markKeepMovingReq, earned: data.profile.cyclesCompleted >= 5, Icon: Sparkles },
+    { id: "KEEP_MOVING", label: t.markKeepMoving, requirement: t.markKeepMovingReq, earned: data.profile.cyclesCompleted >= 5, Icon: Gem },
   ];
 }
 
-export default function GrindModeClient({
-  lang,
-  bookUrl,
-  ebookUrl,
-  playerName,
-}: Props) {
-  const t = grindCopy[lang];
+function taskKindLabel(kind: GrindTaskKind, t: typeof grindCopy.en) {
+  return kind === "MAIN" ? t.main : kind === "MINIMUM" ? t.minimum : t.support;
+}
+
+function getNextActionLabel(primaryTask: GrindTask | undefined, t: typeof grindCopy.en) {
+  if (!primaryTask?.label.trim()) return t.choosePrimary;
+  if (!primaryTask.completed) return t.completePrimary;
+  return t.saveProgress;
+}
+
+export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }: Props) {
+  const t = grindCopy[lang] as typeof grindCopy.en;
   const [data, setData] = useState<GrindDashboardDTO | null>(null);
-  const [screen, setScreen] = useState<Screen>("TODAY");
+  const [screen, setScreen] = useState<Screen>("ADVENTURE");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState("");
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [reflection, setReflection] = useState("");
-  const [saving, setSaving] = useState(false);
   const [tasks, setTasks] = useState<GrindTask[]>(defaultTasks);
   const [eventQueue, setEventQueue] = useState<GameEvent[]>([]);
   const [activeEvent, setActiveEvent] = useState<GameEvent | null>(null);
-  const [recentlyClearedTaskId, setRecentlyClearedTaskId] = useState<string | null>(null);
-  const [booting, setBooting] = useState(true);
-  const missionTimerRef = useRef<number | null>(null);
+  const [flashTaskId, setFlashTaskId] = useState<string | null>(null);
+  const timerRef = useRef<number | null>(null);
 
   const displayName = (playerName || t.playerFallback).trim().toUpperCase();
+
+  const load = useCallback(async (silent = false): Promise<GrindDashboardDTO | null> => {
+    if (!silent) setLoading(true);
+    try {
+      const res = await fetch("/api/grind/profile", { cache: "no-store" });
+      if (!res.ok) throw new Error("load");
+      const payload = (await res.json()) as GrindDashboardDTO;
+      setData(payload);
+      if (payload.today?.tasks?.length) setTasks(payload.today.tasks);
+      else setTasks(defaultTasks());
+      setNote(payload.today?.note ?? "");
+      return payload;
+    } catch {
+      toast.error(t.error);
+      return null;
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [t.error]);
+
+  useEffect(() => {
+    void load(false);
+  }, [load]);
 
   const pushEvents = useCallback((events: GameEvent[]) => {
     if (!events.length) return;
@@ -412,83 +363,47 @@ export default function GrindModeClient({
 
   useEffect(() => {
     if (activeEvent || eventQueue.length === 0) return;
-    const [next, ...rest] = eventQueue;
-    setActiveEvent(next);
+    const [first, ...rest] = eventQueue;
+    setActiveEvent(first);
     setEventQueue(rest);
   }, [activeEvent, eventQueue]);
 
   useEffect(() => {
     if (!activeEvent) return;
-    const timer = window.setTimeout(
-      () => setActiveEvent(null),
-      activeEvent.duration ?? (activeEvent.kind === "QUEST_COMPLETE" ? 3300 : 2100),
-    );
+    const timer = window.setTimeout(() => setActiveEvent(null), activeEvent.duration ?? 2200);
     return () => window.clearTimeout(timer);
   }, [activeEvent]);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => setBooting(false), 1150);
-    return () => window.clearTimeout(timer);
+  useEffect(() => () => {
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
   }, []);
 
-  useEffect(
-    () => () => {
-      if (missionTimerRef.current !== null) window.clearTimeout(missionTimerRef.current);
-    },
-    [],
-  );
-
-  const load = useCallback(
-    async (silent = false): Promise<GrindDashboardDTO | null> => {
-      if (!silent) setLoading(true);
-      try {
-        const res = await fetch("/api/grind/profile", { cache: "no-store" });
-        if (!res.ok) throw new Error("load");
-        const payload = (await res.json()) as GrindDashboardDTO;
-        setData(payload);
-        if (payload.today?.tasks?.length) setTasks(payload.today.tasks);
-        if (payload.today?.note !== undefined) setNote(payload.today.note ?? "");
-        return payload;
-      } catch {
-        toast.error(t.error);
-        return null;
-      } finally {
-        if (!silent) setLoading(false);
-      }
-    },
-    [t.error],
-  );
-
-  useEffect(() => {
-    void load(false);
-  }, [load]);
+  const badges = useMemo(() => (data ? buildBadges(data, t) : []), [data, t]);
 
   const createCycle = async () => {
     if (!title.trim() || !reason.trim()) return;
-    const questTitle = title.trim();
     setSaving(true);
     try {
       const res = await fetch("/api/grind/cycles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, reason }),
+        body: JSON.stringify({ title: title.trim(), reason: reason.trim() }),
       });
       if (!res.ok) throw new Error("create");
       const created = (await res.json()) as GrindCycleDTO;
       setTitle("");
       setReason("");
       setTasks(defaultTasks());
-      setScreen("TODAY");
+      setScreen("ADVENTURE");
       await load(true);
       pushEvents([
         {
           id: eventId("QUEST_STARTED"),
           kind: "QUEST_STARTED",
           eyebrow: t.eventQuestStarted,
-          title: questTitle || created.title,
+          title: created.title,
           body: t.eventQuestStartedBody,
-          code: "01 // GRIND",
-          duration: 2450,
+          duration: 2600,
         },
       ]);
     } catch {
@@ -498,20 +413,39 @@ export default function GrindModeClient({
     }
   };
 
-  const saveToday = async (forceShowedUp = false) => {
+  const toggleTask = (index: number) => {
+    const task = tasks[index];
+    if (!task) return;
+    const nextCompleted = !task.completed;
+    setTasks((current) => current.map((item, i) => (i === index ? { ...item, completed: nextCompleted, completedAt: nextCompleted ? new Date().toISOString() : null } : item)));
+
+    if (nextCompleted && task.label.trim()) {
+      setFlashTaskId(task.id);
+      if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => setFlashTaskId(null), 900);
+      pushEvents([
+        {
+          id: eventId("MISSION_CLEARED"),
+          kind: "MISSION_CLEARED",
+          eyebrow: t.eventMissionCleared,
+          title: task.label.trim(),
+          body: t.eventMissionClearedBody,
+          duration: 1200,
+        },
+      ]);
+    }
+  };
+
+  const saveToday = async (showedUp = false) => {
     if (!data?.activeCycle) return;
     const activeTasks = tasks.filter((task) => task.label.trim());
     if (!activeTasks.length) {
-      toast.error(lang === "fr" ? "Équipe au moins une mission." : "Equip at least one mission.");
+      toast.error(t.choosePrimary);
       return;
     }
 
-    const previousChapter = data.activeCycle.currentChapter;
-    const previousMarks = new Set(
-      buildPlayerMarks(data, t)
-        .filter((mark) => mark.earned)
-        .map((mark) => mark.id),
-    );
+    const previousChapter = data.activeCycle.currentChapter as Chapter | undefined;
+    const previousBadges = new Set(badges.filter((item) => item.earned).map((item) => item.id));
 
     setSaving(true);
     try {
@@ -522,7 +456,7 @@ export default function GrindModeClient({
           cycleId: data.activeCycle.id,
           tasks: activeTasks,
           note,
-          showedUp: forceShowedUp || activeTasks.some((task) => task.completed),
+          showedUp: showedUp || activeTasks.some((task) => task.completed),
         }),
       });
       if (!res.ok) throw new Error("save");
@@ -530,64 +464,54 @@ export default function GrindModeClient({
       const updated = await load(true);
       if (!updated) return;
 
-      const gameEvents: GameEvent[] = [];
-
+      const events: GameEvent[] = [];
       if (saved.resilienceReturn) {
-        gameEvents.push({
+        events.push({
           id: eventId("RESILIENCE"),
           kind: "RESILIENCE",
-          eyebrow: t.resilienceActivated,
-          title: "02 // RESILIENCE",
+          eyebrow: t.eventResilience,
+          title: t.eventResilience,
           body: t.eventResilienceBody,
-          code: `RETURN ${String(updated.profile.returns).padStart(2, "0")}`,
-          duration: 2600,
+          duration: 2500,
         });
       }
 
-      const nextChapter = updated.activeCycle?.currentChapter;
-      if (
-        nextChapter &&
-        nextChapter !== previousChapter &&
-        chapterRank(nextChapter) > chapterRank(previousChapter)
-      ) {
-        gameEvents.push({
+      const nextChapter = updated.activeCycle?.currentChapter as Chapter | undefined;
+      if (nextChapter && chapterRank(nextChapter) > chapterRank(previousChapter)) {
+        events.push({
           id: eventId("CHAPTER_UNLOCKED"),
           kind: "CHAPTER_UNLOCKED",
           eyebrow: t.eventChapterUnlocked,
-          title: nextChapter,
+          title: chapterMeta[nextChapter].shortTitle,
           body: t.eventChapterUnlockedBody,
-          code: `0${chapterRank(nextChapter) + 1} // ${nextChapter}`,
-          duration: 2550,
+          duration: 2500,
         });
       }
 
-      const newMarks = buildPlayerMarks(updated, t).filter(
-        (mark) => mark.earned && !previousMarks.has(mark.id),
-      );
-      for (const mark of newMarks) {
-        gameEvents.push({
+      const newBadges = buildBadges(updated, t).filter((item) => item.earned && !previousBadges.has(item.id));
+      for (const badge of newBadges) {
+        events.push({
           id: eventId("MARK_UNLOCKED"),
           kind: "MARK_UNLOCKED",
           eyebrow: t.eventMarkUnlocked,
-          title: mark.label,
+          title: badge.label,
           body: t.eventMarkUnlockedBody,
-          code: "PLAYER MARK",
-          duration: 2100,
+          duration: 1700,
         });
       }
 
-      if (!gameEvents.length) {
-        gameEvents.push({
+      if (!events.length) {
+        events.push({
           id: eventId("CHECKPOINT"),
           kind: "CHECKPOINT",
           eyebrow: t.eventCheckpoint,
-          title: forceShowedUp ? t.showedUp : t.save,
+          title: t.eventCheckpoint,
           body: t.eventCheckpointBody,
-          duration: 1250,
+          duration: 1400,
         });
       }
 
-      pushEvents(gameEvents);
+      pushEvents(events);
     } catch {
       toast.error(t.error);
     } finally {
@@ -598,103 +522,34 @@ export default function GrindModeClient({
   const completeCycle = async () => {
     if (!data?.activeCycle || !reflection.trim()) return;
     const questTitle = data.activeCycle.title;
-    const previousMarks = new Set(
-      buildPlayerMarks(data, t)
-        .filter((mark) => mark.earned)
-        .map((mark) => mark.id),
-    );
     setSaving(true);
     try {
       const res = await fetch("/api/grind/cycles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "complete",
-          cycleId: data.activeCycle.id,
-          reflection,
-        }),
+        body: JSON.stringify({ action: "complete", cycleId: data.activeCycle.id, reflection }),
       });
       if (!res.ok) throw new Error("complete");
       await res.json();
       setReflection("");
       setTasks(defaultTasks());
       setNote("");
-      setScreen("ARCHIVE");
-      const updated = await load(true);
-
-      const gameEvents: GameEvent[] = [
+      setScreen("JOURNAL");
+      await load(true);
+      pushEvents([
         {
           id: eventId("QUEST_COMPLETE"),
           kind: "QUEST_COMPLETE",
           eyebrow: t.eventQuestComplete,
           title: questTitle,
           body: t.eventQuestCompleteBody,
-          code: "05 // ACHIEVE",
-          duration: 3600,
+          duration: 3200,
         },
-      ];
-
-      if (updated) {
-        for (const mark of buildPlayerMarks(updated, t).filter(
-          (item) => item.earned && !previousMarks.has(item.id),
-        )) {
-          gameEvents.push({
-            id: eventId("MARK_UNLOCKED"),
-            kind: "MARK_UNLOCKED",
-            eyebrow: t.eventMarkUnlocked,
-            title: mark.label,
-            body: t.eventMarkUnlockedBody,
-            code: "PLAYER MARK",
-            duration: 2100,
-          });
-        }
-      }
-
-      pushEvents(gameEvents);
+      ]);
     } catch {
       toast.error(t.error);
     } finally {
       setSaving(false);
-    }
-  };
-
-  const activeTaskCount = tasks.filter((task) => task.label.trim()).length;
-  const completedTaskCount = tasks.filter((task) => task.label.trim() && task.completed).length;
-  const chapterIndex = data?.activeCycle ? chapterRank(data.activeCycle.currentChapter) : 0;
-
-  const playerMarks = useMemo(() => (data ? buildPlayerMarks(data, t) : []), [data, t]);
-
-  const toggleTask = (index: number) => {
-    const task = tasks[index];
-    if (!task) return;
-    const completing = !task.completed;
-    setTasks((current) =>
-      current.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              completed: completing,
-              completedAt: completing ? new Date().toISOString() : null,
-            }
-          : item,
-      ),
-    );
-
-    if (completing && task.label.trim()) {
-      setRecentlyClearedTaskId(task.id);
-      if (missionTimerRef.current !== null) window.clearTimeout(missionTimerRef.current);
-      missionTimerRef.current = window.setTimeout(() => setRecentlyClearedTaskId(null), 950);
-      pushEvents([
-        {
-          id: eventId("MISSION_CLEARED"),
-          kind: "MISSION_CLEARED",
-          eyebrow: t.eventMissionCleared,
-          title: task.label.trim(),
-          body: t.eventMissionClearedBody,
-          code: taskKindLabel(task.kind, t),
-          duration: 1200,
-        },
-      ]);
     }
   };
 
@@ -704,19 +559,19 @@ export default function GrindModeClient({
       const fallbackIndex = current.findIndex((task) => !task.label.trim());
       const targetIndex = preferredIndex >= 0 ? preferredIndex : fallbackIndex;
       if (targetIndex < 0) return current;
-      return current.map((task, index) =>
-        index === targetIndex ? { ...task, label, completed: false, completedAt: null } : task,
-      );
+      return current.map((item, index) => (index === targetIndex ? { ...item, label, completed: false, completedAt: null } : item));
     });
-    setScreen("TODAY");
+    setScreen("ADVENTURE");
   };
 
   if (loading) {
     return (
-      <div className="relative my-8 overflow-hidden border border-[#58F28B]/40 bg-mbg-black px-6 py-20 text-center text-white">
-        <HudGrid />
-        <Gamepad2 className="mx-auto h-8 w-8 animate-pulse text-[#58F28B]" />
-        <p className="mt-4 text-xs font-black uppercase tracking-[0.25em] text-[#58F28B]">{t.loading}</p>
+      <div className="relative my-8 overflow-hidden rounded-[30px] border border-[#E7D6BE] bg-[#FFF8E8] px-6 py-20 text-center text-[#4B372A] shadow-lg">
+        <QuestStyles />
+        <div className="quest-float mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#F4C542] text-[#4B372A] shadow-lg">
+          <Map className="h-8 w-8" />
+        </div>
+        <p className="mt-5 text-xs font-black uppercase tracking-[0.24em] text-[#C28A2B]">{t.loading}</p>
       </div>
     );
   }
@@ -725,47 +580,43 @@ export default function GrindModeClient({
 
   if (!data.profile.unlocked) {
     return (
-      <div className="relative my-8 overflow-hidden border border-white/15 bg-mbg-black text-white">
-        <HudGrid />
-        <div className="relative grid min-h-[560px] lg:grid-cols-[1.1fr_.9fr]">
-          <div className="flex flex-col justify-between border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r">
-            <div>
-              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#58F28B]">
-                <span>{t.eyebrow}</span>
-                <span className="border border-[#58F28B]/60 px-2 py-1">{t.lockedHint}</span>
-              </div>
-              <h1 className="mt-6 text-5xl font-black uppercase tracking-[-0.05em] sm:text-7xl">
-                GRIND<br />MODE
-              </h1>
-              <p className="mt-5 max-w-xl text-sm leading-7 text-white/60">{t.lockedBody}</p>
+      <div className="quest-shell relative my-8 overflow-hidden rounded-[34px] border border-[#E7D6BE] bg-[linear-gradient(180deg,#F6E7C9_0%,#FCEFD7_100%)] p-6 text-[#4B372A] shadow-[0_20px_60px_rgba(75,55,42,.12)] sm:p-8 lg:p-10">
+        <QuestStyles />
+        <div className="grid gap-8 lg:grid-cols-[1.2fr_.8fr]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B] shadow-sm">
+              <Lock className="h-4 w-4" />
+              {t.lockedHint}
             </div>
-
-            <div className="mt-10 grid grid-cols-2 gap-px border border-white/10 bg-white/10 sm:grid-cols-4">
-              {[t.lockedFeature1, t.lockedFeature2, t.lockedFeature3, t.lockedFeature4].map((item, index) => (
-                <div key={item} className="bg-[#131718] p-4">
-                  <span className="text-[9px] font-black text-[#58F28B]">0{index + 1}</span>
-                  <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.12em] text-white/60">{item}</p>
+            <h1 className="mt-6 text-4xl font-black uppercase tracking-[-0.04em] sm:text-6xl">{t.lockedTitle}</h1>
+            <p className="mt-5 max-w-xl text-base leading-7 text-[#6B5B4D]">{t.lockedBody}</p>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              {[t.lockedFeature1, t.lockedFeature2, t.lockedFeature3, t.lockedFeature4].map((item) => (
+                <div key={item} className="rounded-2xl border border-[#E7D6BE] bg-white/72 px-4 py-4 text-sm font-bold text-[#4B372A] shadow-sm">
+                  {item}
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="relative flex flex-col items-center justify-center p-8 text-center sm:p-12">
-            <div className="relative flex h-36 w-36 items-center justify-center rounded-full border border-[#58F28B]/35">
-              <div className="absolute inset-3 rounded-full border border-dashed border-white/15" />
-              <div className="absolute h-px w-full bg-[#58F28B]/25" />
-              <div className="absolute h-full w-px bg-[#58F28B]/25" />
-              <LockKeyhole className="h-10 w-10 text-[#58F28B]" />
-            </div>
-            <p className="mt-7 text-[10px] font-black uppercase tracking-[0.25em] text-[#58F28B]">{t.lockedTitle}</p>
             <Link
               href={`/?lang=${lang}`}
-              className="mt-6 inline-flex min-h-12 items-center gap-3 border border-[#58F28B] bg-[#58F28B] px-7 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#07100A] transition hover:bg-white"
+              className="mt-8 inline-flex min-h-12 items-center gap-3 rounded-full bg-[#F4C542] px-6 py-3 text-xs font-black uppercase tracking-[0.15em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px]"
             >
               {t.lockedCta}
               <ChevronRight className="h-4 w-4" />
             </Link>
-            <p className="mt-8 text-[10px] uppercase tracking-[0.18em] text-white/35">{t.noLeaderboard}</p>
+          </div>
+          <div className="flex items-center justify-center">
+            <div className="quest-float relative flex h-[300px] w-full max-w-[360px] items-center justify-center rounded-[30px] border border-[#E7D6BE] bg-[linear-gradient(180deg,#BFE7F4_0%,#FFF4DE_100%)] shadow-lg">
+              <div className="absolute inset-5 rounded-[24px] border-2 border-dashed border-[#D6B57C]" />
+              <div className="absolute -top-5 left-8 rounded-full bg-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D] shadow-sm">{t.title}</div>
+              <div className="text-center">
+                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#F4C542] text-[#4B372A] shadow-lg">
+                  <Map className="h-10 w-10" />
+                </div>
+                <p className="mt-5 text-lg font-black uppercase">GRIND QUEST</p>
+                <p className="mt-2 text-sm text-[#6B5B4D]">{t.subtitle}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -773,946 +624,587 @@ export default function GrindModeClient({
   }
 
   const navItems: Array<{ id: Screen; label: string; icon: ComponentType<{ className?: string }> }> = [
-    { id: "TODAY", label: t.navToday, icon: Crosshair },
-    { id: "QUEST", label: t.navQuest, icon: Compass },
-    { id: "MISSIONS", label: t.navMissions, icon: Layers3 },
-    { id: "ARCHIVE", label: t.navArchive, icon: Archive },
-    { id: "CARD", label: t.navCard, icon: ShieldCheck },
-    { id: "LORE", label: t.navLore, icon: BookOpen },
+    { id: "ADVENTURE", label: t.navAdventure, icon: Map },
+    { id: "MAP", label: t.navMap, icon: Compass },
+    { id: "BADGES", label: t.navBadges, icon: Award },
+    { id: "JOURNAL", label: t.navJournal, icon: ScrollText },
+    { id: "BOOK", label: t.navBook, icon: BookOpen },
   ];
 
-  const renderNoCycle = () => (
-    <Panel accent className="p-6 sm:p-8">
-      <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr]">
-        <div className="flex flex-col justify-between border-b border-white/10 pb-7 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-7">
-          <div>
-            <div className="flex h-16 w-16 items-center justify-center border border-[#58F28B]/60 bg-[#58F28B]/10 text-[#58F28B]">
-              <Target className="h-8 w-8" />
-            </div>
-            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.22em] text-[#58F28B]">{t.questEmpty}</p>
-            <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">{t.startCycle}</h2>
-            <p className="mt-4 text-sm leading-6 text-white/55">{t.questEmptyBody}</p>
-          </div>
-          <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">{t.systemRule}</p>
-        </div>
+  const activeChapter = (data.activeCycle?.currentChapter as Chapter | undefined) ?? "GRIND";
+  const activeMeta = chapterMeta[activeChapter];
+  const activeIndex = chapterRank(activeChapter);
+  const nextChapter = chapterOrder[Math.min(activeIndex + 1, chapterOrder.length - 1)];
+  const nextMeta = chapterMeta[nextChapter];
+  const archive = data.archive ?? [];
+  const mainEntry = tasks.map((task, index) => ({ task, index })).find(({ task }) => task.kind === "MAIN");
+  const bonusEntries = tasks.map((task, index) => ({ task, index })).filter(({ task }) => task.kind === "SUPPORT");
+  const fallbackEntry = tasks.map((task, index) => ({ task, index })).find(({ task }) => task.kind === "MINIMUM");
+  const filledTasks = tasks.filter((task) => task.label.trim());
+  const completedTasks = tasks.filter((task) => task.label.trim() && task.completed).length;
+  const earnedBadges = badges.filter((badge) => badge.earned).length;
 
+  const primaryAction = () => {
+    if (!mainEntry?.task.label.trim()) {
+      setScreen("BADGES");
+      return;
+    }
+    if (!mainEntry.task.completed) {
+      toggleTask(mainEntry.index);
+      return;
+    }
+    void saveToday(true);
+  };
+
+  const renderCreateQuest = () => (
+    <Card accent className="p-6 sm:p-8">
+      <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr] lg:items-center">
         <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#FFF6DA] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B] shadow-sm">
+            <Map className="h-4 w-4" />
+            {t.questEmpty}
+          </div>
+          <h2 className="mt-5 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-5xl">{t.createQuestTitle}</h2>
+          <p className="mt-4 max-w-lg text-base leading-7 text-[#6B5B4D]">{t.createQuestBody}</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {chapterOrder.map((chapter) => (
+              <div key={chapter} className="rounded-2xl px-4 py-3 text-sm font-black text-[#4B372A] shadow-sm" style={{ background: chapterMeta[chapter].bg }}>
+                {chapterMeta[chapter].shortTitle}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-[28px] border border-[#E7D6BE] bg-white/80 p-5 shadow-sm">
           <label className="block">
-            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#58F28B]">01{" // "}{t.createCycleTitle}</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.createQuestTitle}</span>
             <input
               value={title}
               onChange={(event: ChangeEvent<HTMLInputElement>) => setTitle(event.target.value)}
-              placeholder={t.createCyclePlaceholder}
-              className="mt-2 w-full border border-white/15 bg-white/[0.04] px-4 py-4 text-sm font-semibold text-white outline-none placeholder:text-white/25 focus:border-[#58F28B]"
+              placeholder={t.createQuestPlaceholder}
+              className="mt-3 w-full rounded-2xl border border-[#E7D6BE] bg-[#FFFDF9] px-4 py-4 text-sm font-semibold text-[#4B372A] outline-none placeholder:text-[#B39B8A] focus:border-[#F4C542]"
             />
           </label>
-          <label className="mt-5 block">
-            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#58F28B]">02{" // "}{t.createCycleReason}</span>
+          <label className="mt-4 block">
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.createReasonLabel}</span>
             <textarea
               value={reason}
               onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReason(event.target.value)}
-              placeholder={t.createReasonPlaceholder}
               rows={4}
-              className="mt-2 w-full resize-none border border-white/15 bg-white/[0.04] px-4 py-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#58F28B]"
+              placeholder={t.createReasonPlaceholder}
+              className="mt-3 w-full resize-none rounded-2xl border border-[#E7D6BE] bg-[#FFFDF9] px-4 py-4 text-sm text-[#4B372A] outline-none placeholder:text-[#B39B8A] focus:border-[#F4C542]"
             />
           </label>
           <button
             type="button"
             disabled={saving || !title.trim() || !reason.trim()}
             onClick={() => void createCycle()}
-            className="mt-5 flex min-h-12 w-full items-center justify-center gap-3 border border-[#58F28B] bg-[#58F28B] px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#07100A] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
+            className="mt-5 flex min-h-12 w-full items-center justify-center gap-3 rounded-full bg-[#F4C542] px-6 py-3 text-xs font-black uppercase tracking-[0.18em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px] disabled:opacity-40"
           >
-            {t.start}
+            {t.startQuest}
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
-    </Panel>
+    </Card>
   );
 
-  const renderToday = () => {
-    if (!data.activeCycle) return renderNoCycle();
-
-    const mainIndex = Math.max(0, tasks.findIndex((task) => task.kind === "MAIN"));
-    const mainTask = tasks[mainIndex];
-    const supportTasks = tasks
-      .map((task, index) => ({ task, index }))
-      .filter(({ task }) => task.kind === "SUPPORT");
-    const fallbackEntry = tasks
-      .map((task, index) => ({ task, index }))
-      .find(({ task }) => task.kind === "MINIMUM");
-    const currentPalette = chapterPalette[data.activeCycle.currentChapter];
-    const nextChapter = chapterOrder[Math.min(chapterIndex + 1, chapterOrder.length - 1)];
-    const earnedMarks = playerMarks.filter((mark) => mark.earned).length;
-    const primaryReady = Boolean(mainTask?.label.trim());
-    const primaryDone = Boolean(mainTask?.completed);
-    const checkpointSaved = Boolean(data.today?.showedUp);
-
-    const primaryCta = () => {
-      if (!primaryReady) {
-        setScreen("MISSIONS");
-        return;
-      }
-      if (!primaryDone) {
-        toggleTask(mainIndex);
-        return;
-      }
-      if (!checkpointSaved) {
-        void saveToday(true);
-      }
-    };
-
-    const primaryCtaLabel = !primaryReady
-      ? t.choosePrimary
-      : !primaryDone
-        ? t.completePrimary
-        : checkpointSaved
-          ? t.todayComplete
-          : t.saveToday;
-
-    return (
-      <div className="space-y-5">
-        {data.today?.resilienceReturn ? (
-          <div className="relative overflow-hidden rounded-[2px] border border-[#FFB454]/35 bg-[#241A10] p-5 sm:p-6">
-            <div className="absolute inset-y-0 left-0 w-1 bg-[#FFB454]" />
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#FFB454]/12 text-[#FFB454]">
-                  <RotateCcw className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFB454]">{t.resilienceActivated}</p>
-                  <h2 className="mt-1 text-xl font-black uppercase text-white">{t.missed}</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">{t.returnCopy}</p>
-                </div>
-              </div>
-              <span className="rounded-full border border-[#FFB454]/30 bg-[#FFB454]/10 px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-[#FFB454]">
-                02 / RESILIENCE
-              </span>
-            </div>
+  const renderMapRibbon = () => (
+    <div className="grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
+      <Card accent className="p-6 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B]">{t.activeQuest}</p>
+            <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-5xl">{data.activeCycle?.title}</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B5B4D]">{data.activeCycle?.reason}</p>
           </div>
-        ) : null}
-
-        <Panel accent className="p-5 sm:p-7">
-          <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_270px] xl:items-stretch">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full bg-[#58F28B]/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-[#58F28B]">{t.missionBriefing}</span>
-                <span className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.13em] text-white/35">
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentPalette.accent }} />
-                  {t.statusActive}
-                </span>
-              </div>
-
-              <h2 className="mt-4 max-w-3xl text-4xl font-black uppercase leading-[0.95] tracking-[-0.045em] text-white sm:text-5xl">
-                {data.activeCycle.title}
-              </h2>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55">{data.activeCycle.reason}</p>
-
-              <div className="mt-7 rounded-[2px] border border-white/[0.08] bg-[#0E1213] p-4 sm:p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/35">{t.currentChapter}</p>
-                    <p className="mt-1 text-lg font-black uppercase" style={{ color: currentPalette.accent }}>
-                      0{chapterIndex + 1} / {data.activeCycle.currentChapter}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/35">{t.progress}</p>
-                    <p className="mt-1 text-lg font-black text-white">{data.activeCycle.progress}%</p>
-                  </div>
-                </div>
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.07]">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.max(2, data.activeCycle.progress)}%`,
-                      backgroundColor: currentPalette.accent,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between rounded-[2px] border border-white/[0.08] bg-[#101516] p-5">
-              <div>
-                <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/35">{t.nextUnlock}</p>
-                <div className="mt-4 flex items-center gap-3">
-                  <div
-                    className="flex h-12 w-12 items-center justify-center rounded-full"
-                    style={{ backgroundColor: chapterPalette[nextChapter].soft, color: chapterPalette[nextChapter].accent }}
-                  >
-                    {chapterIndex >= chapterOrder.length - 1 ? <Trophy className="h-6 w-6" /> : <LockKeyhole className="h-5 w-5" />}
-                  </div>
-                  <div>
-                    <p className="text-lg font-black uppercase text-white">{nextChapter}</p>
-                    <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.13em] text-white/30">{t.progressToNext}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-8 grid grid-cols-2 gap-2">
-                <div className="rounded-[2px] bg-white/[0.035] p-3">
-                  <p className="text-xl font-black text-white">{data.profile.currentStreak}</p>
-                  <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.12em] text-white/30">{t.streak}</p>
-                </div>
-                <div className="rounded-[2px] bg-white/[0.035] p-3">
-                  <p className="text-xl font-black text-white">{earnedMarks}/{playerMarks.length}</p>
-                  <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.12em] text-white/30">{t.marksEarned}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Panel>
-
-        <section className="relative overflow-hidden rounded-[2px] border border-[#58F28B]/30 bg-[#111617] p-5 sm:p-7">
-          <div className="pointer-events-none absolute right-0 top-0 h-52 w-52 rounded-full bg-[#58F28B]/[0.04] blur-3xl" />
-          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#58F28B]">{t.yourNextMove}</p>
-              <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.03em] text-white sm:text-3xl">{t.primaryObjective}</h3>
-            </div>
-            <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-white/40">
-              <Radio className="h-3.5 w-3.5 text-[#58F28B]" />
-              {checkpointSaved ? t.checkpointSaved : t.checkpointReady}
-            </div>
-          </div>
-
-          <div className={`relative mt-5 rounded-[2px] border p-5 transition ${primaryDone ? "border-[#58F28B]/45 bg-[#58F28B]/[0.07]" : "border-white/[0.08] bg-[#0B0F10]"} ${recentlyClearedTaskId === mainTask?.id ? "gm-mission-cleared" : ""}`}>
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#58F28B]/10 text-[#58F28B]">
-                    {primaryDone ? <BadgeCheck className="h-5 w-5" /> : <Crosshair className="h-5 w-5" />}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/30">PRIMARY / SLOT 01</p>
-                    <input
-                      value={mainTask?.label ?? ""}
-                      onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                        setTasks((current) =>
-                          current.map((item, i) => (i === mainIndex ? { ...item, label: event.target.value } : item)),
-                        )
-                      }
-                      placeholder={lang === "fr" ? "Quelle est l'action la plus importante aujourd'hui ?" : "What is the one action that matters most today?"}
-                      className="mt-1 min-h-11 w-full border-0 bg-transparent p-0 text-lg font-black text-white outline-none placeholder:text-white/20 sm:text-xl"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                disabled={saving || checkpointSaved}
-                onClick={primaryCta}
-                className={`gm-primary-action flex min-h-14 w-full items-center justify-center gap-3 rounded-[2px] px-6 text-[10px] font-black uppercase tracking-[0.14em] transition lg:w-auto lg:min-w-[250px] ${
-                  checkpointSaved
-                    ? "cursor-default bg-white/[0.06] text-white/35"
-                    : primaryDone
-                      ? "bg-white text-[#0B0F10] hover:bg-[#58F28B]"
-                      : "bg-[#58F28B] text-[#07100A] hover:bg-white"
-                } disabled:opacity-50`}
-              >
-                {checkpointSaved ? <Check className="h-4 w-4" /> : primaryDone ? <Save className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
-                {primaryCtaLabel}
-                {!checkpointSaved ? <ArrowRight className="h-4 w-4" /> : null}
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <div className="grid gap-5 xl:grid-cols-[1.35fr_.65fr]">
-          <Panel className="p-5 sm:p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#63D8FF]">{t.optionalObjectives}</p>
-                <p className="mt-1 text-xs text-white/40">{t.focusRule}</p>
-              </div>
-              <span className="rounded-full bg-[#63D8FF]/10 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.13em] text-[#63D8FF]">{t.optional}</span>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {supportTasks.map(({ task, index }) => {
-                const complete = task.completed;
-                return (
-                  <div
-                    key={task.id}
-                    className={`rounded-[2px] border p-4 transition ${complete ? "border-[#63D8FF]/35 bg-[#63D8FF]/[0.06]" : "border-white/[0.07] bg-[#0F1314]"} ${recentlyClearedTaskId === task.id ? "gm-mission-cleared" : ""}`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[8px] font-black uppercase tracking-[0.13em] text-[#63D8FF]">SECONDARY / SLOT 0{index + 1}</p>
-                      <button
-                        type="button"
-                        onClick={() => toggleTask(index)}
-                        className={`flex h-9 w-9 items-center justify-center rounded-full transition ${complete ? "bg-[#63D8FF] text-[#081114]" : "bg-white/[0.05] text-white/35 hover:bg-[#63D8FF]/15 hover:text-[#63D8FF]"}`}
-                        aria-label={complete ? t.missionComplete : t.missionOpen}
-                      >
-                        {complete ? <Check className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    <input
-                      value={task.label}
-                      onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                        setTasks((current) =>
-                          current.map((item, i) => (i === index ? { ...item, label: event.target.value } : item)),
-                        )
-                      }
-                      placeholder={lang === "fr" ? "Mission facultative..." : "Optional mission..."}
-                      className="mt-3 min-h-10 w-full border-0 bg-transparent p-0 text-sm font-bold text-white outline-none placeholder:text-white/20"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </Panel>
-
-          <div className="rounded-[2px] border border-[#FFB454]/25 bg-[#1A1510] p-5 sm:p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFB454]/10 text-[#FFB454]">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#FFB454]">{t.fallbackObjective}</p>
-                  <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.11em] text-white/30">{t.fallbackShort}</p>
-                </div>
-              </div>
-              {fallbackEntry ? (
-                <button
-                  type="button"
-                  onClick={() => toggleTask(fallbackEntry.index)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full transition ${fallbackEntry.task.completed ? "bg-[#FFB454] text-[#1A1108]" : "bg-white/[0.05] text-white/35 hover:bg-[#FFB454]/15 hover:text-[#FFB454]"}`}
-                  aria-label={fallbackEntry.task.completed ? t.missionComplete : t.missionOpen}
-                >
-                  {fallbackEntry.task.completed ? <Check className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
-                </button>
-              ) : null}
-            </div>
-            {fallbackEntry ? (
-              <input
-                value={fallbackEntry.task.label}
-                onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                  setTasks((current) =>
-                    current.map((item, i) => (i === fallbackEntry.index ? { ...item, label: event.target.value } : item)),
-                  )
-                }
-                placeholder={lang === "fr" ? "Ex. 5 minutes suffisent" : "e.g. 5 minutes is enough"}
-                className="mt-4 min-h-10 w-full border-0 bg-transparent p-0 text-sm font-bold text-white outline-none placeholder:text-white/20"
-              />
-            ) : null}
-            <p className="mt-3 text-[10px] leading-5 text-white/40">{t.fallbackHint}</p>
+          <div className="rounded-[24px] px-5 py-4 shadow-sm" style={{ background: activeMeta.bg }}>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.currentZone}</p>
+            <p className="mt-2 text-xl font-black uppercase" style={{ color: activeMeta.color }}>{activeMeta.shortTitle}</p>
+            <p className="mt-1 text-sm text-[#6B5B4D]">{activeMeta.mapTitle}</p>
           </div>
         </div>
 
-        <Panel className="p-5 sm:p-6">
-          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-            <label className="block min-w-0">
-              <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/35">{t.note}</span>
-              <textarea
-                value={note}
-                onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNote(event.target.value)}
-                placeholder={t.notePlaceholder}
-                rows={3}
-                className="mt-2 w-full resize-none rounded-[2px] border border-white/[0.08] bg-[#0E1213] p-4 text-sm text-white outline-none placeholder:text-white/20 focus:border-[#58F28B]/50"
-              />
-            </label>
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void saveToday(false)}
-              className="flex min-h-12 items-center justify-center gap-2 rounded-[2px] border border-white/[0.09] bg-white/[0.035] px-5 text-[9px] font-black uppercase tracking-[0.13em] text-white/60 transition hover:border-[#58F28B]/35 hover:text-[#58F28B] disabled:opacity-40"
-            >
-              <Save className="h-4 w-4" />
-              {t.editLoadout}
-            </button>
-          </div>
-        </Panel>
-      </div>
-    );
-  };
-
-  const renderQuest = () => {
-    if (!data.activeCycle) return renderNoCycle();
-
-    return (
-      <div className="space-y-4">
-        <Panel accent className="p-5 sm:p-7">
-          <div className="flex flex-col gap-5 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.chapterPath}</p>
-              <h2 className="mt-2 text-3xl font-black uppercase text-white">{data.activeCycle.title}</h2>
-            </div>
-            <div className="text-left sm:text-right">
-              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/35">{t.currentChapter}</p>
-              <p className="mt-1 text-xl font-black uppercase text-[#58F28B]">0{chapterIndex + 1}{" // "}{data.activeCycle.currentChapter}</p>
-            </div>
+        <div className="mt-7 overflow-hidden rounded-[26px] border border-[#E7D6BE] bg-[linear-gradient(180deg,#BFE7F4_0%,#F2DFC2_100%)] p-5">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#7C6653]">{t.mapTitle}</p>
+            <p className="text-sm font-black text-[#4B372A]">{data.activeCycle?.progress}%</p>
           </div>
 
-          <div className="mt-7 grid gap-3 sm:grid-cols-5">
+          <div className="mt-6 grid grid-cols-5 gap-3 md:gap-5">
             {chapterOrder.map((chapter, index) => {
-              const active = index === chapterIndex;
-              const done = index < chapterIndex;
-              const locked = index > chapterIndex;
-              const labels = [t.chapter01, t.chapter02, t.chapter03, t.chapter04, t.chapter05];
-              const statusLabel = active ? t.chapterActive : done ? t.chapterUnlocked : t.chapterLocked;
-              const palette = chapterPalette[chapter];
+              const meta = chapterMeta[chapter];
+              const done = index < activeIndex;
+              const active = index === activeIndex;
+              const locked = index > activeIndex;
+              const status = active ? t.chapterActive : done ? t.chapterUnlocked : t.chapterLocked;
               return (
-                <div
-                  key={chapter}
-                  className={`relative min-h-40 overflow-hidden rounded-[2px] border p-4 transition ${active ? "gm-chapter-active" : ""}`}
-                  style={{
-                    borderColor: active ? palette.accent : done ? palette.muted : "rgba(255,255,255,.07)",
-                    backgroundColor: active ? palette.soft : done ? "rgba(255,255,255,.025)" : "rgba(0,0,0,.22)",
-                  }}
-                >
-                  {active ? <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: palette.accent }} /> : null}
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="text-2xl font-black" style={{ color: active || done ? palette.accent : "rgba(255,255,255,.14)" }}>0{index + 1}</span>
-                    <div
-                      className="flex h-8 w-8 items-center justify-center rounded-full"
-                      style={{ backgroundColor: active || done ? palette.soft : "rgba(255,255,255,.035)", color: active || done ? palette.accent : "rgba(255,255,255,.16)" }}
-                    >
-                      {done ? <Check className="h-4 w-4" /> : active ? <Activity className="h-4 w-4 animate-pulse" /> : <LockKeyhole className="h-3.5 w-3.5" />}
-                    </div>
+                <div key={chapter} className="relative text-center">
+                  {index < chapterOrder.length - 1 ? <div className="absolute left-[60%] top-8 h-[6px] w-[80%] rounded-full bg-[#E7D6BE]" /> : null}
+                  <div
+                    className={`relative mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 bg-white shadow-md ${active ? "quest-bounce" : ""}`}
+                    style={{ borderColor: done || active ? meta.color : "#D6C6AF", color: done || active ? meta.color : "#B6A999" }}
+                  >
+                    {done ? <Check className="h-6 w-6" /> : active ? <Compass className="h-6 w-6" /> : <Lock className="h-5 w-5" />}
                   </div>
-                  <p className={`mt-5 text-[11px] font-black uppercase tracking-[0.13em] ${locked ? "text-white/25" : "text-white"}`}>{chapter}</p>
-                  <p className={`mt-1 text-[8px] font-bold uppercase tracking-[0.12em] ${locked ? "text-white/15" : "text-white/35"}`}>{labels[index]}</p>
-                  <div className="mt-5 flex items-center justify-between gap-2">
-                    <span className="text-[7px] font-black uppercase tracking-[0.12em]" style={{ color: active || done ? palette.accent : "rgba(255,255,255,.16)" }}>{statusLabel}</span>
-                    <SignalTrace hot={active} />
-                  </div>
+                  <p className="mt-3 text-[10px] font-black uppercase tracking-[0.14em] text-[#9B816D]">{meta.number}</p>
+                  <p className="mt-1 text-[11px] font-black uppercase text-[#4B372A]">{meta.shortTitle}</p>
+                  <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: done || active ? meta.color : "#A89684" }}>{status}</p>
                 </div>
               );
             })}
           </div>
-
-          <div className="mt-6 border border-white/10 bg-black/20 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/35">{t.progress}</p>
-              <p className="text-sm font-black text-[#58F28B]">{data.activeCycle.progress}%</p>
-            </div>
-            <div className="mt-3 h-3 border border-white/10 bg-black/50 p-[2px]">
-              <div className="h-full bg-[#58F28B]" style={{ width: `${Math.max(2, data.activeCycle.progress)}%` }} />
-            </div>
-            <p className="mt-3 text-xs leading-5 text-white/45">{data.activeCycle.reason}</p>
-          </div>
-        </Panel>
-
-        <Panel className="p-5 sm:p-7">
-          <div className="grid gap-6 lg:grid-cols-[.7fr_1.3fr]">
-            <div className="border-b border-white/10 pb-6 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
-              <Trophy className="h-8 w-8 text-[#58F28B]" />
-              <p className="mt-4 text-[10px] font-black uppercase tracking-[0.18em] text-[#58F28B]">{t.finalProtocol}</p>
-              <p className="mt-2 text-sm leading-6 text-white/50">{t.finalProtocolBody}</p>
-            </div>
-            <div>
-              <label className="text-[9px] font-black uppercase tracking-[0.15em] text-white/35">{t.reflection}</label>
-              <textarea
-                value={reflection}
-                onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReflection(event.target.value)}
-                rows={5}
-                className="mt-2 w-full resize-none border border-white/12 bg-black/20 p-4 text-sm text-white outline-none focus:border-[#58F28B]"
-              />
-              <button
-                type="button"
-                disabled={saving || !reflection.trim()}
-                onClick={() => void completeCycle()}
-                className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 border border-[#58F28B] bg-[#58F28B] px-5 text-[10px] font-black uppercase tracking-[0.15em] text-[#07100A] transition hover:bg-white disabled:opacity-35"
-              >
-                <Trophy className="h-4 w-4" />
-                {t.completeCycle}
-              </button>
-            </div>
-          </div>
-        </Panel>
-      </div>
-    );
-  };
-
-  const renderMissions = () => {
-    const presets = [
-      { title: t.presetThing, body: t.presetThingBody, kind: "MAIN" as GrindTaskKind, icon: Target },
-      { title: t.presetSeven, body: t.presetSevenBody, kind: "SUPPORT" as GrindTaskKind, icon: Flame },
-      { title: t.presetFocus, body: t.presetFocusBody, kind: "MAIN" as GrindTaskKind, icon: Crosshair },
-      { title: t.presetReturn, body: t.presetReturnBody, kind: "MINIMUM" as GrindTaskKind, icon: RotateCcw },
-    ];
-
-    return (
-      <Panel className="p-5 sm:p-7">
-        <div className="border-b border-white/10 pb-5">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.presetTitle}</p>
-          <h2 className="mt-2 text-3xl font-black uppercase text-white">{t.navMissions}</h2>
-          <p className="mt-2 text-sm text-white/45">{t.presetBody}</p>
         </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {presets.map((preset, index) => {
-            const Icon = preset.icon;
-            return (
-              <div key={preset.title} className="group border border-white/10 bg-white/[0.025] p-5 transition hover:border-[#58F28B]/60">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex h-11 w-11 items-center justify-center border border-white/10 text-[#58F28B] group-hover:border-[#58F28B]/60">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span className="text-[9px] font-black text-white/20">0{index + 1}</span>
-                </div>
-                <h3 className="mt-6 text-lg font-black uppercase text-white">{preset.title}</h3>
-                <p className="mt-2 min-h-12 text-sm leading-6 text-white/45">{preset.body}</p>
-                <button
-                  type="button"
-                  disabled={!data.activeCycle}
-                  onClick={() => equipPreset(preset.title, preset.kind)}
-                  className="mt-5 flex min-h-11 w-full items-center justify-between border border-white/12 px-4 text-[9px] font-black uppercase tracking-[0.14em] text-white/65 transition hover:border-[#58F28B] hover:text-[#58F28B] disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  {t.equip}
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </Panel>
-    );
-  };
+      </Card>
 
-  const renderArchive = () => (
-    <Panel className="p-5 sm:p-7">
-      <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.archive}</p>
-          <h2 className="mt-2 text-3xl font-black uppercase text-white">{t.navArchive}</h2>
-        </div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">{data.archive.length.toString().padStart(2, "0")}{" // "}{t.statusComplete}</p>
-      </div>
-      <div className="mt-5 space-y-2">
-        {data.archive.length ? (
-          data.archive.map((cycle, index) => (
-            <div key={cycle.id} className="grid gap-3 border border-white/10 bg-white/[0.02] p-4 sm:grid-cols-[56px_1fr_auto] sm:items-center">
-              <div className="flex h-11 w-11 items-center justify-center border border-[#58F28B]/40 bg-[#58F28B]/[0.07] text-[#58F28B]">
-                <Trophy className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.14em] text-white/30">SAVE {String(index + 1).padStart(2, "0")}</p>
-                <p className="mt-1 text-sm font-black uppercase text-white">{cycle.title}</p>
-                <p className="mt-1 text-[9px] uppercase tracking-[0.12em] text-white/35">{formatDate(cycle.completedAt, lang)}</p>
-              </div>
-              <span className="border border-[#58F28B]/40 px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-[#58F28B]">ACHIEVE ✓</span>
-            </div>
-          ))
-        ) : (
-          <div className="border border-dashed border-white/15 p-8 text-center text-sm text-white/35">{t.noArchive}</div>
-        )}
-      </div>
-    </Panel>
-  );
-
-  const renderCard = () => (
-    <div className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
-        <Panel accent className="p-5 sm:p-7">
-          <div className="flex flex-col justify-between gap-10 sm:min-h-[420px]">
-            <div>
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">MILOS BG{" // "}{t.cardTitle}</p>
-                  <h2 className="mt-2 text-4xl font-black uppercase text-white">{displayName}</h2>
-                </div>
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-[#58F28B]/60 bg-[#58F28B]/10">
-                  <div className="gm-event-ring absolute inset-2 rounded-full border border-[#58F28B]/20" />
-                  <ShieldCheck className="relative h-8 w-8 text-[#58F28B]" />
-                </div>
-              </div>
-              <div className="mt-7 grid grid-cols-3 gap-px border border-white/10 bg-white/10">
-                {[
-                  [t.cycles, data.profile.cyclesCompleted],
-                  [t.grinds, data.profile.grindsCompleted],
-                  [t.returns, data.profile.returns],
-                ].map(([label, value]) => (
-                  <div key={String(label)} className="bg-[#151A1B] p-4 text-center">
-                    <p className="text-2xl font-black text-white">{value}</p>
-                    <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.13em] text-white/35">{label}</p>
-                    <div className="mt-2 flex justify-center"><SignalTrace hot /></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div className="grid grid-cols-5 gap-2">
-                {chapterOrder.map((chapter, index) => {
-                  const lit = index <= chapterIndex || data.profile.cyclesCompleted > 0;
-                  return (
-                    <div key={chapter} className="text-center">
-                      <div className={`mx-auto flex h-10 w-10 items-center justify-center border ${lit ? "border-[#58F28B] bg-[#58F28B]/10 text-[#58F28B]" : "border-white/10 text-white/20"}`}>
-                        {lit ? <Check className="h-4 w-4" /> : <LockKeyhole className="h-3.5 w-3.5" />}
-                      </div>
-                      <p className="mt-2 hidden text-[7px] font-bold uppercase tracking-[0.08em] text-white/35 sm:block">{chapter}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">GRIND UNTIL ACHIEVE{" // "}KEEP MOVING.</p>
-            </div>
-          </div>
-        </Panel>
-
-        <Panel className="p-5 sm:p-7">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+        <Card className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.stats}</p>
-            <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.14em] text-[#58F28B]/70">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#58F28B]" />
-              {t.connected}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.nextUnlock}</p>
+              <p className="mt-2 text-2xl font-black uppercase" style={{ color: nextMeta.color }}>{nextMeta.shortTitle}</p>
+              <p className="mt-1 text-sm text-[#6B5B4D]">{nextMeta.mapTitle}</p>
+            </div>
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF6DA] text-[#C28A2B] shadow-sm">
+              <Star className="h-8 w-8" />
             </div>
           </div>
-          <div className="mt-5 space-y-3">
-            {[
-              [t.memberStatus, t.statusActive],
-              [t.streak, `${data.profile.currentStreak}`],
-              [t.longest, `${data.profile.longestStreak}`],
-              [t.currentSave, data.activeCycle ? data.activeCycle.title : t.noCycle],
-            ].map(([label, value]) => (
-              <div key={String(label)} className="flex items-center justify-between gap-4 border-b border-white/10 pb-3">
-                <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{label}</span>
-                <span className="max-w-[60%] text-right text-[10px] font-black uppercase tracking-[0.1em] text-white">{value}</span>
-              </div>
-            ))}
+          <div className="mt-5 h-4 overflow-hidden rounded-full bg-[#EFD9B4] p-[2px]">
+            <div className="h-full rounded-full bg-[linear-gradient(90deg,#F59E42,#F4C542)]" style={{ width: `${Math.max(6, data.activeCycle?.progress ?? 0)}%` }} />
           </div>
-          <div className="mt-6 border border-[#58F28B]/30 bg-[#58F28B]/[0.06] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#58F28B]">SYSTEM MESSAGE</p>
-              <SignalTrace hot />
-            </div>
-            <p className="mt-2 text-sm font-bold uppercase leading-6 text-white">{t.systemRule}</p>
-            <p className="mt-2 text-[10px] uppercase leading-5 text-white/35">{t.noLeaderboard}</p>
+          <p className="mt-3 text-sm text-[#6B5B4D]">{t.stepReady}</p>
+        </Card>
+
+        <Card className="p-5 sm:p-6">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.statsTitle}</p>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <TinyStat label={t.quests} value={data.profile.cyclesCompleted + (data.activeCycle ? 1 : 0)} />
+            <TinyStat label={t.grinds} value={data.profile.grindsCompleted} />
+            <TinyStat label={t.returns} value={data.profile.returns} />
+            <TinyStat label={t.streak} value={data.profile.currentStreak} />
           </div>
-        </Panel>
+        </Card>
       </div>
-
-      <Panel accent className="p-5 sm:p-7">
-        <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.marksTitle}</p>
-            <h3 className="mt-2 text-2xl font-black uppercase text-white">{playerMarks.filter((mark) => mark.earned).length.toString().padStart(2, "0")}{" // "}{playerMarks.length.toString().padStart(2, "0")}</h3>
-          </div>
-          <p className="max-w-xl text-[10px] uppercase leading-5 tracking-[0.08em] text-white/35">{t.marksBody}</p>
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {playerMarks.map((mark, index) => {
-            const MarkIcon = mark.Icon;
-            return (
-              <div
-                key={mark.id}
-                className={`relative overflow-hidden border p-4 ${mark.earned ? "border-[#58F28B]/55 bg-[#58F28B]/[0.055]" : "border-white/10 bg-black/25"}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className={`flex h-10 w-10 items-center justify-center border ${mark.earned ? "border-[#58F28B]/60 text-[#58F28B]" : "border-white/10 text-white/18"}`}>
-                    {mark.earned ? <MarkIcon className="h-5 w-5" /> : <LockKeyhole className="h-4 w-4" />}
-                  </div>
-                  <span className={`text-[8px] font-black uppercase tracking-[0.13em] ${mark.earned ? "text-[#58F28B]" : "text-white/18"}`}>
-                    {mark.earned ? t.earnedMark : t.lockedMark}
-                  </span>
-                </div>
-                <p className={`mt-5 text-sm font-black uppercase ${mark.earned ? "text-white" : "text-white/30"}`}>{mark.label}</p>
-                <p className="mt-2 text-[9px] leading-4 text-white/30">{mark.requirement}</p>
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <span className="text-[8px] font-black uppercase tracking-[0.12em] text-white/20">MARK {String(index + 1).padStart(2, "0")}</span>
-                  <SignalTrace hot={mark.earned} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Panel>
     </div>
   );
 
-  const renderLore = () => (
-    <Panel accent className="overflow-hidden">
-      <div className="grid lg:grid-cols-[1.05fr_.95fr]">
-        <div className="p-6 sm:p-9">
-          <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-[#58F28B]" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.promoEyebrow}</p>
-          </div>
-          <h2 className="mt-5 max-w-xl text-4xl font-black uppercase tracking-tight text-white sm:text-5xl">{t.promoTitle}</h2>
-          <p className="mt-5 max-w-xl text-sm leading-7 text-white/55">{t.promoBody}</p>
-          <p className="mt-5 text-[9px] font-black uppercase tracking-[0.16em] text-white/30">{t.bookNote}</p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <a
-              href={bookUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-h-12 items-center justify-center gap-2 border border-[#58F28B] bg-[#58F28B] px-5 text-[10px] font-black uppercase tracking-[0.15em] text-[#07100A] transition hover:bg-white"
-            >
-              {t.physicalBook}
-              <ChevronRight className="h-4 w-4" />
-            </a>
-            <a
-              href={ebookUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-h-12 items-center justify-center gap-2 border border-white/15 px-5 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:border-[#58F28B] hover:text-[#58F28B]"
-            >
-              {t.ebook}
-              <ChevronRight className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-        <div className="relative min-h-80 border-t border-white/10 bg-black/35 p-8 lg:border-l lg:border-t-0">
-          <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at center, rgba(0,130,26,.4), transparent 55%)" }} />
-          <div className="relative mx-auto flex h-full max-w-sm flex-col justify-center border border-white/10 bg-[#f4f4f0] p-7 text-[#07100A]">
-            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#58F28B]">MILOS BG</p>
-            <p className="mt-8 text-4xl font-black uppercase leading-[.9] tracking-[-0.05em]">GRIND<br />UNTIL<br />ACHIEVE</p>
-            <div className="mt-8 h-px bg-mbg-black/15" />
-            <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.13em] text-[#07100A]/50">GRIND · RESILIENCE · CONSISTENCY · FOCUS · ACHIEVE</p>
-          </div>
-        </div>
-      </div>
-    </Panel>
-  );
+  const renderAdventure = () => {
+    if (!data.activeCycle) return renderCreateQuest();
 
-  const mainScreen =
-    screen === "TODAY"
-      ? renderToday()
-      : screen === "QUEST"
-        ? renderQuest()
-        : screen === "MISSIONS"
-          ? renderMissions()
-          : screen === "ARCHIVE"
-            ? renderArchive()
-            : screen === "CARD"
-              ? renderCard()
-              : renderLore();
+    const mainActionLabel = getNextActionLabel(mainEntry?.task, t);
 
-  const playerStats: Array<{
-    label: string;
-    value: number;
-    Icon: ComponentType<{ className?: string }>;
-  }> = [
-    { label: t.cycles, value: data.profile.cyclesCompleted, Icon: Trophy },
-    { label: t.grinds, value: data.profile.grindsCompleted, Icon: Crosshair },
-    { label: t.returns, value: data.profile.returns, Icon: RotateCcw },
-    { label: t.streak, value: data.profile.currentStreak, Icon: Flame },
-    { label: t.longest, value: data.profile.longestStreak, Icon: Sparkles },
-  ];
+    return (
+      <div className="space-y-5">
+        {renderMapRibbon()}
 
-  const shellChapter = data.activeCycle?.currentChapter ?? "GRIND";
-  const shellChapterIndex = chapterRank(shellChapter);
-  const shellPalette = chapterPalette[shellChapter];
-  const shellNextChapter = chapterOrder[Math.min(shellChapterIndex + 1, chapterOrder.length - 1)];
-  const earnedMarkCount = playerMarks.filter((mark) => mark.earned).length;
-
-  return (
-    <>
-      <GrindFxStyles />
-      {activeEvent ? (
-        <GameEventOverlay
-          event={activeEvent}
-          onDismiss={() => setActiveEvent(null)}
-          skipLabel={t.skipEvent}
-        />
-      ) : null}
-      {booting ? (
-        <div className="gm-boot pointer-events-none fixed inset-0 z-[170] flex items-center justify-center bg-[#080A0B]/95 text-white">
-          <HudGrid />
-          <div className="relative text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center border border-[#58F28B]/60 bg-[#58F28B]/10 text-[#58F28B]">
-              <Gamepad2 className="h-7 w-7" />
-            </div>
-            <p className="mt-5 text-[9px] font-black uppercase tracking-[0.28em] text-[#58F28B]">{t.systemOnline}</p>
-            <p className="mt-2 text-[8px] font-black uppercase tracking-[0.18em] text-white/30">{t.connected}{" // "}{displayName}</p>
-            <div className="mt-4 flex justify-center"><SignalTrace hot /></div>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="gm-shell relative my-6 overflow-hidden rounded-[3px] border border-white/[0.09] bg-[#0C0F10] text-white shadow-2xl shadow-black/20">
-        <HudGrid />
-
-      <header className="relative border-b border-white/[0.08] bg-[#111516]/95 px-4 py-4 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#58F28B]/60 bg-[#58F28B]/10 text-[#58F28B]">
-              <Gamepad2 className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-lg font-black uppercase tracking-tight text-white">GRIND MODE</p>
-                <span className="border border-[#58F28B]/45 px-2 py-1 text-[8px] font-black uppercase tracking-[0.13em] text-[#58F28B]">{t.unlockedBadge}</span>
+        <div className="grid gap-5 xl:grid-cols-[1.3fr_.7fr]">
+          <div className="space-y-5">
+            <Card accent className="p-6 sm:p-7">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B]">{t.nextStep}</p>
+                  <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-4xl">{mainEntry?.task.label.trim() || t.choosePrimary}</h3>
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-[#6B5B4D]">{mainEntry?.task.completed ? t.stepSaved : t.stepReady}</p>
+                </div>
+                <div className="rounded-[22px] px-5 py-4 shadow-sm" style={{ background: activeMeta.bg }}>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.progress}</p>
+                  <p className="mt-1 text-3xl font-black" style={{ color: activeMeta.color }}>{data.activeCycle.progress}%</p>
+                </div>
               </div>
-              <p className="mt-1 truncate text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{t.campaign}{" // "}{displayName}</p>
-            </div>
+
+              <div className="mt-6 rounded-[26px] border border-[#E7D6BE] bg-white/75 p-5 shadow-sm">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full shadow-sm" style={{ background: activeMeta.color, color: "#fff" }}>
+                      <Target className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.primaryClue}</p>
+                      <p className="mt-1 text-xl font-black uppercase text-[#4B372A]">{mainEntry?.task.label.trim() || t.choosePrimary}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={primaryAction}
+                    disabled={saving}
+                    className="min-h-14 rounded-full bg-[linear-gradient(90deg,#F59E42,#F4C542)] px-6 text-sm font-black uppercase tracking-[0.12em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px] disabled:opacity-50"
+                  >
+                    {mainActionLabel}
+                  </button>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 sm:p-7">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-lg font-black uppercase text-[#4B372A]">{t.bonusClues}</h3>
+                <span className="rounded-full bg-[#FFF6DA] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B]">{t.optional}</span>
+              </div>
+              <div className="mt-4 space-y-3">
+                {bonusEntries.map(({ task, index }) => (
+                  <div
+                    key={task.id}
+                    className={`rounded-[22px] border bg-white/70 p-4 shadow-sm transition ${flashTaskId === task.id ? "border-[#43C6B9]" : "border-[#E7D6BE]"}`}
+                  >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.support}</p>
+                        <input
+                          value={task.label}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                            setTasks((current) => current.map((item, i) => (i === index ? { ...item, label: event.target.value } : item)))
+                          }
+                          placeholder={index === 1 ? t.presetThing : t.presetSeven}
+                          className="mt-2 w-full border-0 bg-transparent p-0 text-base font-black uppercase text-[#4B372A] outline-none placeholder:text-[#B39B8A]"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleTask(index)}
+                        className={`min-h-11 rounded-full px-5 text-[11px] font-black uppercase tracking-[0.14em] transition ${task.completed ? "bg-[#43C6B9] text-white" : "bg-[#F0F6F5] text-[#2A736B] hover:bg-[#E4FAF6]"}`}
+                      >
+                        {task.completed ? t.todayComplete : t.showedUp}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-6 sm:p-7">
+              <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                <label className="block">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.journalPrompt}</span>
+                  <textarea
+                    value={note}
+                    onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNote(event.target.value)}
+                    rows={4}
+                    placeholder={t.notePlaceholder}
+                    className="mt-3 w-full resize-none rounded-[24px] border border-[#E7D6BE] bg-white/75 px-4 py-4 text-sm text-[#4B372A] outline-none placeholder:text-[#B39B8A] focus:border-[#F4C542]"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={saving || filledTasks.length === 0}
+                  onClick={() => void saveToday(true)}
+                  className="min-h-12 rounded-full bg-[#43C6B9] px-6 text-[11px] font-black uppercase tracking-[0.16em] text-white shadow-lg transition hover:translate-y-[-1px] disabled:opacity-50"
+                >
+                  {t.saveProgress}
+                </button>
+              </div>
+            </Card>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-3 border border-[#58F28B]/25 bg-[#58F28B]/[0.035] px-3 py-2 text-[8px] font-black uppercase tracking-[0.14em] text-[#58F28B]/75 sm:flex">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-[#58F28B]" />
-              <span>{t.connected}</span>
-              <SignalTrace hot />
-            </div>
-            <div className="hidden border border-white/10 px-3 py-2 text-[8px] font-black uppercase tracking-[0.14em] text-white/30 xl:block">
-              {t.saveData}
-            </div>
-            <div className="flex border border-white/15 text-[9px] font-black uppercase">
-              <Link href="/grind-mode?lang=en" className={`px-3 py-2 transition ${lang === "en" ? "bg-[#58F28B] text-[#07100A]" : "text-white/55 hover:text-white"}`}>EN</Link>
-              <Link href="/grind-mode?lang=fr" className={`px-3 py-2 transition ${lang === "fr" ? "bg-[#58F28B] text-[#07100A]" : "text-white/55 hover:text-white"}`}>FR</Link>
-            </div>
-          </div>
-        </div>
-      </header>
+          <div className="space-y-5">
+            <Card className="p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FFE6E2] text-[#EF6F5E] shadow-sm">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.fallbackClue}</p>
+                  <p className="mt-1 text-sm text-[#6B5B4D]">{t.fallbackHint}</p>
+                </div>
+              </div>
+              {fallbackEntry ? (
+                <>
+                  <input
+                    value={fallbackEntry.task.label}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                      setTasks((current) => current.map((item, i) => (i === fallbackEntry.index ? { ...item, label: event.target.value } : item)))
+                    }
+                    placeholder={t.fallbackClue}
+                    className="mt-4 w-full rounded-2xl border border-[#E7D6BE] bg-white/70 px-4 py-4 text-sm font-bold text-[#4B372A] outline-none placeholder:text-[#B39B8A]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => toggleTask(fallbackEntry.index)}
+                    className={`mt-4 min-h-11 w-full rounded-full text-[11px] font-black uppercase tracking-[0.14em] transition ${fallbackEntry.task.completed ? "bg-[#EF6F5E] text-white" : "bg-[#FFF0EC] text-[#C85A4A] hover:bg-[#FFE6E2]"}`}
+                  >
+                    {fallbackEntry.task.completed ? t.todayComplete : t.showedUp}
+                  </button>
+                </>
+              ) : null}
+            </Card>
 
-      <div className="relative border-b border-white/10 p-2 lg:hidden">
-        <div className="flex gap-1 overflow-x-auto pb-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = screen === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setScreen(item.id)}
-                className={`flex min-h-11 shrink-0 items-center gap-2 border px-3 text-[8px] font-black uppercase tracking-[0.12em] transition ${active ? "border-[#58F28B]/35 bg-[#58F28B]/10 text-[#58F28B]" : "border-white/[0.06] bg-white/[0.02] text-white/45"}`}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            );
-          })}
+            <Card className="p-5 sm:p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.equipLibrary}</p>
+              <div className="mt-4 space-y-3">
+                {[
+                  { label: t.presetThing, body: t.presetThingBody, kind: "MAIN" as GrindTaskKind, color: "#F59E42" },
+                  { label: t.presetSeven, body: t.presetSevenBody, kind: "SUPPORT" as GrindTaskKind, color: "#43C6B9" },
+                  { label: t.presetFocus, body: t.presetFocusBody, kind: "MAIN" as GrindTaskKind, color: "#9A6BFF" },
+                  { label: t.presetReturn, body: t.presetReturnBody, kind: "MINIMUM" as GrindTaskKind, color: "#EF6F5E" },
+                ].map((preset) => (
+                  <div key={preset.label} className="rounded-[22px] border border-[#E7D6BE] bg-white/70 p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-black uppercase" style={{ color: preset.color }}>{preset.label}</p>
+                        <p className="mt-1 text-sm leading-5 text-[#6B5B4D]">{preset.body}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => equipPreset(preset.label, preset.kind)}
+                        className="rounded-full bg-[#FFF6DA] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B] shadow-sm transition hover:bg-[#FDEFCB]"
+                      >
+                        {t.equip}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
+    );
+  };
 
-      <div className="relative grid lg:grid-cols-[180px_minmax(0,1fr)_240px]">
-        <aside className="hidden border-r border-white/[0.07] bg-[#101415]/85 p-3 lg:block">
-          <p className="px-2 py-3 text-[8px] font-black uppercase tracking-[0.18em] text-white/25">GAME MENU</p>
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = screen === item.id;
+  const renderMap = () => {
+    if (!data.activeCycle) return renderCreateQuest();
+    return (
+      <div className="space-y-5">
+        <Card accent className="p-6 sm:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B]">{t.mapTitle}</p>
+              <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-5xl">{data.activeCycle.title}</h2>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[#6B5B4D]">{t.mapBody}</p>
+            </div>
+            <div className="rounded-[24px] border border-[#E7D6BE] bg-white/75 px-5 py-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.progress}</p>
+              <p className="mt-2 text-3xl font-black text-[#4B372A]">{data.activeCycle.progress}%</p>
+            </div>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            {chapterOrder.map((chapter, index) => {
+              const meta = chapterMeta[chapter];
+              const state = index < activeIndex ? "done" : index === activeIndex ? "active" : "locked";
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setScreen(item.id)}
-                  className={`flex min-h-11 w-full items-center gap-3 border px-3 text-left text-[9px] font-black uppercase tracking-[0.12em] transition ${
-                    active
-                      ? "border-[#58F28B]/25 bg-[#58F28B]/10 text-[#58F28B]"
-                      : "border-transparent text-white/45 hover:bg-white/[0.035] hover:text-white"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </button>
+                <div key={chapter} className="rounded-[28px] border border-[#E7D6BE] bg-white/80 p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full border-4 bg-white shadow-sm" style={{ borderColor: meta.color, color: meta.color }}>
+                      {state === "done" ? <Check className="h-5 w-5" /> : state === "active" ? <Compass className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
+                    </div>
+                    <span className="text-lg font-black" style={{ color: meta.color }}>{meta.number}</span>
+                  </div>
+                  <p className="mt-4 text-sm font-black uppercase text-[#4B372A]">{meta.shortTitle}</p>
+                  <p className="mt-1 text-xs leading-5 text-[#6B5B4D]">
+                    {chapter === "GRIND"
+                      ? t.chapter01
+                      : chapter === "RESILIENCE"
+                        ? t.chapter02
+                        : chapter === "CONSISTENCY"
+                          ? t.chapter03
+                          : chapter === "FOCUS"
+                            ? t.chapter04
+                            : t.chapter05}
+                  </p>
+                  <div className="mt-4 rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-center" style={{ background: meta.bg, color: meta.color }}>
+                    {state === "done" ? t.chapterUnlocked : state === "active" ? t.chapterActive : t.chapterLocked}
+                  </div>
+                </div>
               );
             })}
-          </nav>
-
-          <div className="mt-7 border border-white/10 bg-white/[0.02] p-4">
-            <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#58F28B]">{t.systemRule}</p>
-            <p className="mt-2 text-[9px] uppercase leading-5 text-white/30">GRIND → RESILIENCE → CONSISTENCY → FOCUS → ACHIEVE</p>
           </div>
-        </aside>
+        </Card>
 
-        <main className="min-w-0 bg-[#0D1112]/70 p-3 sm:p-5 lg:p-6">{mainScreen}</main>
-
-        <aside className="border-t border-white/[0.07] bg-[#101415]/90 p-4 lg:border-l lg:border-t-0">
-          <div className="rounded-[2px] border border-white/[0.07] bg-white/[0.025] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/30">{t.playerOverview}</p>
-                <p className="mt-1 text-xl font-black uppercase text-white">{displayName}</p>
-              </div>
-              <div
-                className="flex h-11 w-11 items-center justify-center rounded-full"
-                style={{ backgroundColor: shellPalette.soft, color: shellPalette.accent }}
-              >
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              {playerStats.slice(0, 4).map(({ label, value, Icon: StatIcon }) => (
-                <div key={label} className="rounded-[2px] bg-[#151A1B] p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <StatIcon className="h-3.5 w-3.5 text-white/25" />
-                    <span className="text-lg font-black text-white">{value}</span>
-                  </div>
-                  <p className="mt-2 truncate text-[7px] font-bold uppercase tracking-[0.11em] text-white/30">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-[2px] border border-white/[0.07] bg-[#151A1B] p-4">
-            <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/30">{t.currentChapter}</p>
-            <div className="mt-3 flex items-center gap-3">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-full"
-                style={{ backgroundColor: shellPalette.soft, color: shellPalette.accent }}
-              >
-                <Crosshair className="h-4 w-4" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-black uppercase" style={{ color: shellPalette.accent }}>{shellChapter}</p>
-                <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.11em] text-white/25">{data.activeCycle ? `${data.activeCycle.progress}% ${t.progress}` : t.noCycle}</p>
-              </div>
-            </div>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.07]">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{ width: `${data.activeCycle ? Math.max(4, data.activeCycle.progress) : 4}%`, backgroundColor: shellPalette.accent }}
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-[2px] border border-white/[0.07] bg-[#151A1B] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/30">{t.nextUnlock}</p>
-              <LockKeyhole className="h-3.5 w-3.5 text-white/25" />
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="text-sm font-black uppercase text-white">{shellNextChapter}</span>
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: chapterPalette[shellNextChapter].accent }}
-              />
-            </div>
-            <p className="mt-2 text-[8px] uppercase leading-4 tracking-[0.08em] text-white/28">{t.progressToNext}</p>
-          </div>
-
-          <div className="mt-4 rounded-[2px] border border-white/[0.07] bg-[#151A1B] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/30">{t.marksEarned}</p>
-              <Sparkles className="h-3.5 w-3.5 text-[#58F28B]" />
-            </div>
-            <p className="mt-2 text-2xl font-black text-white">{earnedMarkCount}<span className="text-sm text-white/20">/{playerMarks.length}</span></p>
-            <button
-              type="button"
-              onClick={() => setScreen("CARD")}
-              className="mt-3 flex min-h-10 w-full items-center justify-between rounded-[2px] bg-white/[0.04] px-3 text-[8px] font-black uppercase tracking-[0.11em] text-white/50 transition hover:bg-white/[0.07] hover:text-white"
-            >
-              {t.navCard}
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
+        <Card className="p-6 sm:p-7">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.completeQuest}</p>
+          <label className="mt-4 block">
+            <span className="text-sm font-bold text-[#6B5B4D]">{t.reflection}</span>
+            <textarea
+              value={reflection}
+              onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReflection(event.target.value)}
+              rows={5}
+              className="mt-3 w-full resize-none rounded-[24px] border border-[#E7D6BE] bg-white/80 px-4 py-4 text-sm text-[#4B372A] outline-none focus:border-[#F4C542]"
+            />
+          </label>
           <button
             type="button"
-            onClick={() => setScreen("LORE")}
-            className="mt-4 flex w-full items-center justify-between rounded-[2px] border border-[#58F28B]/20 bg-[#58F28B]/[0.05] px-4 py-3 text-left transition hover:bg-[#58F28B]/10"
+            disabled={saving || !reflection.trim()}
+            onClick={() => void completeCycle()}
+            className="mt-5 inline-flex min-h-12 items-center gap-3 rounded-full bg-[#F4C542] px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#4B372A] shadow-lg disabled:opacity-50"
           >
-            <div>
-              <p className="text-[8px] font-black uppercase tracking-[0.14em] text-[#58F28B]">{t.promoEyebrow}</p>
-              <p className="mt-1 text-[10px] font-black uppercase text-white">GRIND UNTIL ACHIEVE</p>
-            </div>
-            <BookOpen className="h-4 w-4 text-[#58F28B]" />
+            <Trophy className="h-4 w-4" />
+            {t.completeQuest}
           </button>
-        </aside>
+          <p className="mt-3 text-sm text-[#6B5B4D]">{t.completeQuestHint}</p>
+        </Card>
+      </div>
+    );
+  };
+
+  const renderBadges = () => (
+    <div className="space-y-5">
+      <Card accent className="p-6 sm:p-8">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B]">{t.badgesTitle}</p>
+        <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-5xl">{earnedBadges} / {badges.length}</h2>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[#6B5B4D]">{t.badgesBody}</p>
+      </Card>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {badges.map((badge) => (
+          <Card key={badge.id} className={`p-5 ${badge.earned ? "border-[#F4C542]" : ""}`}>
+            <div className="flex items-start justify-between gap-4">
+              <div className={`flex h-14 w-14 items-center justify-center rounded-full shadow-sm ${badge.earned ? "bg-[#F4C542] text-[#4B372A]" : "bg-[#F2E9DA] text-[#B39B8A]"}`}>
+                <badge.Icon className="h-7 w-7" />
+              </div>
+              <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${badge.earned ? "bg-[#FFF6DA] text-[#C28A2B]" : "bg-[#F3EEE6] text-[#A89684]"}`}>
+                {badge.earned ? t.earnedMark : t.lockedMark}
+              </span>
+            </div>
+            <p className="mt-4 text-lg font-black uppercase text-[#4B372A]">{badge.label}</p>
+            <p className="mt-2 text-sm leading-6 text-[#6B5B4D]">{badge.requirement}</p>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderJournal = () => (
+    <div className="space-y-5">
+      <Card accent className="p-6 sm:p-8">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B]">{t.archiveTitle}</p>
+        <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-5xl">{archive.length}</h2>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[#6B5B4D]">{t.archiveBody}</p>
+      </Card>
+      {archive.length ? (
+        <div className="space-y-4">
+          {archive.map((cycle) => (
+            <Card key={cycle.id} className="p-5 sm:p-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.activeQuest}</p>
+                  <h3 className="mt-1 text-2xl font-black uppercase text-[#4B372A]">{cycle.title}</h3>
+                  <p className="mt-2 text-sm text-[#6B5B4D]">{cycle.reason}</p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2 md:text-right">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">START</p>
+                    <p className="mt-1 text-sm font-bold text-[#4B372A]">{formatDate(cycle.startedAt, lang)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">END</p>
+                    <p className="mt-1 text-sm font-bold text-[#4B372A]">{formatDate(cycle.completedAt, lang)}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="p-6 text-sm text-[#6B5B4D]">{t.noArchive}</Card>
+      )}
+    </div>
+  );
+
+  const renderBook = () => (
+    <div className="grid gap-5 xl:grid-cols-[1.1fr_.9fr]">
+      <Card accent className="p-6 sm:p-8">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B]">{t.bookEyebrow}</p>
+        <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-5xl">{t.bookTitle}</h2>
+        <p className="mt-4 max-w-xl text-base leading-7 text-[#6B5B4D]">{t.bookBody}</p>
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+          <Link href={bookUrl} className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#F4C542] px-6 text-xs font-black uppercase tracking-[0.15em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px]">
+            {t.physicalBook}
+          </Link>
+          <Link href={ebookUrl} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#E7D6BE] bg-white/80 px-6 text-xs font-black uppercase tracking-[0.15em] text-[#4B372A] shadow-sm transition hover:bg-white">
+            {t.ebook}
+          </Link>
+        </div>
+      </Card>
+      <Card className="flex items-center justify-center p-6 sm:p-8">
+        <div className="quest-float w-full max-w-sm rounded-[28px] border border-[#E7D6BE] bg-[linear-gradient(180deg,#FFF9E7_0%,#FDEFCB_100%)] p-6 text-center shadow-lg">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#F4C542] text-[#4B372A] shadow-lg">
+            <BookOpen className="h-9 w-9" />
+          </div>
+          <p className="mt-5 text-2xl font-black uppercase tracking-[-0.03em] text-[#4B372A]">{t.bookTitle}</p>
+          <p className="mt-3 text-sm leading-6 text-[#6B5B4D]">{t.subtitle}</p>
+        </div>
+      </Card>
+    </div>
+  );
+
+  return (
+    <div className="quest-shell relative my-8 overflow-hidden rounded-[34px] border border-[#E7D6BE] bg-[linear-gradient(180deg,#F6E7C9_0%,#F2DFC2_35%,#BFE7F4_100%)] text-[#4B372A] shadow-[0_25px_70px_rgba(75,55,42,.12)]">
+      <QuestStyles />
+      {activeEvent ? <EventOverlay event={activeEvent} onDismiss={() => setActiveEvent(null)} skipLabel={t.skipEvent} /> : null}
+
+      <div className="relative z-[1] border-b border-[#E7D6BE] bg-white/55 px-5 py-5 backdrop-blur-sm sm:px-7">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F4C542] text-[#4B372A] shadow-md">
+              <Map className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-black uppercase tracking-[-0.04em] text-[#4B372A] sm:text-3xl">{t.title}</h1>
+                <span className="rounded-full bg-[#FFF6DA] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#C28A2B] shadow-sm">{t.unlockedBadge}</span>
+              </div>
+              <p className="mt-1 text-sm text-[#6B5B4D]">{t.subtitle}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="rounded-full border border-[#E7D6BE] bg-white/80 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D] shadow-sm">{displayName}</div>
+            <div className="inline-flex overflow-hidden rounded-full border border-[#E7D6BE] bg-white/80 shadow-sm">
+              <Link href={`/grind-mode?lang=en`} className={`px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${lang === "en" ? "bg-[#F4C542] text-[#4B372A]" : "text-[#7A604A]"}`}>EN</Link>
+              <Link href={`/grind-mode?lang=fr`} className={`px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${lang === "fr" ? "bg-[#F4C542] text-[#4B372A]" : "text-[#7A604A]"}`}>FR</Link>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <footer className="relative flex flex-col gap-2 border-t border-white/10 bg-black/30 px-4 py-3 text-[8px] font-bold uppercase tracking-[0.14em] text-white/25 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <span>GRIND MODE{" // "}MILOS BG</span>
-        <span>{t.noLeaderboard}</span>
-      </footer>
+      <div className="relative z-[1] grid gap-5 p-5 lg:grid-cols-[220px_1fr] lg:p-7">
+        <aside className="space-y-5">
+          <Card className="p-4">
+            <nav className="space-y-2">
+              {navItems.map(({ id, label, icon: Icon }) => {
+                const active = screen === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setScreen(id)}
+                    className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition ${active ? "bg-[#4BC6B9] text-white shadow-md" : "bg-white/65 text-[#6B5B4D] hover:bg-white"}`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="text-[11px] font-black uppercase tracking-[0.15em]">{label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </Card>
+
+          <Card className="p-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.statsTitle}</p>
+            <div className="mt-4 space-y-3">
+              <div className="rounded-2xl bg-white/80 px-4 py-3 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.quests}</p>
+                <p className="mt-1 text-lg font-black text-[#4B372A]">{data.profile.cyclesCompleted + (data.activeCycle ? 1 : 0)}</p>
+              </div>
+              <div className="rounded-2xl bg-white/80 px-4 py-3 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.grinds}</p>
+                <p className="mt-1 text-lg font-black text-[#4B372A]">{data.profile.grindsCompleted}</p>
+              </div>
+              <div className="rounded-2xl bg-white/80 px-4 py-3 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.returns}</p>
+                <p className="mt-1 text-lg font-black text-[#4B372A]">{data.profile.returns}</p>
+              </div>
+              <div className="rounded-2xl bg-white/80 px-4 py-3 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.marksEarned}</p>
+                <p className="mt-1 text-lg font-black text-[#4B372A]">{earnedBadges} / {badges.length}</p>
+              </div>
+            </div>
+          </Card>
+        </aside>
+
+        <main className="min-w-0">
+          {screen === "ADVENTURE" ? renderAdventure() : null}
+          {screen === "MAP" ? renderMap() : null}
+          {screen === "BADGES" ? renderBadges() : null}
+          {screen === "JOURNAL" ? renderJournal() : null}
+          {screen === "BOOK" ? renderBook() : null}
+        </main>
       </div>
-    </>
+    </div>
   );
 }
