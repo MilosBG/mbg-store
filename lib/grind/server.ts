@@ -273,11 +273,24 @@ export async function createGrindCycle(clerkId: string, title: string, reason: s
   return cycleDTO(created);
 }
 
+const chapterRank: Record<GrindChapter, number> = {
+  GRIND: 0,
+  RESILIENCE: 1,
+  CONSISTENCY: 2,
+  FOCUS: 3,
+  ACHIEVE: 4,
+};
+
 function deriveChapter(totalShowUps: number, cycleProgress: number): GrindChapter {
   if (cycleProgress >= 100) return "ACHIEVE";
   if (totalShowUps >= 14) return "FOCUS";
   if (totalShowUps >= 7) return "CONSISTENCY";
+  if (totalShowUps >= 2) return "RESILIENCE";
   return "GRIND";
+}
+
+function furthestChapter(current: GrindChapter, candidate: GrindChapter): GrindChapter {
+  return chapterRank[candidate] > chapterRank[current] ? candidate : current;
 }
 
 export async function saveTodayCheckIn(args: {
@@ -359,7 +372,14 @@ export async function saveTodayCheckIn(args: {
 
   const totalShowUps = await checkIns.countDocuments({ clerkId: args.clerkId, cycleId: cycleObjectId, showedUp: true });
   const progress = Math.min(95, Math.round((totalShowUps / 21) * 95));
-  const nextChapter = resilienceReturn ? "RESILIENCE" : deriveChapter(totalShowUps, progress);
+  // RESILIENCE is also a comeback event, but the campaign path itself must
+  // never move backwards. A player already in CONSISTENCY/FOCUS who returns
+  // after a break keeps that campaign chapter while the check-in records the
+  // RESILIENCE event separately.
+  const nextChapter = furthestChapter(
+    cycle.currentChapter,
+    deriveChapter(totalShowUps, progress),
+  );
 
   await cycles.updateOne(
     { _id: cycleObjectId },

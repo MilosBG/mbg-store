@@ -32,10 +32,10 @@ export default async function GrindModePage({ searchParams }: Props) {
   const playerName =
     user?.firstName ||
     user?.username ||
-    "HUSTLER";
+    "GRINDER";
 
-  const bookUrl = process.env.NEXT_PUBLIC_GRIND_BOOK_URL || "/the-book";
-  const ebookUrl = process.env.NEXT_PUBLIC_GRIND_EBOOK_URL || "/the-book";
+  const bookUrl = process.env.NEXT_PUBLIC_MBG_BOOK_URL || "/the-book";
+  const ebookUrl = process.env.NEXT_PUBLIC_MBG_EBOOK_URL || "/the-book";
 
   return (
     <Container className="min-h-screen">

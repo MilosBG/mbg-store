@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import type { ComponentType, ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent, ComponentType, ReactNode } from "react";
 import {
   Activity,
   Archive,
@@ -27,6 +27,8 @@ import { toast } from "react-hot-toast";
 
 import { grindCopy } from "@/lib/grind/i18n";
 import type {
+  GrindCheckInDTO,
+  GrindCycleDTO,
   GrindDashboardDTO,
   GrindLanguage,
   GrindTask,
@@ -42,7 +44,40 @@ type Props = {
 
 type Screen = "TODAY" | "QUEST" | "MISSIONS" | "ARCHIVE" | "CARD" | "LORE";
 
+type GameEventKind =
+  | "QUEST_STARTED"
+  | "MISSION_CLEARED"
+  | "RESILIENCE"
+  | "CHAPTER_UNLOCKED"
+  | "MARK_UNLOCKED"
+  | "CHECKPOINT"
+  | "QUEST_COMPLETE";
+
+type GameEvent = {
+  id: string;
+  kind: GameEventKind;
+  eyebrow: string;
+  title: string;
+  body?: string;
+  code?: string;
+  duration?: number;
+};
+
+type PlayerMark = {
+  id: string;
+  label: string;
+  requirement: string;
+  earned: boolean;
+  Icon: ComponentType<{ className?: string }>;
+};
+
 const chapterOrder = ["GRIND", "RESILIENCE", "CONSISTENCY", "FOCUS", "ACHIEVE"] as const;
+
+const chapterRank = (chapter: (typeof chapterOrder)[number] | undefined) =>
+  chapter ? Math.max(0, chapterOrder.indexOf(chapter)) : 0;
+
+const eventId = (kind: GameEventKind) =>
+  `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const emptyTask = (kind: GrindTaskKind, index: number): GrindTask => ({
   id: `${kind.toLowerCase()}-${index}`,
@@ -110,14 +145,225 @@ function Panel({
 }) {
   return (
     <section
-      className={`relative overflow-hidden border bg-[#0d0f0e]/95 ${
-        accent ? "border-mbg-green/70" : "border-white/15"
+      className={`gm-panel relative overflow-hidden border bg-[#07100c]/95 ${
+        accent ? "gm-panel-accent border-mbg-green/70" : "border-white/15"
       } ${className}`}
     >
       <CornerMarks />
       {children}
     </section>
   );
+}
+
+function SignalTrace({ hot = false }: { hot?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 96 22"
+      aria-hidden="true"
+      className={`h-5 w-24 ${hot ? "text-mbg-green" : "text-white/25"}`}
+    >
+      <path
+        d="M1 12 H18 L23 12 L27 5 L32 18 L37 9 L42 12 H55 L60 12 L64 7 L68 15 L73 10 L78 12 H95"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="square"
+        className="gm-signal-path"
+      />
+    </svg>
+  );
+}
+
+function GrindFxStyles() {
+  return (
+    <style>{`
+      @keyframes gm-scan {
+        0% { transform: translateX(-120%); opacity: 0; }
+        18% { opacity: .45; }
+        55% { opacity: .18; }
+        100% { transform: translateX(220%); opacity: 0; }
+      }
+      @keyframes gm-signal {
+        0% { stroke-dashoffset: 180; opacity: .35; }
+        35% { opacity: 1; }
+        100% { stroke-dashoffset: 0; opacity: .45; }
+      }
+      @keyframes gm-event-in {
+        0% { opacity: 0; transform: translateY(16px) scale(.985); filter: blur(5px); }
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+      }
+      @keyframes gm-pulse-ring {
+        0%, 100% { transform: scale(.94); opacity: .28; }
+        50% { transform: scale(1.06); opacity: .8; }
+      }
+      @keyframes gm-cleared {
+        0% { box-shadow: inset 0 0 0 1px rgba(0,130,26,.2); }
+        35% { box-shadow: inset 0 0 0 1px rgba(0,130,26,1), 0 0 30px rgba(0,130,26,.25); }
+        100% { box-shadow: inset 0 0 0 1px rgba(0,130,26,.35); }
+      }
+      @keyframes gm-active-chapter {
+        0%, 100% { box-shadow: inset 0 0 0 1px rgba(0,130,26,.15), 0 0 0 rgba(0,130,26,0); }
+        50% { box-shadow: inset 0 0 0 1px rgba(0,130,26,.65), 0 0 24px rgba(0,130,26,.16); }
+      }
+      @keyframes gm-boot {
+        0% { opacity: 1; }
+        72% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      .gm-shell::before {
+        content: "";
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        opacity: .22;
+        background: radial-gradient(circle at 75% 12%, rgba(0,130,26,.18), transparent 25%), linear-gradient(180deg, rgba(0,130,26,.035), transparent 22%);
+      }
+      .gm-shell::after {
+        content: "";
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        opacity: .12;
+        background: repeating-linear-gradient(180deg, transparent 0 3px, rgba(255,255,255,.025) 4px);
+      }
+      .gm-panel::after {
+        content: "";
+        pointer-events: none;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -35%;
+        width: 26%;
+        background: linear-gradient(90deg, transparent, rgba(0,130,26,.08), rgba(0,130,26,.16), transparent);
+        animation: gm-scan 6.5s ease-in-out infinite;
+      }
+      .gm-panel-accent::after { animation-duration: 4.8s; }
+      .gm-signal-path { stroke-dasharray: 180; animation: gm-signal 2.8s linear infinite; }
+      .gm-event-card { animation: gm-event-in .32s ease-out both; }
+      .gm-event-ring { animation: gm-pulse-ring 1.45s ease-in-out infinite; }
+      .gm-mission-cleared { animation: gm-cleared .8s ease-out both; }
+      .gm-chapter-active { animation: gm-active-chapter 2.2s ease-in-out infinite; }
+      .gm-boot { animation: gm-boot .95s ease-out forwards; }
+      @media (prefers-reduced-motion: reduce) {
+        .gm-panel::after, .gm-signal-path, .gm-event-ring, .gm-mission-cleared, .gm-chapter-active, .gm-boot { animation: none !important; }
+      }
+    `}</style>
+  );
+}
+
+function GameEventOverlay({
+  event,
+  onDismiss,
+  skipLabel,
+}: {
+  event: GameEvent;
+  onDismiss: () => void;
+  skipLabel: string;
+}) {
+  const minor = event.kind === "MISSION_CLEARED" || event.kind === "CHECKPOINT";
+  const Icon =
+    event.kind === "QUEST_STARTED"
+      ? Target
+      : event.kind === "MISSION_CLEARED"
+        ? Check
+        : event.kind === "RESILIENCE"
+          ? RotateCcw
+          : event.kind === "CHAPTER_UNLOCKED"
+            ? Compass
+            : event.kind === "MARK_UNLOCKED"
+              ? Sparkles
+              : event.kind === "QUEST_COMPLETE"
+                ? Trophy
+                : Save;
+
+  if (minor) {
+    return (
+      <div className="pointer-events-none fixed inset-x-4 bottom-5 z-[180] flex justify-end" aria-live="polite">
+        <div className="gm-event-card pointer-events-auto w-full max-w-sm overflow-hidden border border-mbg-green/65 bg-[#06100b]/95 p-4 text-white shadow-2xl shadow-black/60 backdrop-blur-md">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-mbg-green/60 bg-mbg-green/10 text-mbg-green">
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[8px] font-black uppercase tracking-[0.18em] text-mbg-green">{event.eyebrow}</p>
+                <SignalTrace hot />
+              </div>
+              <p className="mt-1 truncate text-sm font-black uppercase text-white">{event.title}</p>
+              {event.body ? <p className="mt-1 text-[10px] leading-4 text-white/45">{event.body}</p> : null}
+            </div>
+          </div>
+          <div className="mt-3 h-px overflow-hidden bg-white/10">
+            <div className="h-full w-full bg-mbg-green/70" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[190] flex items-center justify-center bg-black/92 p-4 text-white backdrop-blur-md"
+      role="dialog"
+      aria-modal="true"
+      aria-label={event.eyebrow}
+    >
+      <HudGrid />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,130,26,.18),transparent_42%)]" />
+      <div className="gm-event-card relative w-full max-w-3xl overflow-hidden border border-mbg-green/65 bg-[#06100b] p-6 shadow-2xl shadow-black sm:p-10">
+        <CornerMarks />
+        <div className="absolute inset-x-0 top-0 h-px bg-mbg-green" />
+        <div className="grid gap-8 sm:grid-cols-[160px_1fr] sm:items-center">
+          <div className="relative mx-auto flex h-36 w-36 items-center justify-center">
+            <div className="gm-event-ring absolute inset-0 rounded-full border border-mbg-green/45" />
+            <div className="absolute inset-4 rounded-full border border-dashed border-mbg-green/30" />
+            <div className="absolute h-px w-full bg-mbg-green/25" />
+            <div className="absolute h-full w-px bg-mbg-green/25" />
+            <Icon className="relative h-12 w-12 text-mbg-green" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[9px] font-black uppercase tracking-[0.23em] text-mbg-green">{event.eyebrow}</span>
+              {event.code ? <span className="border border-white/15 px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/40">{event.code}</span> : null}
+            </div>
+            <h2 className={`mt-4 font-black uppercase tracking-[-0.04em] text-white ${event.kind === "QUEST_COMPLETE" ? "text-5xl sm:text-7xl" : "text-4xl sm:text-6xl"}`}>
+              {event.title}
+            </h2>
+            {event.body ? <p className="mt-4 max-w-xl text-sm leading-6 text-white/50">{event.body}</p> : null}
+            <div className="mt-7 flex items-center gap-4">
+              <SignalTrace hot />
+              <span className="text-[8px] font-black uppercase tracking-[0.18em] text-white/30">GRIND UNTIL ACHIEVE</span>
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="mt-8 min-h-10 border border-white/15 px-4 text-[8px] font-black uppercase tracking-[0.16em] text-white/40 transition hover:border-mbg-green hover:text-mbg-green"
+        >
+          {skipLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function buildPlayerMarks(
+  data: GrindDashboardDTO,
+  t: (typeof grindCopy)[GrindLanguage],
+): PlayerMark[] {
+  const currentRank = chapterRank(data.activeCycle?.currentChapter);
+  return [
+    { id: "FIRST", label: t.markFirst, requirement: t.markFirstReq, earned: data.profile.grindsCompleted >= 1, Icon: Target },
+    { id: "RETURN", label: t.markReturn, requirement: t.markReturnReq, earned: data.profile.returns >= 1, Icon: RotateCcw },
+    { id: "SEVEN", label: t.markSeven, requirement: t.markSevenReq, earned: data.profile.longestStreak >= 7, Icon: Flame },
+    { id: "CONSISTENCY", label: t.markConsistency, requirement: t.markConsistencyReq, earned: currentRank >= 2 || data.profile.cyclesCompleted > 0, Icon: Activity },
+    { id: "FOCUS", label: t.markFocus, requirement: t.markFocusReq, earned: currentRank >= 3 || data.profile.cyclesCompleted > 0, Icon: Crosshair },
+    { id: "ACHIEVE", label: t.markAchieve, requirement: t.markAchieveReq, earned: data.profile.cyclesCompleted >= 1, Icon: Trophy },
+    { id: "KEEP_MOVING", label: t.markKeepMoving, requirement: t.markKeepMovingReq, earned: data.profile.cyclesCompleted >= 5, Icon: Sparkles },
+  ];
 }
 
 export default function GrindModeClient({
@@ -136,31 +382,75 @@ export default function GrindModeClient({
   const [reflection, setReflection] = useState("");
   const [saving, setSaving] = useState(false);
   const [tasks, setTasks] = useState<GrindTask[]>(defaultTasks);
+  const [eventQueue, setEventQueue] = useState<GameEvent[]>([]);
+  const [activeEvent, setActiveEvent] = useState<GameEvent | null>(null);
+  const [recentlyClearedTaskId, setRecentlyClearedTaskId] = useState<string | null>(null);
+  const [booting, setBooting] = useState(true);
+  const missionTimerRef = useRef<number | null>(null);
 
   const displayName = (playerName || t.playerFallback).trim().toUpperCase();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/grind/profile", { cache: "no-store" });
-      if (!res.ok) throw new Error("load");
-      const payload = (await res.json()) as GrindDashboardDTO;
-      setData(payload);
-      if (payload.today?.tasks?.length) setTasks(payload.today.tasks);
-      if (payload.today?.note) setNote(payload.today.note);
-    } catch {
-      toast.error(t.error);
-    } finally {
-      setLoading(false);
-    }
-  }, [t.error]);
+  const pushEvents = useCallback((events: GameEvent[]) => {
+    if (!events.length) return;
+    setEventQueue((current) => [...current, ...events]);
+  }, []);
 
   useEffect(() => {
-    void load();
+    if (activeEvent || eventQueue.length === 0) return;
+    const [next, ...rest] = eventQueue;
+    setActiveEvent(next);
+    setEventQueue(rest);
+  }, [activeEvent, eventQueue]);
+
+  useEffect(() => {
+    if (!activeEvent) return;
+    const timer = window.setTimeout(
+      () => setActiveEvent(null),
+      activeEvent.duration ?? (activeEvent.kind === "QUEST_COMPLETE" ? 3300 : 2100),
+    );
+    return () => window.clearTimeout(timer);
+  }, [activeEvent]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setBooting(false), 1150);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (missionTimerRef.current !== null) window.clearTimeout(missionTimerRef.current);
+    },
+    [],
+  );
+
+  const load = useCallback(
+    async (silent = false): Promise<GrindDashboardDTO | null> => {
+      if (!silent) setLoading(true);
+      try {
+        const res = await fetch("/api/grind/profile", { cache: "no-store" });
+        if (!res.ok) throw new Error("load");
+        const payload = (await res.json()) as GrindDashboardDTO;
+        setData(payload);
+        if (payload.today?.tasks?.length) setTasks(payload.today.tasks);
+        if (payload.today?.note !== undefined) setNote(payload.today.note ?? "");
+        return payload;
+      } catch {
+        toast.error(t.error);
+        return null;
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [t.error],
+  );
+
+  useEffect(() => {
+    void load(false);
   }, [load]);
 
   const createCycle = async () => {
     if (!title.trim() || !reason.trim()) return;
+    const questTitle = title.trim();
     setSaving(true);
     try {
       const res = await fetch("/api/grind/cycles", {
@@ -169,11 +459,23 @@ export default function GrindModeClient({
         body: JSON.stringify({ title, reason }),
       });
       if (!res.ok) throw new Error("create");
+      const created = (await res.json()) as GrindCycleDTO;
       setTitle("");
       setReason("");
       setTasks(defaultTasks());
       setScreen("TODAY");
-      await load();
+      await load(true);
+      pushEvents([
+        {
+          id: eventId("QUEST_STARTED"),
+          kind: "QUEST_STARTED",
+          eyebrow: t.eventQuestStarted,
+          title: questTitle || created.title,
+          body: t.eventQuestStartedBody,
+          code: "01 // GRIND",
+          duration: 2450,
+        },
+      ]);
     } catch {
       toast.error(t.error);
     } finally {
@@ -185,9 +487,16 @@ export default function GrindModeClient({
     if (!data?.activeCycle) return;
     const activeTasks = tasks.filter((task) => task.label.trim());
     if (!activeTasks.length) {
-      toast.error(lang === "fr" ? "Ajoute au moins une mission." : "Equip at least one mission.");
+      toast.error(lang === "fr" ? "Équipe au moins une mission." : "Equip at least one mission.");
       return;
     }
+
+    const previousChapter = data.activeCycle.currentChapter;
+    const previousMarks = new Set(
+      buildPlayerMarks(data, t)
+        .filter((mark) => mark.earned)
+        .map((mark) => mark.id),
+    );
 
     setSaving(true);
     try {
@@ -202,8 +511,68 @@ export default function GrindModeClient({
         }),
       });
       if (!res.ok) throw new Error("save");
-      await load();
-      toast.success(forceShowedUp ? t.showedUp : t.save);
+      const saved = (await res.json()) as GrindCheckInDTO;
+      const updated = await load(true);
+      if (!updated) return;
+
+      const gameEvents: GameEvent[] = [];
+
+      if (saved.resilienceReturn) {
+        gameEvents.push({
+          id: eventId("RESILIENCE"),
+          kind: "RESILIENCE",
+          eyebrow: t.resilienceActivated,
+          title: "02 // RESILIENCE",
+          body: t.eventResilienceBody,
+          code: `RETURN ${String(updated.profile.returns).padStart(2, "0")}`,
+          duration: 2600,
+        });
+      }
+
+      const nextChapter = updated.activeCycle?.currentChapter;
+      if (
+        nextChapter &&
+        nextChapter !== previousChapter &&
+        chapterRank(nextChapter) > chapterRank(previousChapter)
+      ) {
+        gameEvents.push({
+          id: eventId("CHAPTER_UNLOCKED"),
+          kind: "CHAPTER_UNLOCKED",
+          eyebrow: t.eventChapterUnlocked,
+          title: nextChapter,
+          body: t.eventChapterUnlockedBody,
+          code: `0${chapterRank(nextChapter) + 1} // ${nextChapter}`,
+          duration: 2550,
+        });
+      }
+
+      const newMarks = buildPlayerMarks(updated, t).filter(
+        (mark) => mark.earned && !previousMarks.has(mark.id),
+      );
+      for (const mark of newMarks) {
+        gameEvents.push({
+          id: eventId("MARK_UNLOCKED"),
+          kind: "MARK_UNLOCKED",
+          eyebrow: t.eventMarkUnlocked,
+          title: mark.label,
+          body: t.eventMarkUnlockedBody,
+          code: "PLAYER MARK",
+          duration: 2100,
+        });
+      }
+
+      if (!gameEvents.length) {
+        gameEvents.push({
+          id: eventId("CHECKPOINT"),
+          kind: "CHECKPOINT",
+          eyebrow: t.eventCheckpoint,
+          title: forceShowedUp ? t.showedUp : t.save,
+          body: t.eventCheckpointBody,
+          duration: 1250,
+        });
+      }
+
+      pushEvents(gameEvents);
     } catch {
       toast.error(t.error);
     } finally {
@@ -213,6 +582,12 @@ export default function GrindModeClient({
 
   const completeCycle = async () => {
     if (!data?.activeCycle || !reflection.trim()) return;
+    const questTitle = data.activeCycle.title;
+    const previousMarks = new Set(
+      buildPlayerMarks(data, t)
+        .filter((mark) => mark.earned)
+        .map((mark) => mark.id),
+    );
     setSaving(true);
     try {
       const res = await fetch("/api/grind/cycles", {
@@ -225,12 +600,42 @@ export default function GrindModeClient({
         }),
       });
       if (!res.ok) throw new Error("complete");
+      await res.json();
       setReflection("");
       setTasks(defaultTasks());
       setNote("");
       setScreen("ARCHIVE");
-      await load();
-      toast.success(t.completed);
+      const updated = await load(true);
+
+      const gameEvents: GameEvent[] = [
+        {
+          id: eventId("QUEST_COMPLETE"),
+          kind: "QUEST_COMPLETE",
+          eyebrow: t.eventQuestComplete,
+          title: questTitle,
+          body: t.eventQuestCompleteBody,
+          code: "05 // ACHIEVE",
+          duration: 3600,
+        },
+      ];
+
+      if (updated) {
+        for (const mark of buildPlayerMarks(updated, t).filter(
+          (item) => item.earned && !previousMarks.has(item.id),
+        )) {
+          gameEvents.push({
+            id: eventId("MARK_UNLOCKED"),
+            kind: "MARK_UNLOCKED",
+            eyebrow: t.eventMarkUnlocked,
+            title: mark.label,
+            body: t.eventMarkUnlockedBody,
+            code: "PLAYER MARK",
+            duration: 2100,
+          });
+        }
+      }
+
+      pushEvents(gameEvents);
     } catch {
       toast.error(t.error);
     } finally {
@@ -240,9 +645,43 @@ export default function GrindModeClient({
 
   const activeTaskCount = tasks.filter((task) => task.label.trim()).length;
   const completedTaskCount = tasks.filter((task) => task.label.trim() && task.completed).length;
-  const chapterIndex = data?.activeCycle
-    ? Math.max(0, chapterOrder.indexOf(data.activeCycle.currentChapter))
-    : 0;
+  const chapterIndex = data?.activeCycle ? chapterRank(data.activeCycle.currentChapter) : 0;
+
+  const playerMarks = useMemo(() => (data ? buildPlayerMarks(data, t) : []), [data, t]);
+
+  const toggleTask = (index: number) => {
+    const task = tasks[index];
+    if (!task) return;
+    const completing = !task.completed;
+    setTasks((current) =>
+      current.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              completed: completing,
+              completedAt: completing ? new Date().toISOString() : null,
+            }
+          : item,
+      ),
+    );
+
+    if (completing && task.label.trim()) {
+      setRecentlyClearedTaskId(task.id);
+      if (missionTimerRef.current !== null) window.clearTimeout(missionTimerRef.current);
+      missionTimerRef.current = window.setTimeout(() => setRecentlyClearedTaskId(null), 950);
+      pushEvents([
+        {
+          id: eventId("MISSION_CLEARED"),
+          kind: "MISSION_CLEARED",
+          eyebrow: t.eventMissionCleared,
+          title: task.label.trim(),
+          body: t.eventMissionClearedBody,
+          code: taskKindLabel(task.kind, t),
+          duration: 1200,
+        },
+      ]);
+    }
+  };
 
   const equipPreset = (label: string, kind: GrindTaskKind = "MAIN") => {
     setTasks((current) => {
@@ -347,7 +786,7 @@ export default function GrindModeClient({
             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">01{" // "}{t.createCycleTitle}</span>
             <input
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setTitle(event.target.value)}
               placeholder={t.createCyclePlaceholder}
               className="mt-2 w-full border border-white/15 bg-white/[0.04] px-4 py-4 text-sm font-semibold text-white outline-none placeholder:text-white/25 focus:border-mbg-green"
             />
@@ -356,7 +795,7 @@ export default function GrindModeClient({
             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">02{" // "}{t.createCycleReason}</span>
             <textarea
               value={reason}
-              onChange={(event) => setReason(event.target.value)}
+              onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReason(event.target.value)}
               placeholder={t.createReasonPlaceholder}
               rows={4}
               className="mt-2 w-full resize-none border border-white/15 bg-white/[0.04] px-4 py-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-mbg-green"
@@ -457,7 +896,7 @@ export default function GrindModeClient({
                   key={task.id}
                   className={`group grid gap-3 border p-4 transition sm:grid-cols-[96px_1fr_auto] sm:items-center ${
                     complete ? "border-mbg-green/60 bg-mbg-green/[0.07]" : "border-white/12 bg-white/[0.025]"
-                  }`}
+                  } ${recentlyClearedTaskId === task.id ? "gm-mission-cleared" : ""}`}
                 >
                   <div>
                     <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/35">SLOT 0{index + 1}</p>
@@ -467,7 +906,7 @@ export default function GrindModeClient({
                   </div>
                   <input
                     value={task.label}
-                    onChange={(event) =>
+                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
                       setTasks((current) =>
                         current.map((item, i) => (i === index ? { ...item, label: event.target.value } : item)),
                       )
@@ -478,19 +917,7 @@ export default function GrindModeClient({
                   <button
                     type="button"
                     aria-label={complete ? t.missionComplete : t.missionOpen}
-                    onClick={() =>
-                      setTasks((current) =>
-                        current.map((item, i) =>
-                          i === index
-                            ? {
-                                ...item,
-                                completed: !item.completed,
-                                completedAt: !item.completed ? new Date().toISOString() : null,
-                              }
-                            : item,
-                        ),
-                      )
-                    }
+                    onClick={() => toggleTask(index)}
                     className={`flex min-h-11 min-w-28 items-center justify-center gap-2 border px-3 text-[9px] font-black uppercase tracking-[0.12em] transition ${
                       complete
                         ? "border-mbg-green bg-mbg-green text-mbg-black"
@@ -510,7 +937,7 @@ export default function GrindModeClient({
               <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/35">{t.note}</span>
               <textarea
                 value={note}
-                onChange={(event) => setNote(event.target.value)}
+                onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNote(event.target.value)}
                 placeholder={t.notePlaceholder}
                 rows={3}
                 className="mt-2 w-full resize-none border border-white/12 bg-black/20 p-3 text-sm text-white outline-none placeholder:text-white/20 focus:border-mbg-green"
@@ -561,25 +988,40 @@ export default function GrindModeClient({
           <div className="mt-7 grid gap-2 sm:grid-cols-5">
             {chapterOrder.map((chapter, index) => {
               const active = index === chapterIndex;
-              const done = index < chapterIndex || (chapter === "ACHIEVE" && data.activeCycle?.status === "COMPLETED");
+              const done = index < chapterIndex;
+              const locked = index > chapterIndex;
               const labels = [t.chapter01, t.chapter02, t.chapter03, t.chapter04, t.chapter05];
+              const statusLabel = active ? t.chapterActive : done ? t.chapterUnlocked : t.chapterLocked;
               return (
                 <div
                   key={chapter}
-                  className={`relative min-h-32 border p-4 ${
+                  className={`relative min-h-36 overflow-hidden border p-4 ${
                     active
-                      ? "border-mbg-green bg-mbg-green/[0.08]"
+                      ? "gm-chapter-active border-mbg-green bg-mbg-green/[0.09]"
                       : done
-                        ? "border-mbg-green/35 bg-white/[0.02]"
-                        : "border-white/10 bg-black/20"
+                        ? "border-mbg-green/35 bg-mbg-green/[0.025]"
+                        : "border-white/10 bg-black/35"
                   }`}
                 >
+                  {active ? <div className="absolute inset-x-0 top-0 h-px bg-mbg-green" /> : null}
                   <div className="flex items-start justify-between gap-3">
-                    <span className={`text-xl font-black ${active || done ? "text-mbg-green" : "text-white/20"}`}>0{index + 1}</span>
-                    {done ? <Check className="h-4 w-4 text-mbg-green" /> : active ? <Activity className="h-4 w-4 animate-pulse text-mbg-green" /> : <Circle className="h-3 w-3 text-white/20" />}
+                    <span className={`text-xl font-black ${active || done ? "text-mbg-green" : "text-white/16"}`}>0{index + 1}</span>
+                    {done ? (
+                      <Check className="h-4 w-4 text-mbg-green" />
+                    ) : active ? (
+                      <Activity className="h-4 w-4 animate-pulse text-mbg-green" />
+                    ) : (
+                      <LockKeyhole className="h-4 w-4 text-white/18" />
+                    )}
                   </div>
-                  <p className={`mt-6 text-[10px] font-black uppercase tracking-[0.14em] ${active ? "text-white" : "text-white/55"}`}>{chapter}</p>
-                  <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.12em] text-white/30">{labels[index]}</p>
+                  <div className="mt-5 flex items-center justify-between gap-2">
+                    <p className={`text-[10px] font-black uppercase tracking-[0.14em] ${active ? "text-white" : done ? "text-white/60" : "text-white/24"}`}>{chapter}</p>
+                    <span className={`text-[7px] font-black uppercase tracking-[0.12em] ${active ? "text-mbg-green" : done ? "text-mbg-green/60" : "text-white/18"}`}>{statusLabel}</span>
+                  </div>
+                  <p className={`mt-1 text-[8px] font-bold uppercase tracking-[0.12em] ${locked ? "text-white/15" : "text-white/30"}`}>{labels[index]}</p>
+                  <div className="mt-4">
+                    <SignalTrace hot={active} />
+                  </div>
                 </div>
               );
             })}
@@ -608,7 +1050,7 @@ export default function GrindModeClient({
               <label className="text-[9px] font-black uppercase tracking-[0.15em] text-white/35">{t.reflection}</label>
               <textarea
                 value={reflection}
-                onChange={(event) => setReflection(event.target.value)}
+                onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReflection(event.target.value)}
                 rows={5}
                 className="mt-2 w-full resize-none border border-white/12 bg-black/20 p-4 text-sm text-white outline-none focus:border-mbg-green"
               />
@@ -705,71 +1147,121 @@ export default function GrindModeClient({
   );
 
   const renderCard = () => (
-    <div className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
-      <Panel accent className="p-5 sm:p-7">
-        <div className="flex flex-col justify-between gap-10 sm:min-h-[420px]">
-          <div>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">MILOS BG{" // "}{t.cardTitle}</p>
-                <h2 className="mt-2 text-4xl font-black uppercase text-white">{displayName}</h2>
-              </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border border-mbg-green/60 bg-mbg-green/10">
-                <ShieldCheck className="h-8 w-8 text-mbg-green" />
-              </div>
-            </div>
-            <div className="mt-7 grid grid-cols-3 gap-px border border-white/10 bg-white/10">
-              {[
-                [t.cycles, data.profile.cyclesCompleted],
-                [t.grinds, data.profile.grindsCompleted],
-                [t.returns, data.profile.returns],
-              ].map(([label, value]) => (
-                <div key={String(label)} className="bg-[#0d0f0e] p-4 text-center">
-                  <p className="text-2xl font-black text-white">{value}</p>
-                  <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.13em] text-white/35">{label}</p>
+    <div className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
+        <Panel accent className="p-5 sm:p-7">
+          <div className="flex flex-col justify-between gap-10 sm:min-h-[420px]">
+            <div>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">MILOS BG{" // "}{t.cardTitle}</p>
+                  <h2 className="mt-2 text-4xl font-black uppercase text-white">{displayName}</h2>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="grid grid-cols-5 gap-2">
-              {chapterOrder.map((chapter, index) => {
-                const lit = index <= chapterIndex || data.profile.cyclesCompleted > 0;
-                return (
-                  <div key={chapter} className="text-center">
-                    <div className={`mx-auto flex h-10 w-10 items-center justify-center border ${lit ? "border-mbg-green bg-mbg-green/10 text-mbg-green" : "border-white/10 text-white/20"}`}>
-                      {lit ? <Check className="h-4 w-4" /> : <Circle className="h-3 w-3" />}
-                    </div>
-                    <p className="mt-2 hidden text-[7px] font-bold uppercase tracking-[0.08em] text-white/35 sm:block">{chapter}</p>
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-mbg-green/60 bg-mbg-green/10">
+                  <div className="gm-event-ring absolute inset-2 rounded-full border border-mbg-green/20" />
+                  <ShieldCheck className="relative h-8 w-8 text-mbg-green" />
+                </div>
+              </div>
+              <div className="mt-7 grid grid-cols-3 gap-px border border-white/10 bg-white/10">
+                {[
+                  [t.cycles, data.profile.cyclesCompleted],
+                  [t.grinds, data.profile.grindsCompleted],
+                  [t.returns, data.profile.returns],
+                ].map(([label, value]) => (
+                  <div key={String(label)} className="bg-[#07100c] p-4 text-center">
+                    <p className="text-2xl font-black text-white">{value}</p>
+                    <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.13em] text-white/35">{label}</p>
+                    <div className="mt-2 flex justify-center"><SignalTrace hot /></div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
-            <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">GRIND UNTIL ACHIEVE{" // "}KEEP MOVING.</p>
-          </div>
-        </div>
-      </Panel>
 
-      <Panel className="p-5 sm:p-7">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.stats}</p>
-        <div className="mt-5 space-y-3">
-          {[
-            [t.memberStatus, t.statusActive],
-            [t.streak, `${data.profile.currentStreak}`],
-            [t.longest, `${data.profile.longestStreak}`],
-            [t.currentSave, data.activeCycle ? data.activeCycle.title : t.noCycle],
-          ].map(([label, value]) => (
-            <div key={String(label)} className="flex items-center justify-between gap-4 border-b border-white/10 pb-3">
-              <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{label}</span>
-              <span className="max-w-[60%] text-right text-[10px] font-black uppercase tracking-[0.1em] text-white">{value}</span>
+            <div>
+              <div className="grid grid-cols-5 gap-2">
+                {chapterOrder.map((chapter, index) => {
+                  const lit = index <= chapterIndex || data.profile.cyclesCompleted > 0;
+                  return (
+                    <div key={chapter} className="text-center">
+                      <div className={`mx-auto flex h-10 w-10 items-center justify-center border ${lit ? "border-mbg-green bg-mbg-green/10 text-mbg-green" : "border-white/10 text-white/20"}`}>
+                        {lit ? <Check className="h-4 w-4" /> : <LockKeyhole className="h-3.5 w-3.5" />}
+                      </div>
+                      <p className="mt-2 hidden text-[7px] font-bold uppercase tracking-[0.08em] text-white/35 sm:block">{chapter}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">GRIND UNTIL ACHIEVE{" // "}KEEP MOVING.</p>
             </div>
-          ))}
+          </div>
+        </Panel>
+
+        <Panel className="p-5 sm:p-7">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.stats}</p>
+            <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.14em] text-mbg-green/70">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mbg-green" />
+              {t.connected}
+            </div>
+          </div>
+          <div className="mt-5 space-y-3">
+            {[
+              [t.memberStatus, t.statusActive],
+              [t.streak, `${data.profile.currentStreak}`],
+              [t.longest, `${data.profile.longestStreak}`],
+              [t.currentSave, data.activeCycle ? data.activeCycle.title : t.noCycle],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="flex items-center justify-between gap-4 border-b border-white/10 pb-3">
+                <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{label}</span>
+                <span className="max-w-[60%] text-right text-[10px] font-black uppercase tracking-[0.1em] text-white">{value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 border border-mbg-green/30 bg-mbg-green/[0.06] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-mbg-green">SYSTEM MESSAGE</p>
+              <SignalTrace hot />
+            </div>
+            <p className="mt-2 text-sm font-bold uppercase leading-6 text-white">{t.systemRule}</p>
+            <p className="mt-2 text-[10px] uppercase leading-5 text-white/35">{t.noLeaderboard}</p>
+          </div>
+        </Panel>
+      </div>
+
+      <Panel accent className="p-5 sm:p-7">
+        <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.marksTitle}</p>
+            <h3 className="mt-2 text-2xl font-black uppercase text-white">{playerMarks.filter((mark) => mark.earned).length.toString().padStart(2, "0")}{" // "}{playerMarks.length.toString().padStart(2, "0")}</h3>
+          </div>
+          <p className="max-w-xl text-[10px] uppercase leading-5 tracking-[0.08em] text-white/35">{t.marksBody}</p>
         </div>
-        <div className="mt-6 border border-mbg-green/30 bg-mbg-green/[0.06] p-4">
-          <p className="text-[9px] font-black uppercase tracking-[0.15em] text-mbg-green">SYSTEM MESSAGE</p>
-          <p className="mt-2 text-sm font-bold uppercase leading-6 text-white">{t.systemRule}</p>
-          <p className="mt-2 text-[10px] uppercase leading-5 text-white/35">{t.noLeaderboard}</p>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {playerMarks.map((mark, index) => {
+            const MarkIcon = mark.Icon;
+            return (
+              <div
+                key={mark.id}
+                className={`relative overflow-hidden border p-4 ${mark.earned ? "border-mbg-green/55 bg-mbg-green/[0.055]" : "border-white/10 bg-black/25"}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className={`flex h-10 w-10 items-center justify-center border ${mark.earned ? "border-mbg-green/60 text-mbg-green" : "border-white/10 text-white/18"}`}>
+                    {mark.earned ? <MarkIcon className="h-5 w-5" /> : <LockKeyhole className="h-4 w-4" />}
+                  </div>
+                  <span className={`text-[8px] font-black uppercase tracking-[0.13em] ${mark.earned ? "text-mbg-green" : "text-white/18"}`}>
+                    {mark.earned ? t.earnedMark : t.lockedMark}
+                  </span>
+                </div>
+                <p className={`mt-5 text-sm font-black uppercase ${mark.earned ? "text-white" : "text-white/30"}`}>{mark.label}</p>
+                <p className="mt-2 text-[9px] leading-4 text-white/30">{mark.requirement}</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <span className="text-[8px] font-black uppercase tracking-[0.12em] text-white/20">MARK {String(index + 1).padStart(2, "0")}</span>
+                  <SignalTrace hot={mark.earned} />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Panel>
     </div>
@@ -846,8 +1338,31 @@ export default function GrindModeClient({
   ];
 
   return (
-    <div className="relative my-6 overflow-hidden border border-white/15 bg-mbg-black text-white shadow-2xl shadow-black/20">
-      <HudGrid />
+    <>
+      <GrindFxStyles />
+      {activeEvent ? (
+        <GameEventOverlay
+          event={activeEvent}
+          onDismiss={() => setActiveEvent(null)}
+          skipLabel={t.skipEvent}
+        />
+      ) : null}
+      {booting ? (
+        <div className="gm-boot pointer-events-none fixed inset-0 z-[170] flex items-center justify-center bg-[#020504]/95 text-white">
+          <HudGrid />
+          <div className="relative text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center border border-mbg-green/60 bg-mbg-green/10 text-mbg-green">
+              <Gamepad2 className="h-7 w-7" />
+            </div>
+            <p className="mt-5 text-[9px] font-black uppercase tracking-[0.28em] text-mbg-green">{t.systemOnline}</p>
+            <p className="mt-2 text-[8px] font-black uppercase tracking-[0.18em] text-white/30">{t.connected}{" // "}{displayName}</p>
+            <div className="mt-4 flex justify-center"><SignalTrace hot /></div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="gm-shell relative my-6 overflow-hidden border border-mbg-green/25 bg-[#040a07] text-white shadow-2xl shadow-black/30">
+        <HudGrid />
 
       <header className="relative border-b border-white/10 bg-black/35 px-4 py-4 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -865,8 +1380,12 @@ export default function GrindModeClient({
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-2 border border-white/10 px-3 py-2 text-[8px] font-black uppercase tracking-[0.14em] text-white/35 sm:flex">
+            <div className="hidden items-center gap-3 border border-mbg-green/25 bg-mbg-green/[0.035] px-3 py-2 text-[8px] font-black uppercase tracking-[0.14em] text-mbg-green/75 sm:flex">
               <span className="h-2 w-2 animate-pulse rounded-full bg-mbg-green" />
+              <span>{t.connected}</span>
+              <SignalTrace hot />
+            </div>
+            <div className="hidden border border-white/10 px-3 py-2 text-[8px] font-black uppercase tracking-[0.14em] text-white/30 xl:block">
               {t.saveData}
             </div>
             <div className="flex border border-white/15 text-[9px] font-black uppercase">
@@ -897,7 +1416,7 @@ export default function GrindModeClient({
         </div>
       </div>
 
-      <div className="relative grid lg:grid-cols-[180px_minmax(0,1fr)_220px]">
+      <div className="relative grid lg:grid-cols-[180px_minmax(0,1fr)_240px]">
         <aside className="hidden border-r border-white/10 bg-black/25 p-3 lg:block">
           <p className="px-2 py-3 text-[8px] font-black uppercase tracking-[0.18em] text-white/25">{"// MENU"}</p>
           <nav className="space-y-1">
@@ -953,8 +1472,11 @@ export default function GrindModeClient({
             ))}
           </div>
 
-          <div className="mt-6 border border-white/10 p-4">
-            <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/25">MISSION STATUS</p>
+          <div className="mt-6 border border-mbg-green/20 bg-mbg-green/[0.025] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/25">MISSION STATUS</p>
+              <SignalTrace hot={Boolean(data.activeCycle)} />
+            </div>
             <div className="mt-3 flex items-center justify-between gap-3">
               <span className="text-[10px] font-black uppercase text-white/60">{data.activeCycle ? data.activeCycle.currentChapter : "STANDBY"}</span>
               <span className="h-2 w-2 animate-pulse rounded-full bg-mbg-green" />
@@ -986,6 +1508,7 @@ export default function GrindModeClient({
         <span>GRIND MODE{" // "}MILOS BG</span>
         <span>{t.noLeaderboard}</span>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
