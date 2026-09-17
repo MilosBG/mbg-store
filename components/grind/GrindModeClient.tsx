@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, ComponentType, ReactNode } from "react";
 import {
   Activity,
+  ArrowRight,
+  BadgeCheck,
   Archive,
   BookOpen,
   Check,
@@ -19,6 +21,8 @@ import {
   RotateCcw,
   Save,
   ShieldCheck,
+  Play,
+  Radio,
   Sparkles,
   Target,
   Trophy,
@@ -73,6 +77,14 @@ type PlayerMark = {
 
 const chapterOrder = ["GRIND", "RESILIENCE", "CONSISTENCY", "FOCUS", "ACHIEVE"] as const;
 
+const chapterPalette = {
+  GRIND: { accent: "#58F28B", soft: "rgba(88,242,139,.12)", muted: "rgba(88,242,139,.35)" },
+  RESILIENCE: { accent: "#FFB454", soft: "rgba(255,180,84,.12)", muted: "rgba(255,180,84,.35)" },
+  CONSISTENCY: { accent: "#63D8FF", soft: "rgba(99,216,255,.12)", muted: "rgba(99,216,255,.35)" },
+  FOCUS: { accent: "#B39BFF", soft: "rgba(179,155,255,.12)", muted: "rgba(179,155,255,.35)" },
+  ACHIEVE: { accent: "#F4F6F2", soft: "rgba(244,246,242,.12)", muted: "rgba(244,246,242,.35)" },
+} as const;
+
 const chapterRank = (chapter: (typeof chapterOrder)[number] | undefined) =>
   chapter ? Math.max(0, chapterOrder.indexOf(chapter)) : 0;
 
@@ -113,11 +125,11 @@ function HudGrid() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 opacity-[0.13]"
+      className="pointer-events-none absolute inset-0 opacity-[0.065]"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px)",
-        backgroundSize: "34px 34px",
+          "linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)",
+        backgroundSize: "44px 44px",
       }}
     />
   );
@@ -126,10 +138,10 @@ function HudGrid() {
 function CornerMarks() {
   return (
     <>
-      <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l border-t border-mbg-green/70" />
-      <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r border-t border-mbg-green/70" />
-      <span className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b border-l border-mbg-green/70" />
-      <span className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b border-r border-mbg-green/70" />
+      <span className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l border-t border-[#58F28B]/60" />
+      <span className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r border-t border-[#58F28B]/60" />
+      <span className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b border-l border-[#58F28B]/60" />
+      <span className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b border-r border-[#58F28B]/60" />
     </>
   );
 }
@@ -145,11 +157,11 @@ function Panel({
 }) {
   return (
     <section
-      className={`gm-panel relative overflow-hidden border bg-[#07100c]/95 ${
-        accent ? "gm-panel-accent border-mbg-green/70" : "border-white/15"
+      className={`gm-panel relative overflow-hidden rounded-[2px] border bg-[#151A1B]/96 ${
+        accent ? "gm-panel-accent border-[#58F28B]/40" : "border-white/[0.08]"
       } ${className}`}
     >
-      <CornerMarks />
+      {accent ? <CornerMarks /> : null}
       {children}
     </section>
   );
@@ -160,7 +172,7 @@ function SignalTrace({ hot = false }: { hot?: boolean }) {
     <svg
       viewBox="0 0 96 22"
       aria-hidden="true"
-      className={`h-5 w-24 ${hot ? "text-mbg-green" : "text-white/25"}`}
+      className={`h-5 w-24 ${hot ? "text-[#58F28B]" : "text-white/20"}`}
     >
       <path
         d="M1 12 H18 L23 12 L27 5 L32 18 L37 9 L42 12 H55 L60 12 L64 7 L68 15 L73 10 L78 12 H95"
@@ -178,37 +190,41 @@ function GrindFxStyles() {
   return (
     <style>{`
       @keyframes gm-scan {
-        0% { transform: translateX(-120%); opacity: 0; }
-        18% { opacity: .45; }
-        55% { opacity: .18; }
-        100% { transform: translateX(220%); opacity: 0; }
+        0% { transform: translateX(-130%); opacity: 0; }
+        22% { opacity: .28; }
+        60% { opacity: .10; }
+        100% { transform: translateX(260%); opacity: 0; }
       }
       @keyframes gm-signal {
-        0% { stroke-dashoffset: 180; opacity: .35; }
-        35% { opacity: 1; }
-        100% { stroke-dashoffset: 0; opacity: .45; }
+        0% { stroke-dashoffset: 180; opacity: .25; }
+        35% { opacity: .85; }
+        100% { stroke-dashoffset: 0; opacity: .35; }
       }
       @keyframes gm-event-in {
-        0% { opacity: 0; transform: translateY(16px) scale(.985); filter: blur(5px); }
+        0% { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(6px); }
         100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
       }
       @keyframes gm-pulse-ring {
-        0%, 100% { transform: scale(.94); opacity: .28; }
-        50% { transform: scale(1.06); opacity: .8; }
+        0%, 100% { transform: scale(.96); opacity: .22; }
+        50% { transform: scale(1.04); opacity: .7; }
       }
       @keyframes gm-cleared {
-        0% { box-shadow: inset 0 0 0 1px rgba(0,130,26,.2); }
-        35% { box-shadow: inset 0 0 0 1px rgba(0,130,26,1), 0 0 30px rgba(0,130,26,.25); }
-        100% { box-shadow: inset 0 0 0 1px rgba(0,130,26,.35); }
+        0% { box-shadow: inset 0 0 0 1px rgba(88,242,139,.16); }
+        35% { box-shadow: inset 0 0 0 1px rgba(88,242,139,.92), 0 0 30px rgba(88,242,139,.16); }
+        100% { box-shadow: inset 0 0 0 1px rgba(88,242,139,.30); }
       }
       @keyframes gm-active-chapter {
-        0%, 100% { box-shadow: inset 0 0 0 1px rgba(0,130,26,.15), 0 0 0 rgba(0,130,26,0); }
-        50% { box-shadow: inset 0 0 0 1px rgba(0,130,26,.65), 0 0 24px rgba(0,130,26,.16); }
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
       }
       @keyframes gm-boot {
         0% { opacity: 1; }
         72% { opacity: 1; }
         100% { opacity: 0; }
+      }
+      @keyframes gm-breathe {
+        0%,100% { box-shadow: 0 0 0 0 rgba(88,242,139,0); }
+        50% { box-shadow: 0 0 0 8px rgba(88,242,139,.04); }
       }
       .gm-shell::before {
         content: "";
@@ -216,8 +232,8 @@ function GrindFxStyles() {
         position: absolute;
         inset: 0;
         z-index: 1;
-        opacity: .22;
-        background: radial-gradient(circle at 75% 12%, rgba(0,130,26,.18), transparent 25%), linear-gradient(180deg, rgba(0,130,26,.035), transparent 22%);
+        opacity: .55;
+        background: radial-gradient(circle at 78% 8%, rgba(88,242,139,.06), transparent 24%), radial-gradient(circle at 20% 70%, rgba(99,216,255,.025), transparent 28%);
       }
       .gm-shell::after {
         content: "";
@@ -225,29 +241,28 @@ function GrindFxStyles() {
         position: absolute;
         inset: 0;
         z-index: 2;
-        opacity: .12;
-        background: repeating-linear-gradient(180deg, transparent 0 3px, rgba(255,255,255,.025) 4px);
+        opacity: .06;
+        background: repeating-linear-gradient(180deg, transparent 0 4px, rgba(255,255,255,.02) 5px);
       }
       .gm-panel::after {
         content: "";
         pointer-events: none;
         position: absolute;
-        top: 0;
-        bottom: 0;
-        left: -35%;
-        width: 26%;
-        background: linear-gradient(90deg, transparent, rgba(0,130,26,.08), rgba(0,130,26,.16), transparent);
-        animation: gm-scan 6.5s ease-in-out infinite;
+        top: 0; bottom: 0; left: -45%;
+        width: 22%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.025), rgba(88,242,139,.05), transparent);
+        animation: gm-scan 8.5s ease-in-out infinite;
       }
-      .gm-panel-accent::after { animation-duration: 4.8s; }
-      .gm-signal-path { stroke-dasharray: 180; animation: gm-signal 2.8s linear infinite; }
-      .gm-event-card { animation: gm-event-in .32s ease-out both; }
-      .gm-event-ring { animation: gm-pulse-ring 1.45s ease-in-out infinite; }
+      .gm-panel-accent::after { animation-duration: 6.8s; }
+      .gm-signal-path { stroke-dasharray: 180; animation: gm-signal 3.2s linear infinite; }
+      .gm-event-card { animation: gm-event-in .34s ease-out both; }
+      .gm-event-ring { animation: gm-pulse-ring 1.6s ease-in-out infinite; }
       .gm-mission-cleared { animation: gm-cleared .8s ease-out both; }
-      .gm-chapter-active { animation: gm-active-chapter 2.2s ease-in-out infinite; }
+      .gm-chapter-active { animation: gm-active-chapter 2.6s ease-in-out infinite; }
+      .gm-primary-action { animation: gm-breathe 2.8s ease-in-out infinite; }
       .gm-boot { animation: gm-boot .95s ease-out forwards; }
       @media (prefers-reduced-motion: reduce) {
-        .gm-panel::after, .gm-signal-path, .gm-event-ring, .gm-mission-cleared, .gm-chapter-active, .gm-boot { animation: none !important; }
+        .gm-panel::after, .gm-signal-path, .gm-event-ring, .gm-mission-cleared, .gm-chapter-active, .gm-primary-action, .gm-boot { animation: none !important; }
       }
     `}</style>
   );
@@ -281,14 +296,14 @@ function GameEventOverlay({
   if (minor) {
     return (
       <div className="pointer-events-none fixed inset-x-4 bottom-5 z-[180] flex justify-end" aria-live="polite">
-        <div className="gm-event-card pointer-events-auto w-full max-w-sm overflow-hidden border border-mbg-green/65 bg-[#06100b]/95 p-4 text-white shadow-2xl shadow-black/60 backdrop-blur-md">
+        <div className="gm-event-card pointer-events-auto w-full max-w-sm overflow-hidden border border-[#58F28B]/65 bg-[#111617]/95 p-4 text-white shadow-2xl shadow-black/60 backdrop-blur-md">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-mbg-green/60 bg-mbg-green/10 text-mbg-green">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#58F28B]/60 bg-[#58F28B]/10 text-[#58F28B]">
               <Icon className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[8px] font-black uppercase tracking-[0.18em] text-mbg-green">{event.eyebrow}</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#58F28B]">{event.eyebrow}</p>
                 <SignalTrace hot />
               </div>
               <p className="mt-1 truncate text-sm font-black uppercase text-white">{event.title}</p>
@@ -296,7 +311,7 @@ function GameEventOverlay({
             </div>
           </div>
           <div className="mt-3 h-px overflow-hidden bg-white/10">
-            <div className="h-full w-full bg-mbg-green/70" />
+            <div className="h-full w-full bg-[#58F28B]/70" />
           </div>
         </div>
       </div>
@@ -312,20 +327,20 @@ function GameEventOverlay({
     >
       <HudGrid />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,130,26,.18),transparent_42%)]" />
-      <div className="gm-event-card relative w-full max-w-3xl overflow-hidden border border-mbg-green/65 bg-[#06100b] p-6 shadow-2xl shadow-black sm:p-10">
+      <div className="gm-event-card relative w-full max-w-3xl overflow-hidden border border-[#58F28B]/65 bg-[#111617] p-6 shadow-2xl shadow-black sm:p-10">
         <CornerMarks />
-        <div className="absolute inset-x-0 top-0 h-px bg-mbg-green" />
+        <div className="absolute inset-x-0 top-0 h-px bg-[#58F28B]" />
         <div className="grid gap-8 sm:grid-cols-[160px_1fr] sm:items-center">
           <div className="relative mx-auto flex h-36 w-36 items-center justify-center">
-            <div className="gm-event-ring absolute inset-0 rounded-full border border-mbg-green/45" />
-            <div className="absolute inset-4 rounded-full border border-dashed border-mbg-green/30" />
-            <div className="absolute h-px w-full bg-mbg-green/25" />
-            <div className="absolute h-full w-px bg-mbg-green/25" />
-            <Icon className="relative h-12 w-12 text-mbg-green" />
+            <div className="gm-event-ring absolute inset-0 rounded-full border border-[#58F28B]/45" />
+            <div className="absolute inset-4 rounded-full border border-dashed border-[#58F28B]/30" />
+            <div className="absolute h-px w-full bg-[#58F28B]/25" />
+            <div className="absolute h-full w-px bg-[#58F28B]/25" />
+            <Icon className="relative h-12 w-12 text-[#58F28B]" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-[9px] font-black uppercase tracking-[0.23em] text-mbg-green">{event.eyebrow}</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.23em] text-[#58F28B]">{event.eyebrow}</span>
               {event.code ? <span className="border border-white/15 px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/40">{event.code}</span> : null}
             </div>
             <h2 className={`mt-4 font-black uppercase tracking-[-0.04em] text-white ${event.kind === "QUEST_COMPLETE" ? "text-5xl sm:text-7xl" : "text-4xl sm:text-6xl"}`}>
@@ -341,7 +356,7 @@ function GameEventOverlay({
         <button
           type="button"
           onClick={onDismiss}
-          className="mt-8 min-h-10 border border-white/15 px-4 text-[8px] font-black uppercase tracking-[0.16em] text-white/40 transition hover:border-mbg-green hover:text-mbg-green"
+          className="mt-8 min-h-10 border border-white/15 px-4 text-[8px] font-black uppercase tracking-[0.16em] text-white/40 transition hover:border-[#58F28B] hover:text-[#58F28B]"
         >
           {skipLabel}
         </button>
@@ -698,10 +713,10 @@ export default function GrindModeClient({
 
   if (loading) {
     return (
-      <div className="relative my-8 overflow-hidden border border-mbg-green/40 bg-mbg-black px-6 py-20 text-center text-white">
+      <div className="relative my-8 overflow-hidden border border-[#58F28B]/40 bg-mbg-black px-6 py-20 text-center text-white">
         <HudGrid />
-        <Gamepad2 className="mx-auto h-8 w-8 animate-pulse text-mbg-green" />
-        <p className="mt-4 text-xs font-black uppercase tracking-[0.25em] text-mbg-green">{t.loading}</p>
+        <Gamepad2 className="mx-auto h-8 w-8 animate-pulse text-[#58F28B]" />
+        <p className="mt-4 text-xs font-black uppercase tracking-[0.25em] text-[#58F28B]">{t.loading}</p>
       </div>
     );
   }
@@ -715,9 +730,9 @@ export default function GrindModeClient({
         <div className="relative grid min-h-[560px] lg:grid-cols-[1.1fr_.9fr]">
           <div className="flex flex-col justify-between border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r">
             <div>
-              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.22em] text-mbg-green">
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#58F28B]">
                 <span>{t.eyebrow}</span>
-                <span className="border border-mbg-green/60 px-2 py-1">{t.lockedHint}</span>
+                <span className="border border-[#58F28B]/60 px-2 py-1">{t.lockedHint}</span>
               </div>
               <h1 className="mt-6 text-5xl font-black uppercase tracking-[-0.05em] sm:text-7xl">
                 GRIND<br />MODE
@@ -727,8 +742,8 @@ export default function GrindModeClient({
 
             <div className="mt-10 grid grid-cols-2 gap-px border border-white/10 bg-white/10 sm:grid-cols-4">
               {[t.lockedFeature1, t.lockedFeature2, t.lockedFeature3, t.lockedFeature4].map((item, index) => (
-                <div key={item} className="bg-[#0b0d0c] p-4">
-                  <span className="text-[9px] font-black text-mbg-green">0{index + 1}</span>
+                <div key={item} className="bg-[#131718] p-4">
+                  <span className="text-[9px] font-black text-[#58F28B]">0{index + 1}</span>
                   <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.12em] text-white/60">{item}</p>
                 </div>
               ))}
@@ -736,16 +751,16 @@ export default function GrindModeClient({
           </div>
 
           <div className="relative flex flex-col items-center justify-center p-8 text-center sm:p-12">
-            <div className="relative flex h-36 w-36 items-center justify-center rounded-full border border-mbg-green/35">
+            <div className="relative flex h-36 w-36 items-center justify-center rounded-full border border-[#58F28B]/35">
               <div className="absolute inset-3 rounded-full border border-dashed border-white/15" />
-              <div className="absolute h-px w-full bg-mbg-green/25" />
-              <div className="absolute h-full w-px bg-mbg-green/25" />
-              <LockKeyhole className="h-10 w-10 text-mbg-green" />
+              <div className="absolute h-px w-full bg-[#58F28B]/25" />
+              <div className="absolute h-full w-px bg-[#58F28B]/25" />
+              <LockKeyhole className="h-10 w-10 text-[#58F28B]" />
             </div>
-            <p className="mt-7 text-[10px] font-black uppercase tracking-[0.25em] text-mbg-green">{t.lockedTitle}</p>
+            <p className="mt-7 text-[10px] font-black uppercase tracking-[0.25em] text-[#58F28B]">{t.lockedTitle}</p>
             <Link
               href={`/?lang=${lang}`}
-              className="mt-6 inline-flex min-h-12 items-center gap-3 border border-mbg-green bg-mbg-green px-7 py-3 text-xs font-black uppercase tracking-[0.16em] text-mbg-black transition hover:bg-white"
+              className="mt-6 inline-flex min-h-12 items-center gap-3 border border-[#58F28B] bg-[#58F28B] px-7 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#07100A] transition hover:bg-white"
             >
               {t.lockedCta}
               <ChevronRight className="h-4 w-4" />
@@ -771,10 +786,10 @@ export default function GrindModeClient({
       <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr]">
         <div className="flex flex-col justify-between border-b border-white/10 pb-7 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-7">
           <div>
-            <div className="flex h-16 w-16 items-center justify-center border border-mbg-green/70 bg-mbg-green/10 text-mbg-green">
+            <div className="flex h-16 w-16 items-center justify-center border border-[#58F28B]/60 bg-[#58F28B]/10 text-[#58F28B]">
               <Target className="h-8 w-8" />
             </div>
-            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.22em] text-mbg-green">{t.questEmpty}</p>
+            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.22em] text-[#58F28B]">{t.questEmpty}</p>
             <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">{t.startCycle}</h2>
             <p className="mt-4 text-sm leading-6 text-white/55">{t.questEmptyBody}</p>
           </div>
@@ -783,29 +798,29 @@ export default function GrindModeClient({
 
         <div>
           <label className="block">
-            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">01{" // "}{t.createCycleTitle}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#58F28B]">01{" // "}{t.createCycleTitle}</span>
             <input
               value={title}
               onChange={(event: ChangeEvent<HTMLInputElement>) => setTitle(event.target.value)}
               placeholder={t.createCyclePlaceholder}
-              className="mt-2 w-full border border-white/15 bg-white/[0.04] px-4 py-4 text-sm font-semibold text-white outline-none placeholder:text-white/25 focus:border-mbg-green"
+              className="mt-2 w-full border border-white/15 bg-white/[0.04] px-4 py-4 text-sm font-semibold text-white outline-none placeholder:text-white/25 focus:border-[#58F28B]"
             />
           </label>
           <label className="mt-5 block">
-            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">02{" // "}{t.createCycleReason}</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#58F28B]">02{" // "}{t.createCycleReason}</span>
             <textarea
               value={reason}
               onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReason(event.target.value)}
               placeholder={t.createReasonPlaceholder}
               rows={4}
-              className="mt-2 w-full resize-none border border-white/15 bg-white/[0.04] px-4 py-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-mbg-green"
+              className="mt-2 w-full resize-none border border-white/15 bg-white/[0.04] px-4 py-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#58F28B]"
             />
           </label>
           <button
             type="button"
             disabled={saving || !title.trim() || !reason.trim()}
             onClick={() => void createCycle()}
-            className="mt-5 flex min-h-12 w-full items-center justify-center gap-3 border border-mbg-green bg-mbg-green px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-mbg-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
+            className="mt-5 flex min-h-12 w-full items-center justify-center gap-3 border border-[#58F28B] bg-[#58F28B] px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#07100A] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
           >
             {t.start}
             <ChevronRight className="h-4 w-4" />
@@ -818,121 +833,278 @@ export default function GrindModeClient({
   const renderToday = () => {
     if (!data.activeCycle) return renderNoCycle();
 
+    const mainIndex = Math.max(0, tasks.findIndex((task) => task.kind === "MAIN"));
+    const mainTask = tasks[mainIndex];
+    const supportTasks = tasks
+      .map((task, index) => ({ task, index }))
+      .filter(({ task }) => task.kind === "SUPPORT");
+    const fallbackEntry = tasks
+      .map((task, index) => ({ task, index }))
+      .find(({ task }) => task.kind === "MINIMUM");
+    const currentPalette = chapterPalette[data.activeCycle.currentChapter];
+    const nextChapter = chapterOrder[Math.min(chapterIndex + 1, chapterOrder.length - 1)];
+    const earnedMarks = playerMarks.filter((mark) => mark.earned).length;
+    const primaryReady = Boolean(mainTask?.label.trim());
+    const primaryDone = Boolean(mainTask?.completed);
+    const checkpointSaved = Boolean(data.today?.showedUp);
+
+    const primaryCta = () => {
+      if (!primaryReady) {
+        setScreen("MISSIONS");
+        return;
+      }
+      if (!primaryDone) {
+        toggleTask(mainIndex);
+        return;
+      }
+      if (!checkpointSaved) {
+        void saveToday(true);
+      }
+    };
+
+    const primaryCtaLabel = !primaryReady
+      ? t.choosePrimary
+      : !primaryDone
+        ? t.completePrimary
+        : checkpointSaved
+          ? t.todayComplete
+          : t.saveToday;
+
     return (
-      <div className="space-y-4">
-        {data.today?.resilienceReturn && (
-          <Panel accent className="p-5 sm:p-6">
+      <div className="space-y-5">
+        {data.today?.resilienceReturn ? (
+          <div className="relative overflow-hidden rounded-[2px] border border-[#FFB454]/35 bg-[#241A10] p-5 sm:p-6">
+            <div className="absolute inset-y-0 left-0 w-1 bg-[#FFB454]" />
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-mbg-green bg-mbg-green/10 text-mbg-green">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#FFB454]/12 text-[#FFB454]">
                   <RotateCcw className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.resilienceActivated}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFB454]">{t.resilienceActivated}</p>
                   <h2 className="mt-1 text-xl font-black uppercase text-white">{t.missed}</h2>
-                  <p className="mt-2 max-w-2xl text-sm text-white/55">{t.returnCopy}</p>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">{t.returnCopy}</p>
                 </div>
               </div>
-              <span className="border border-mbg-green/60 px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-mbg-green">02{" // "}RESILIENCE</span>
+              <span className="rounded-full border border-[#FFB454]/30 bg-[#FFB454]/10 px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-[#FFB454]">
+                02 / RESILIENCE
+              </span>
             </div>
-          </Panel>
-        )}
+          </div>
+        ) : null}
 
         <Panel accent className="p-5 sm:p-7">
-          <div className="grid gap-6 lg:grid-cols-[1fr_220px]">
-            <div>
+          <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_270px] xl:items-stretch">
+            <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-mbg-green">{t.activeQuest}</span>
-                <span className="border border-white/15 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white/45">{t.statusActive}</span>
+                <span className="rounded-full bg-[#58F28B]/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-[#58F28B]">{t.missionBriefing}</span>
+                <span className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.13em] text-white/35">
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentPalette.accent }} />
+                  {t.statusActive}
+                </span>
               </div>
-              <h2 className="mt-3 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">{data.activeCycle.title}</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">{data.activeCycle.reason}</p>
 
-              <div className="mt-7">
-                <div className="mb-2 flex items-center justify-between text-[9px] font-black uppercase tracking-[0.15em]">
-                  <span className="text-white/45">{t.progress}</span>
-                  <span className="text-mbg-green">{data.activeCycle.progress}%</span>
+              <h2 className="mt-4 max-w-3xl text-4xl font-black uppercase leading-[0.95] tracking-[-0.045em] text-white sm:text-5xl">
+                {data.activeCycle.title}
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55">{data.activeCycle.reason}</p>
+
+              <div className="mt-7 rounded-[2px] border border-white/[0.08] bg-[#0E1213] p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/35">{t.currentChapter}</p>
+                    <p className="mt-1 text-lg font-black uppercase" style={{ color: currentPalette.accent }}>
+                      0{chapterIndex + 1} / {data.activeCycle.currentChapter}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/35">{t.progress}</p>
+                    <p className="mt-1 text-lg font-black text-white">{data.activeCycle.progress}%</p>
+                  </div>
                 </div>
-                <div className="h-2 border border-white/10 bg-black/50 p-[2px]">
-                  <div className="h-full bg-mbg-green transition-all" style={{ width: `${Math.max(2, data.activeCycle.progress)}%` }} />
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.07]">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.max(2, data.activeCycle.progress)}%`,
+                      backgroundColor: currentPalette.accent,
+                    }}
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="relative flex min-h-44 items-center justify-center border border-white/10 bg-black/25">
-              <div
-                className="absolute h-32 w-32 rounded-full opacity-70"
-                style={{
-                  background: `conic-gradient(#00821A ${Math.max(8, data.activeCycle.progress * 3.6)}deg, rgba(255,255,255,.08) 0deg)`,
-                }}
-              />
-              <div className="absolute h-24 w-24 rounded-full bg-[#0d0f0e]" />
-              <div className="relative text-center">
-                <Crosshair className="mx-auto h-6 w-6 text-mbg-green" />
-                <p className="mt-2 text-3xl font-black text-white">{data.activeCycle.progress}%</p>
-                <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-white/35">{data.activeCycle.currentChapter}</p>
+            <div className="flex flex-col justify-between rounded-[2px] border border-white/[0.08] bg-[#101516] p-5">
+              <div>
+                <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/35">{t.nextUnlock}</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-full"
+                    style={{ backgroundColor: chapterPalette[nextChapter].soft, color: chapterPalette[nextChapter].accent }}
+                  >
+                    {chapterIndex >= chapterOrder.length - 1 ? <Trophy className="h-6 w-6" /> : <LockKeyhole className="h-5 w-5" />}
+                  </div>
+                  <div>
+                    <p className="text-lg font-black uppercase text-white">{nextChapter}</p>
+                    <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.13em] text-white/30">{t.progressToNext}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-8 grid grid-cols-2 gap-2">
+                <div className="rounded-[2px] bg-white/[0.035] p-3">
+                  <p className="text-xl font-black text-white">{data.profile.currentStreak}</p>
+                  <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.12em] text-white/30">{t.streak}</p>
+                </div>
+                <div className="rounded-[2px] bg-white/[0.035] p-3">
+                  <p className="text-xl font-black text-white">{earnedMarks}/{playerMarks.length}</p>
+                  <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.12em] text-white/30">{t.marksEarned}</p>
+                </div>
               </div>
             </div>
           </div>
         </Panel>
 
-        <Panel className="p-5 sm:p-7">
-          <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <section className="relative overflow-hidden rounded-[2px] border border-[#58F28B]/30 bg-[#111617] p-5 sm:p-7">
+          <div className="pointer-events-none absolute right-0 top-0 h-52 w-52 rounded-full bg-[#58F28B]/[0.04] blur-3xl" />
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.todayMission}</p>
-              <h3 className="mt-1 text-2xl font-black uppercase text-white">{t.missionLoadout}</h3>
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#58F28B]">{t.yourNextMove}</p>
+              <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.03em] text-white sm:text-3xl">{t.primaryObjective}</h3>
             </div>
-            <div className="text-left sm:text-right">
-              <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{t.checkInStatus}</p>
-              <p className="mt-1 text-sm font-black uppercase text-mbg-green">{data.today?.showedUp ? t.checkInDone : t.checkInReady}</p>
+            <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-white/40">
+              <Radio className="h-3.5 w-3.5 text-[#58F28B]" />
+              {checkpointSaved ? t.checkpointSaved : t.checkpointReady}
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3">
-            {tasks.map((task, index) => {
-              const complete = task.completed;
-              return (
-                <div
-                  key={task.id}
-                  className={`group grid gap-3 border p-4 transition sm:grid-cols-[96px_1fr_auto] sm:items-center ${
-                    complete ? "border-mbg-green/60 bg-mbg-green/[0.07]" : "border-white/12 bg-white/[0.025]"
-                  } ${recentlyClearedTaskId === task.id ? "gm-mission-cleared" : ""}`}
-                >
-                  <div>
-                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/35">SLOT 0{index + 1}</p>
-                    <p className={`mt-1 text-[10px] font-black uppercase tracking-[0.14em] ${task.kind === "MAIN" ? "text-mbg-green" : "text-white/65"}`}>
-                      {taskKindLabel(task.kind, t)}
-                    </p>
+          <div className={`relative mt-5 rounded-[2px] border p-5 transition ${primaryDone ? "border-[#58F28B]/45 bg-[#58F28B]/[0.07]" : "border-white/[0.08] bg-[#0B0F10]"} ${recentlyClearedTaskId === mainTask?.id ? "gm-mission-cleared" : ""}`}>
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#58F28B]/10 text-[#58F28B]">
+                    {primaryDone ? <BadgeCheck className="h-5 w-5" /> : <Crosshair className="h-5 w-5" />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/30">PRIMARY / SLOT 01</p>
+                    <input
+                      value={mainTask?.label ?? ""}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                        setTasks((current) =>
+                          current.map((item, i) => (i === mainIndex ? { ...item, label: event.target.value } : item)),
+                        )
+                      }
+                      placeholder={lang === "fr" ? "Quelle est l'action la plus importante aujourd'hui ?" : "What is the one action that matters most today?"}
+                      className="mt-1 min-h-11 w-full border-0 bg-transparent p-0 text-lg font-black text-white outline-none placeholder:text-white/20 sm:text-xl"
+                    />
                   </div>
-                  <input
-                    value={task.label}
-                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                      setTasks((current) =>
-                        current.map((item, i) => (i === index ? { ...item, label: event.target.value } : item)),
-                      )
-                    }
-                    placeholder={lang === "fr" ? "Équipe une action concrète..." : "Equip one concrete action..."}
-                    className="min-h-11 w-full border border-white/10 bg-black/20 px-3 text-sm font-semibold text-white outline-none placeholder:text-white/20 focus:border-mbg-green"
-                  />
-                  <button
-                    type="button"
-                    aria-label={complete ? t.missionComplete : t.missionOpen}
-                    onClick={() => toggleTask(index)}
-                    className={`flex min-h-11 min-w-28 items-center justify-center gap-2 border px-3 text-[9px] font-black uppercase tracking-[0.12em] transition ${
-                      complete
-                        ? "border-mbg-green bg-mbg-green text-mbg-black"
-                        : "border-white/15 text-white/55 hover:border-mbg-green hover:text-mbg-green"
-                    }`}
-                  >
-                    {complete ? <Check className="h-4 w-4" /> : <Circle className="h-3 w-3" />}
-                    {complete ? t.missionComplete : t.missionOpen}
-                  </button>
                 </div>
-              );
-            })}
-          </div>
+              </div>
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+              <button
+                type="button"
+                disabled={saving || checkpointSaved}
+                onClick={primaryCta}
+                className={`gm-primary-action flex min-h-14 w-full items-center justify-center gap-3 rounded-[2px] px-6 text-[10px] font-black uppercase tracking-[0.14em] transition lg:w-auto lg:min-w-[250px] ${
+                  checkpointSaved
+                    ? "cursor-default bg-white/[0.06] text-white/35"
+                    : primaryDone
+                      ? "bg-white text-[#0B0F10] hover:bg-[#58F28B]"
+                      : "bg-[#58F28B] text-[#07100A] hover:bg-white"
+                } disabled:opacity-50`}
+              >
+                {checkpointSaved ? <Check className="h-4 w-4" /> : primaryDone ? <Save className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
+                {primaryCtaLabel}
+                {!checkpointSaved ? <ArrowRight className="h-4 w-4" /> : null}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid gap-5 xl:grid-cols-[1.35fr_.65fr]">
+          <Panel className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#63D8FF]">{t.optionalObjectives}</p>
+                <p className="mt-1 text-xs text-white/40">{t.focusRule}</p>
+              </div>
+              <span className="rounded-full bg-[#63D8FF]/10 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.13em] text-[#63D8FF]">{t.optional}</span>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {supportTasks.map(({ task, index }) => {
+                const complete = task.completed;
+                return (
+                  <div
+                    key={task.id}
+                    className={`rounded-[2px] border p-4 transition ${complete ? "border-[#63D8FF]/35 bg-[#63D8FF]/[0.06]" : "border-white/[0.07] bg-[#0F1314]"} ${recentlyClearedTaskId === task.id ? "gm-mission-cleared" : ""}`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[8px] font-black uppercase tracking-[0.13em] text-[#63D8FF]">SECONDARY / SLOT 0{index + 1}</p>
+                      <button
+                        type="button"
+                        onClick={() => toggleTask(index)}
+                        className={`flex h-9 w-9 items-center justify-center rounded-full transition ${complete ? "bg-[#63D8FF] text-[#081114]" : "bg-white/[0.05] text-white/35 hover:bg-[#63D8FF]/15 hover:text-[#63D8FF]"}`}
+                        aria-label={complete ? t.missionComplete : t.missionOpen}
+                      >
+                        {complete ? <Check className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <input
+                      value={task.label}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                        setTasks((current) =>
+                          current.map((item, i) => (i === index ? { ...item, label: event.target.value } : item)),
+                        )
+                      }
+                      placeholder={lang === "fr" ? "Mission facultative..." : "Optional mission..."}
+                      className="mt-3 min-h-10 w-full border-0 bg-transparent p-0 text-sm font-bold text-white outline-none placeholder:text-white/20"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+
+          <div className="rounded-[2px] border border-[#FFB454]/25 bg-[#1A1510] p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFB454]/10 text-[#FFB454]">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#FFB454]">{t.fallbackObjective}</p>
+                  <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.11em] text-white/30">{t.fallbackShort}</p>
+                </div>
+              </div>
+              {fallbackEntry ? (
+                <button
+                  type="button"
+                  onClick={() => toggleTask(fallbackEntry.index)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full transition ${fallbackEntry.task.completed ? "bg-[#FFB454] text-[#1A1108]" : "bg-white/[0.05] text-white/35 hover:bg-[#FFB454]/15 hover:text-[#FFB454]"}`}
+                  aria-label={fallbackEntry.task.completed ? t.missionComplete : t.missionOpen}
+                >
+                  {fallbackEntry.task.completed ? <Check className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                </button>
+              ) : null}
+            </div>
+            {fallbackEntry ? (
+              <input
+                value={fallbackEntry.task.label}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  setTasks((current) =>
+                    current.map((item, i) => (i === fallbackEntry.index ? { ...item, label: event.target.value } : item)),
+                  )
+                }
+                placeholder={lang === "fr" ? "Ex. 5 minutes suffisent" : "e.g. 5 minutes is enough"}
+                className="mt-4 min-h-10 w-full border-0 bg-transparent p-0 text-sm font-bold text-white outline-none placeholder:text-white/20"
+              />
+            ) : null}
+            <p className="mt-3 text-[10px] leading-5 text-white/40">{t.fallbackHint}</p>
+          </div>
+        </div>
+
+        <Panel className="p-5 sm:p-6">
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
             <label className="block min-w-0">
               <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/35">{t.note}</span>
               <textarea
@@ -940,28 +1112,18 @@ export default function GrindModeClient({
                 onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNote(event.target.value)}
                 placeholder={t.notePlaceholder}
                 rows={3}
-                className="mt-2 w-full resize-none border border-white/12 bg-black/20 p-3 text-sm text-white outline-none placeholder:text-white/20 focus:border-mbg-green"
+                className="mt-2 w-full resize-none rounded-[2px] border border-white/[0.08] bg-[#0E1213] p-4 text-sm text-white outline-none placeholder:text-white/20 focus:border-[#58F28B]/50"
               />
             </label>
-            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => void saveToday(true)}
-                className="flex min-h-12 items-center justify-center gap-2 border border-mbg-green bg-mbg-green px-5 text-[10px] font-black uppercase tracking-[0.14em] text-mbg-black transition hover:bg-white disabled:opacity-40"
-              >
-                <Save className="h-4 w-4" />
-                {t.showedUp}
-              </button>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => void saveToday(false)}
-                className="min-h-12 border border-white/15 px-5 text-[10px] font-black uppercase tracking-[0.14em] text-white/70 transition hover:border-mbg-green hover:text-mbg-green disabled:opacity-40"
-              >
-                {t.save}
-              </button>
-            </div>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void saveToday(false)}
+              className="flex min-h-12 items-center justify-center gap-2 rounded-[2px] border border-white/[0.09] bg-white/[0.035] px-5 text-[9px] font-black uppercase tracking-[0.13em] text-white/60 transition hover:border-[#58F28B]/35 hover:text-[#58F28B] disabled:opacity-40"
+            >
+              <Save className="h-4 w-4" />
+              {t.editLoadout}
+            </button>
           </div>
         </Panel>
       </div>
@@ -976,50 +1138,46 @@ export default function GrindModeClient({
         <Panel accent className="p-5 sm:p-7">
           <div className="flex flex-col gap-5 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.chapterPath}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.chapterPath}</p>
               <h2 className="mt-2 text-3xl font-black uppercase text-white">{data.activeCycle.title}</h2>
             </div>
             <div className="text-left sm:text-right">
               <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/35">{t.currentChapter}</p>
-              <p className="mt-1 text-xl font-black uppercase text-mbg-green">0{chapterIndex + 1}{" // "}{data.activeCycle.currentChapter}</p>
+              <p className="mt-1 text-xl font-black uppercase text-[#58F28B]">0{chapterIndex + 1}{" // "}{data.activeCycle.currentChapter}</p>
             </div>
           </div>
 
-          <div className="mt-7 grid gap-2 sm:grid-cols-5">
+          <div className="mt-7 grid gap-3 sm:grid-cols-5">
             {chapterOrder.map((chapter, index) => {
               const active = index === chapterIndex;
               const done = index < chapterIndex;
               const locked = index > chapterIndex;
               const labels = [t.chapter01, t.chapter02, t.chapter03, t.chapter04, t.chapter05];
               const statusLabel = active ? t.chapterActive : done ? t.chapterUnlocked : t.chapterLocked;
+              const palette = chapterPalette[chapter];
               return (
                 <div
                   key={chapter}
-                  className={`relative min-h-36 overflow-hidden border p-4 ${
-                    active
-                      ? "gm-chapter-active border-mbg-green bg-mbg-green/[0.09]"
-                      : done
-                        ? "border-mbg-green/35 bg-mbg-green/[0.025]"
-                        : "border-white/10 bg-black/35"
-                  }`}
+                  className={`relative min-h-40 overflow-hidden rounded-[2px] border p-4 transition ${active ? "gm-chapter-active" : ""}`}
+                  style={{
+                    borderColor: active ? palette.accent : done ? palette.muted : "rgba(255,255,255,.07)",
+                    backgroundColor: active ? palette.soft : done ? "rgba(255,255,255,.025)" : "rgba(0,0,0,.22)",
+                  }}
                 >
-                  {active ? <div className="absolute inset-x-0 top-0 h-px bg-mbg-green" /> : null}
+                  {active ? <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: palette.accent }} /> : null}
                   <div className="flex items-start justify-between gap-3">
-                    <span className={`text-xl font-black ${active || done ? "text-mbg-green" : "text-white/16"}`}>0{index + 1}</span>
-                    {done ? (
-                      <Check className="h-4 w-4 text-mbg-green" />
-                    ) : active ? (
-                      <Activity className="h-4 w-4 animate-pulse text-mbg-green" />
-                    ) : (
-                      <LockKeyhole className="h-4 w-4 text-white/18" />
-                    )}
+                    <span className="text-2xl font-black" style={{ color: active || done ? palette.accent : "rgba(255,255,255,.14)" }}>0{index + 1}</span>
+                    <div
+                      className="flex h-8 w-8 items-center justify-center rounded-full"
+                      style={{ backgroundColor: active || done ? palette.soft : "rgba(255,255,255,.035)", color: active || done ? palette.accent : "rgba(255,255,255,.16)" }}
+                    >
+                      {done ? <Check className="h-4 w-4" /> : active ? <Activity className="h-4 w-4 animate-pulse" /> : <LockKeyhole className="h-3.5 w-3.5" />}
+                    </div>
                   </div>
+                  <p className={`mt-5 text-[11px] font-black uppercase tracking-[0.13em] ${locked ? "text-white/25" : "text-white"}`}>{chapter}</p>
+                  <p className={`mt-1 text-[8px] font-bold uppercase tracking-[0.12em] ${locked ? "text-white/15" : "text-white/35"}`}>{labels[index]}</p>
                   <div className="mt-5 flex items-center justify-between gap-2">
-                    <p className={`text-[10px] font-black uppercase tracking-[0.14em] ${active ? "text-white" : done ? "text-white/60" : "text-white/24"}`}>{chapter}</p>
-                    <span className={`text-[7px] font-black uppercase tracking-[0.12em] ${active ? "text-mbg-green" : done ? "text-mbg-green/60" : "text-white/18"}`}>{statusLabel}</span>
-                  </div>
-                  <p className={`mt-1 text-[8px] font-bold uppercase tracking-[0.12em] ${locked ? "text-white/15" : "text-white/30"}`}>{labels[index]}</p>
-                  <div className="mt-4">
+                    <span className="text-[7px] font-black uppercase tracking-[0.12em]" style={{ color: active || done ? palette.accent : "rgba(255,255,255,.16)" }}>{statusLabel}</span>
                     <SignalTrace hot={active} />
                   </div>
                 </div>
@@ -1030,10 +1188,10 @@ export default function GrindModeClient({
           <div className="mt-6 border border-white/10 bg-black/20 p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/35">{t.progress}</p>
-              <p className="text-sm font-black text-mbg-green">{data.activeCycle.progress}%</p>
+              <p className="text-sm font-black text-[#58F28B]">{data.activeCycle.progress}%</p>
             </div>
             <div className="mt-3 h-3 border border-white/10 bg-black/50 p-[2px]">
-              <div className="h-full bg-mbg-green" style={{ width: `${Math.max(2, data.activeCycle.progress)}%` }} />
+              <div className="h-full bg-[#58F28B]" style={{ width: `${Math.max(2, data.activeCycle.progress)}%` }} />
             </div>
             <p className="mt-3 text-xs leading-5 text-white/45">{data.activeCycle.reason}</p>
           </div>
@@ -1042,8 +1200,8 @@ export default function GrindModeClient({
         <Panel className="p-5 sm:p-7">
           <div className="grid gap-6 lg:grid-cols-[.7fr_1.3fr]">
             <div className="border-b border-white/10 pb-6 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
-              <Trophy className="h-8 w-8 text-mbg-green" />
-              <p className="mt-4 text-[10px] font-black uppercase tracking-[0.18em] text-mbg-green">{t.finalProtocol}</p>
+              <Trophy className="h-8 w-8 text-[#58F28B]" />
+              <p className="mt-4 text-[10px] font-black uppercase tracking-[0.18em] text-[#58F28B]">{t.finalProtocol}</p>
               <p className="mt-2 text-sm leading-6 text-white/50">{t.finalProtocolBody}</p>
             </div>
             <div>
@@ -1052,13 +1210,13 @@ export default function GrindModeClient({
                 value={reflection}
                 onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReflection(event.target.value)}
                 rows={5}
-                className="mt-2 w-full resize-none border border-white/12 bg-black/20 p-4 text-sm text-white outline-none focus:border-mbg-green"
+                className="mt-2 w-full resize-none border border-white/12 bg-black/20 p-4 text-sm text-white outline-none focus:border-[#58F28B]"
               />
               <button
                 type="button"
                 disabled={saving || !reflection.trim()}
                 onClick={() => void completeCycle()}
-                className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 border border-mbg-green bg-mbg-green px-5 text-[10px] font-black uppercase tracking-[0.15em] text-mbg-black transition hover:bg-white disabled:opacity-35"
+                className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 border border-[#58F28B] bg-[#58F28B] px-5 text-[10px] font-black uppercase tracking-[0.15em] text-[#07100A] transition hover:bg-white disabled:opacity-35"
               >
                 <Trophy className="h-4 w-4" />
                 {t.completeCycle}
@@ -1081,7 +1239,7 @@ export default function GrindModeClient({
     return (
       <Panel className="p-5 sm:p-7">
         <div className="border-b border-white/10 pb-5">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.presetTitle}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.presetTitle}</p>
           <h2 className="mt-2 text-3xl font-black uppercase text-white">{t.navMissions}</h2>
           <p className="mt-2 text-sm text-white/45">{t.presetBody}</p>
         </div>
@@ -1089,9 +1247,9 @@ export default function GrindModeClient({
           {presets.map((preset, index) => {
             const Icon = preset.icon;
             return (
-              <div key={preset.title} className="group border border-white/10 bg-white/[0.025] p-5 transition hover:border-mbg-green/60">
+              <div key={preset.title} className="group border border-white/10 bg-white/[0.025] p-5 transition hover:border-[#58F28B]/60">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex h-11 w-11 items-center justify-center border border-white/10 text-mbg-green group-hover:border-mbg-green/60">
+                  <div className="flex h-11 w-11 items-center justify-center border border-white/10 text-[#58F28B] group-hover:border-[#58F28B]/60">
                     <Icon className="h-5 w-5" />
                   </div>
                   <span className="text-[9px] font-black text-white/20">0{index + 1}</span>
@@ -1102,7 +1260,7 @@ export default function GrindModeClient({
                   type="button"
                   disabled={!data.activeCycle}
                   onClick={() => equipPreset(preset.title, preset.kind)}
-                  className="mt-5 flex min-h-11 w-full items-center justify-between border border-white/12 px-4 text-[9px] font-black uppercase tracking-[0.14em] text-white/65 transition hover:border-mbg-green hover:text-mbg-green disabled:cursor-not-allowed disabled:opacity-30"
+                  className="mt-5 flex min-h-11 w-full items-center justify-between border border-white/12 px-4 text-[9px] font-black uppercase tracking-[0.14em] text-white/65 transition hover:border-[#58F28B] hover:text-[#58F28B] disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   {t.equip}
                   <ChevronRight className="h-4 w-4" />
@@ -1119,7 +1277,7 @@ export default function GrindModeClient({
     <Panel className="p-5 sm:p-7">
       <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.archive}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.archive}</p>
           <h2 className="mt-2 text-3xl font-black uppercase text-white">{t.navArchive}</h2>
         </div>
         <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">{data.archive.length.toString().padStart(2, "0")}{" // "}{t.statusComplete}</p>
@@ -1128,7 +1286,7 @@ export default function GrindModeClient({
         {data.archive.length ? (
           data.archive.map((cycle, index) => (
             <div key={cycle.id} className="grid gap-3 border border-white/10 bg-white/[0.02] p-4 sm:grid-cols-[56px_1fr_auto] sm:items-center">
-              <div className="flex h-11 w-11 items-center justify-center border border-mbg-green/40 bg-mbg-green/[0.07] text-mbg-green">
+              <div className="flex h-11 w-11 items-center justify-center border border-[#58F28B]/40 bg-[#58F28B]/[0.07] text-[#58F28B]">
                 <Trophy className="h-5 w-5" />
               </div>
               <div>
@@ -1136,7 +1294,7 @@ export default function GrindModeClient({
                 <p className="mt-1 text-sm font-black uppercase text-white">{cycle.title}</p>
                 <p className="mt-1 text-[9px] uppercase tracking-[0.12em] text-white/35">{formatDate(cycle.completedAt, lang)}</p>
               </div>
-              <span className="border border-mbg-green/40 px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-mbg-green">ACHIEVE ✓</span>
+              <span className="border border-[#58F28B]/40 px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-[#58F28B]">ACHIEVE ✓</span>
             </div>
           ))
         ) : (
@@ -1154,12 +1312,12 @@ export default function GrindModeClient({
             <div>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">MILOS BG{" // "}{t.cardTitle}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">MILOS BG{" // "}{t.cardTitle}</p>
                   <h2 className="mt-2 text-4xl font-black uppercase text-white">{displayName}</h2>
                 </div>
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-mbg-green/60 bg-mbg-green/10">
-                  <div className="gm-event-ring absolute inset-2 rounded-full border border-mbg-green/20" />
-                  <ShieldCheck className="relative h-8 w-8 text-mbg-green" />
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-[#58F28B]/60 bg-[#58F28B]/10">
+                  <div className="gm-event-ring absolute inset-2 rounded-full border border-[#58F28B]/20" />
+                  <ShieldCheck className="relative h-8 w-8 text-[#58F28B]" />
                 </div>
               </div>
               <div className="mt-7 grid grid-cols-3 gap-px border border-white/10 bg-white/10">
@@ -1168,7 +1326,7 @@ export default function GrindModeClient({
                   [t.grinds, data.profile.grindsCompleted],
                   [t.returns, data.profile.returns],
                 ].map(([label, value]) => (
-                  <div key={String(label)} className="bg-[#07100c] p-4 text-center">
+                  <div key={String(label)} className="bg-[#151A1B] p-4 text-center">
                     <p className="text-2xl font-black text-white">{value}</p>
                     <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.13em] text-white/35">{label}</p>
                     <div className="mt-2 flex justify-center"><SignalTrace hot /></div>
@@ -1183,7 +1341,7 @@ export default function GrindModeClient({
                   const lit = index <= chapterIndex || data.profile.cyclesCompleted > 0;
                   return (
                     <div key={chapter} className="text-center">
-                      <div className={`mx-auto flex h-10 w-10 items-center justify-center border ${lit ? "border-mbg-green bg-mbg-green/10 text-mbg-green" : "border-white/10 text-white/20"}`}>
+                      <div className={`mx-auto flex h-10 w-10 items-center justify-center border ${lit ? "border-[#58F28B] bg-[#58F28B]/10 text-[#58F28B]" : "border-white/10 text-white/20"}`}>
                         {lit ? <Check className="h-4 w-4" /> : <LockKeyhole className="h-3.5 w-3.5" />}
                       </div>
                       <p className="mt-2 hidden text-[7px] font-bold uppercase tracking-[0.08em] text-white/35 sm:block">{chapter}</p>
@@ -1198,9 +1356,9 @@ export default function GrindModeClient({
 
         <Panel className="p-5 sm:p-7">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.stats}</p>
-            <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.14em] text-mbg-green/70">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mbg-green" />
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.stats}</p>
+            <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.14em] text-[#58F28B]/70">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#58F28B]" />
               {t.connected}
             </div>
           </div>
@@ -1217,9 +1375,9 @@ export default function GrindModeClient({
               </div>
             ))}
           </div>
-          <div className="mt-6 border border-mbg-green/30 bg-mbg-green/[0.06] p-4">
+          <div className="mt-6 border border-[#58F28B]/30 bg-[#58F28B]/[0.06] p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-mbg-green">SYSTEM MESSAGE</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#58F28B]">SYSTEM MESSAGE</p>
               <SignalTrace hot />
             </div>
             <p className="mt-2 text-sm font-bold uppercase leading-6 text-white">{t.systemRule}</p>
@@ -1231,7 +1389,7 @@ export default function GrindModeClient({
       <Panel accent className="p-5 sm:p-7">
         <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.marksTitle}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.marksTitle}</p>
             <h3 className="mt-2 text-2xl font-black uppercase text-white">{playerMarks.filter((mark) => mark.earned).length.toString().padStart(2, "0")}{" // "}{playerMarks.length.toString().padStart(2, "0")}</h3>
           </div>
           <p className="max-w-xl text-[10px] uppercase leading-5 tracking-[0.08em] text-white/35">{t.marksBody}</p>
@@ -1243,13 +1401,13 @@ export default function GrindModeClient({
             return (
               <div
                 key={mark.id}
-                className={`relative overflow-hidden border p-4 ${mark.earned ? "border-mbg-green/55 bg-mbg-green/[0.055]" : "border-white/10 bg-black/25"}`}
+                className={`relative overflow-hidden border p-4 ${mark.earned ? "border-[#58F28B]/55 bg-[#58F28B]/[0.055]" : "border-white/10 bg-black/25"}`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className={`flex h-10 w-10 items-center justify-center border ${mark.earned ? "border-mbg-green/60 text-mbg-green" : "border-white/10 text-white/18"}`}>
+                  <div className={`flex h-10 w-10 items-center justify-center border ${mark.earned ? "border-[#58F28B]/60 text-[#58F28B]" : "border-white/10 text-white/18"}`}>
                     {mark.earned ? <MarkIcon className="h-5 w-5" /> : <LockKeyhole className="h-4 w-4" />}
                   </div>
-                  <span className={`text-[8px] font-black uppercase tracking-[0.13em] ${mark.earned ? "text-mbg-green" : "text-white/18"}`}>
+                  <span className={`text-[8px] font-black uppercase tracking-[0.13em] ${mark.earned ? "text-[#58F28B]" : "text-white/18"}`}>
                     {mark.earned ? t.earnedMark : t.lockedMark}
                   </span>
                 </div>
@@ -1272,8 +1430,8 @@ export default function GrindModeClient({
       <div className="grid lg:grid-cols-[1.05fr_.95fr]">
         <div className="p-6 sm:p-9">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-mbg-green" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">{t.promoEyebrow}</p>
+            <BookOpen className="h-5 w-5 text-[#58F28B]" />
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#58F28B]">{t.promoEyebrow}</p>
           </div>
           <h2 className="mt-5 max-w-xl text-4xl font-black uppercase tracking-tight text-white sm:text-5xl">{t.promoTitle}</h2>
           <p className="mt-5 max-w-xl text-sm leading-7 text-white/55">{t.promoBody}</p>
@@ -1283,7 +1441,7 @@ export default function GrindModeClient({
               href={bookUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex min-h-12 items-center justify-center gap-2 border border-mbg-green bg-mbg-green px-5 text-[10px] font-black uppercase tracking-[0.15em] text-mbg-black transition hover:bg-white"
+              className="flex min-h-12 items-center justify-center gap-2 border border-[#58F28B] bg-[#58F28B] px-5 text-[10px] font-black uppercase tracking-[0.15em] text-[#07100A] transition hover:bg-white"
             >
               {t.physicalBook}
               <ChevronRight className="h-4 w-4" />
@@ -1292,7 +1450,7 @@ export default function GrindModeClient({
               href={ebookUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex min-h-12 items-center justify-center gap-2 border border-white/15 px-5 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:border-mbg-green hover:text-mbg-green"
+              className="flex min-h-12 items-center justify-center gap-2 border border-white/15 px-5 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:border-[#58F28B] hover:text-[#58F28B]"
             >
               {t.ebook}
               <ChevronRight className="h-4 w-4" />
@@ -1301,11 +1459,11 @@ export default function GrindModeClient({
         </div>
         <div className="relative min-h-80 border-t border-white/10 bg-black/35 p-8 lg:border-l lg:border-t-0">
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at center, rgba(0,130,26,.4), transparent 55%)" }} />
-          <div className="relative mx-auto flex h-full max-w-sm flex-col justify-center border border-white/10 bg-[#f4f4f0] p-7 text-mbg-black">
-            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-mbg-green">MILOS BG</p>
+          <div className="relative mx-auto flex h-full max-w-sm flex-col justify-center border border-white/10 bg-[#f4f4f0] p-7 text-[#07100A]">
+            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#58F28B]">MILOS BG</p>
             <p className="mt-8 text-4xl font-black uppercase leading-[.9] tracking-[-0.05em]">GRIND<br />UNTIL<br />ACHIEVE</p>
             <div className="mt-8 h-px bg-mbg-black/15" />
-            <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.13em] text-mbg-black/50">GRIND · RESILIENCE · CONSISTENCY · FOCUS · ACHIEVE</p>
+            <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.13em] text-[#07100A]/50">GRIND · RESILIENCE · CONSISTENCY · FOCUS · ACHIEVE</p>
           </div>
         </div>
       </div>
@@ -1337,6 +1495,12 @@ export default function GrindModeClient({
     { label: t.longest, value: data.profile.longestStreak, Icon: Sparkles },
   ];
 
+  const shellChapter = data.activeCycle?.currentChapter ?? "GRIND";
+  const shellChapterIndex = chapterRank(shellChapter);
+  const shellPalette = chapterPalette[shellChapter];
+  const shellNextChapter = chapterOrder[Math.min(shellChapterIndex + 1, chapterOrder.length - 1)];
+  const earnedMarkCount = playerMarks.filter((mark) => mark.earned).length;
+
   return (
     <>
       <GrindFxStyles />
@@ -1348,40 +1512,40 @@ export default function GrindModeClient({
         />
       ) : null}
       {booting ? (
-        <div className="gm-boot pointer-events-none fixed inset-0 z-[170] flex items-center justify-center bg-[#020504]/95 text-white">
+        <div className="gm-boot pointer-events-none fixed inset-0 z-[170] flex items-center justify-center bg-[#080A0B]/95 text-white">
           <HudGrid />
           <div className="relative text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center border border-mbg-green/60 bg-mbg-green/10 text-mbg-green">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center border border-[#58F28B]/60 bg-[#58F28B]/10 text-[#58F28B]">
               <Gamepad2 className="h-7 w-7" />
             </div>
-            <p className="mt-5 text-[9px] font-black uppercase tracking-[0.28em] text-mbg-green">{t.systemOnline}</p>
+            <p className="mt-5 text-[9px] font-black uppercase tracking-[0.28em] text-[#58F28B]">{t.systemOnline}</p>
             <p className="mt-2 text-[8px] font-black uppercase tracking-[0.18em] text-white/30">{t.connected}{" // "}{displayName}</p>
             <div className="mt-4 flex justify-center"><SignalTrace hot /></div>
           </div>
         </div>
       ) : null}
 
-      <div className="gm-shell relative my-6 overflow-hidden border border-mbg-green/25 bg-[#040a07] text-white shadow-2xl shadow-black/30">
+      <div className="gm-shell relative my-6 overflow-hidden rounded-[3px] border border-white/[0.09] bg-[#0C0F10] text-white shadow-2xl shadow-black/20">
         <HudGrid />
 
-      <header className="relative border-b border-white/10 bg-black/35 px-4 py-4 sm:px-6">
+      <header className="relative border-b border-white/[0.08] bg-[#111516]/95 px-4 py-4 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-mbg-green/60 bg-mbg-green/10 text-mbg-green">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#58F28B]/60 bg-[#58F28B]/10 text-[#58F28B]">
               <Gamepad2 className="h-5 w-5" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-lg font-black uppercase tracking-tight text-white">GRIND MODE</p>
-                <span className="border border-mbg-green/45 px-2 py-1 text-[8px] font-black uppercase tracking-[0.13em] text-mbg-green">{t.unlockedBadge}</span>
+                <span className="border border-[#58F28B]/45 px-2 py-1 text-[8px] font-black uppercase tracking-[0.13em] text-[#58F28B]">{t.unlockedBadge}</span>
               </div>
               <p className="mt-1 truncate text-[9px] font-bold uppercase tracking-[0.14em] text-white/35">{t.campaign}{" // "}{displayName}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-3 border border-mbg-green/25 bg-mbg-green/[0.035] px-3 py-2 text-[8px] font-black uppercase tracking-[0.14em] text-mbg-green/75 sm:flex">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-mbg-green" />
+            <div className="hidden items-center gap-3 border border-[#58F28B]/25 bg-[#58F28B]/[0.035] px-3 py-2 text-[8px] font-black uppercase tracking-[0.14em] text-[#58F28B]/75 sm:flex">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-[#58F28B]" />
               <span>{t.connected}</span>
               <SignalTrace hot />
             </div>
@@ -1389,8 +1553,8 @@ export default function GrindModeClient({
               {t.saveData}
             </div>
             <div className="flex border border-white/15 text-[9px] font-black uppercase">
-              <Link href="/grind-mode?lang=en" className={`px-3 py-2 transition ${lang === "en" ? "bg-mbg-green text-mbg-black" : "text-white/55 hover:text-white"}`}>EN</Link>
-              <Link href="/grind-mode?lang=fr" className={`px-3 py-2 transition ${lang === "fr" ? "bg-mbg-green text-mbg-black" : "text-white/55 hover:text-white"}`}>FR</Link>
+              <Link href="/grind-mode?lang=en" className={`px-3 py-2 transition ${lang === "en" ? "bg-[#58F28B] text-[#07100A]" : "text-white/55 hover:text-white"}`}>EN</Link>
+              <Link href="/grind-mode?lang=fr" className={`px-3 py-2 transition ${lang === "fr" ? "bg-[#58F28B] text-[#07100A]" : "text-white/55 hover:text-white"}`}>FR</Link>
             </div>
           </div>
         </div>
@@ -1406,7 +1570,7 @@ export default function GrindModeClient({
                 key={item.id}
                 type="button"
                 onClick={() => setScreen(item.id)}
-                className={`flex min-h-11 shrink-0 items-center gap-2 border px-3 text-[8px] font-black uppercase tracking-[0.12em] transition ${active ? "border-mbg-green bg-mbg-green text-mbg-black" : "border-white/10 text-white/45"}`}
+                className={`flex min-h-11 shrink-0 items-center gap-2 border px-3 text-[8px] font-black uppercase tracking-[0.12em] transition ${active ? "border-[#58F28B]/35 bg-[#58F28B]/10 text-[#58F28B]" : "border-white/[0.06] bg-white/[0.02] text-white/45"}`}
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
@@ -1417,8 +1581,8 @@ export default function GrindModeClient({
       </div>
 
       <div className="relative grid lg:grid-cols-[180px_minmax(0,1fr)_240px]">
-        <aside className="hidden border-r border-white/10 bg-black/25 p-3 lg:block">
-          <p className="px-2 py-3 text-[8px] font-black uppercase tracking-[0.18em] text-white/25">{"// MENU"}</p>
+        <aside className="hidden border-r border-white/[0.07] bg-[#101415]/85 p-3 lg:block">
+          <p className="px-2 py-3 text-[8px] font-black uppercase tracking-[0.18em] text-white/25">GAME MENU</p>
           <nav className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -1430,8 +1594,8 @@ export default function GrindModeClient({
                   onClick={() => setScreen(item.id)}
                   className={`flex min-h-11 w-full items-center gap-3 border px-3 text-left text-[9px] font-black uppercase tracking-[0.12em] transition ${
                     active
-                      ? "border-mbg-green bg-mbg-green text-mbg-black"
-                      : "border-transparent text-white/45 hover:border-white/10 hover:text-white"
+                      ? "border-[#58F28B]/25 bg-[#58F28B]/10 text-[#58F28B]"
+                      : "border-transparent text-white/45 hover:bg-white/[0.035] hover:text-white"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -1442,64 +1606,104 @@ export default function GrindModeClient({
           </nav>
 
           <div className="mt-7 border border-white/10 bg-white/[0.02] p-4">
-            <p className="text-[8px] font-black uppercase tracking-[0.16em] text-mbg-green">{t.systemRule}</p>
+            <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#58F28B]">{t.systemRule}</p>
             <p className="mt-2 text-[9px] uppercase leading-5 text-white/30">GRIND → RESILIENCE → CONSISTENCY → FOCUS → ACHIEVE</p>
           </div>
         </aside>
 
-        <main className="min-w-0 p-3 sm:p-5 lg:p-6">{mainScreen}</main>
+        <main className="min-w-0 bg-[#0D1112]/70 p-3 sm:p-5 lg:p-6">{mainScreen}</main>
 
-        <aside className="border-t border-white/10 bg-black/25 p-4 lg:border-l lg:border-t-0">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-mbg-green">{t.stats}</p>
-              <p className="mt-1 text-lg font-black uppercase text-white">{displayName}</p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center border border-mbg-green/50 text-mbg-green">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-          </div>
-
-          <div className="mt-5 space-y-3">
-            {playerStats.map(({ label, value, Icon: StatIcon }) => (
-              <div key={label} className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
-                <div className="flex min-w-0 items-center gap-2">
-                  <StatIcon className="h-4 w-4 shrink-0 text-white/25" />
-                  <span className="truncate text-[8px] font-bold uppercase tracking-[0.12em] text-white/35">{label}</span>
-                </div>
-                <span className="text-sm font-black text-white">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 border border-mbg-green/20 bg-mbg-green/[0.025] p-4">
+        <aside className="border-t border-white/[0.07] bg-[#101415]/90 p-4 lg:border-l lg:border-t-0">
+          <div className="rounded-[2px] border border-white/[0.07] bg-white/[0.025] p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/25">MISSION STATUS</p>
-              <SignalTrace hot={Boolean(data.activeCycle)} />
+              <div>
+                <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/30">{t.playerOverview}</p>
+                <p className="mt-1 text-xl font-black uppercase text-white">{displayName}</p>
+              </div>
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-full"
+                style={{ backgroundColor: shellPalette.soft, color: shellPalette.accent }}
+              >
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              {playerStats.slice(0, 4).map(({ label, value, Icon: StatIcon }) => (
+                <div key={label} className="rounded-[2px] bg-[#151A1B] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <StatIcon className="h-3.5 w-3.5 text-white/25" />
+                    <span className="text-lg font-black text-white">{value}</span>
+                  </div>
+                  <p className="mt-2 truncate text-[7px] font-bold uppercase tracking-[0.11em] text-white/30">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-[2px] border border-white/[0.07] bg-[#151A1B] p-4">
+            <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/30">{t.currentChapter}</p>
+            <div className="mt-3 flex items-center gap-3">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-full"
+                style={{ backgroundColor: shellPalette.soft, color: shellPalette.accent }}
+              >
+                <Crosshair className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-black uppercase" style={{ color: shellPalette.accent }}>{shellChapter}</p>
+                <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.11em] text-white/25">{data.activeCycle ? `${data.activeCycle.progress}% ${t.progress}` : t.noCycle}</p>
+              </div>
+            </div>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.07]">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${data.activeCycle ? Math.max(4, data.activeCycle.progress) : 4}%`, backgroundColor: shellPalette.accent }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-[2px] border border-white/[0.07] bg-[#151A1B] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/30">{t.nextUnlock}</p>
+              <LockKeyhole className="h-3.5 w-3.5 text-white/25" />
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="text-[10px] font-black uppercase text-white/60">{data.activeCycle ? data.activeCycle.currentChapter : "STANDBY"}</span>
-              <span className="h-2 w-2 animate-pulse rounded-full bg-mbg-green" />
+              <span className="text-sm font-black uppercase text-white">{shellNextChapter}</span>
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: chapterPalette[shellNextChapter].accent }}
+              />
             </div>
-            <div className="mt-3 h-1.5 bg-white/10">
-              <div className="h-full bg-mbg-green" style={{ width: `${data.activeCycle ? Math.max(4, data.activeCycle.progress) : 4}%` }} />
+            <p className="mt-2 text-[8px] uppercase leading-4 tracking-[0.08em] text-white/28">{t.progressToNext}</p>
+          </div>
+
+          <div className="mt-4 rounded-[2px] border border-white/[0.07] bg-[#151A1B] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/30">{t.marksEarned}</p>
+              <Sparkles className="h-3.5 w-3.5 text-[#58F28B]" />
             </div>
-            <div className="mt-3 flex items-center justify-between text-[8px] font-bold uppercase tracking-[0.1em] text-white/25">
-              <span>{completedTaskCount}/{activeTaskCount || 0}</span>
-              <span>{data.activeCycle ? `${data.activeCycle.progress}%` : "—"}</span>
-            </div>
+            <p className="mt-2 text-2xl font-black text-white">{earnedMarkCount}<span className="text-sm text-white/20">/{playerMarks.length}</span></p>
+            <button
+              type="button"
+              onClick={() => setScreen("CARD")}
+              className="mt-3 flex min-h-10 w-full items-center justify-between rounded-[2px] bg-white/[0.04] px-3 text-[8px] font-black uppercase tracking-[0.11em] text-white/50 transition hover:bg-white/[0.07] hover:text-white"
+            >
+              {t.navCard}
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           <button
             type="button"
             onClick={() => setScreen("LORE")}
-            className="mt-6 flex w-full items-center justify-between border border-mbg-green/40 bg-mbg-green/[0.06] px-4 py-3 text-left transition hover:bg-mbg-green/10"
+            className="mt-4 flex w-full items-center justify-between rounded-[2px] border border-[#58F28B]/20 bg-[#58F28B]/[0.05] px-4 py-3 text-left transition hover:bg-[#58F28B]/10"
           >
             <div>
-              <p className="text-[8px] font-black uppercase tracking-[0.14em] text-mbg-green">{t.promoEyebrow}</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.14em] text-[#58F28B]">{t.promoEyebrow}</p>
               <p className="mt-1 text-[10px] font-black uppercase text-white">GRIND UNTIL ACHIEVE</p>
             </div>
-            <BookOpen className="h-4 w-4 text-mbg-green" />
+            <BookOpen className="h-4 w-4 text-[#58F28B]" />
           </button>
         </aside>
       </div>
