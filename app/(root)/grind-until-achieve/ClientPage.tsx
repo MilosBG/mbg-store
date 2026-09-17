@@ -598,7 +598,7 @@ const ContentEN: React.FC<{
             <div className="text-center text-mbg-white">
               <FiBookOpen className="mx-auto mb-5 text-3xl text-mbg-green" />
 
-              <p className="text-lg font-bold uppercase leading-tight">
+              <p className="text-sm font-bold uppercase leading-tight">
                 <GrindTitle />
               </p>
 
