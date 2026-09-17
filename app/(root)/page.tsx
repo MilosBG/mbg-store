@@ -9,6 +9,7 @@ import MilosBGModel from "./components/MilosBGModel";
 import MilosBGBook from "./components/MilosBGBook";
 import MilosBGAnimatedSlogan from "./components/MilosBGAnimatedSlogan/MilosBGAnimatedSlogan";
 import MilosBGSocialsSection from "./components/MilosBGSocialsSection";
+import GrindModeHero from "./components/GrindModeHero";
 
 export const metadata = buildMetadata({
   title: "Milos BG",
@@ -31,11 +32,18 @@ export const metadata = buildMetadata({
   ],
 });
 
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    lang?: string | string[];
+  }>;
+}) {
+  const { lang } = await searchParams;
   return (
     <Container className="py-3">
       <HomeBanner />
-      <MilosBGModel />
+      <GrindModeHero lang={lang === "fr" ? "fr" : "en"} />
       <Chapters />
       <Suspense
         fallback={
