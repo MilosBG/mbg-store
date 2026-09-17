@@ -28,7 +28,7 @@ const copy = {
 
   fr: {
     eyebrow: "GRIND UNTIL ACHIEVE",
-    title: "ENTRE DANS GRIND MODE",
+    title: "ENTRE DANS LE GRIND MODE",
     description:
       "Challenge-toi. Construis de meilleures habitudes. Apprends à revenir. Continue d’avancer.",
     primary: "ENTRER DANS GRIND MODE",
@@ -156,7 +156,7 @@ export default function GrindModeHero({
             id="grind-mode-hero-title"
             className="
               max-w-[700px]
-              text-[42px]
+              text-[32px]
               font-black
               uppercase
               leading-[0.92]
