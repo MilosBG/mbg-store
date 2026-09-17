@@ -156,15 +156,15 @@ export default function GrindModeHero({
             id="grind-mode-hero-title"
             className="
               max-w-[700px]
-              text-[32px]
+              text-[42px]
               font-black
               uppercase
               leading-[0.92]
               tracking-[-0.04em]
               text-white
-              sm:text-[54px]
-              md:text-[66px]
-              lg:text-[78px]
+              sm:text-[50px]
+              md:text-[56px]
+              lg:text-[60px]
             "
           >
             {t.title}
