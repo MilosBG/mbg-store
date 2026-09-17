@@ -68,7 +68,7 @@ export default function GrindModeHero({
       "
     >
       {/* BACKGROUND */}
-      <div className="absolute inset-0 -z-20">
+      <div className="absolute inset-0">
         <Image
           src={GrindUntilAchieve2}
           alt=""
@@ -132,10 +132,7 @@ export default function GrindModeHero({
         <div className="w-full max-w-[720px]">
           {/* EYEBROW */}
           <div className="mb-5 flex items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="h-px w-8 bg-mbg-green"
-            />
+            <span aria-hidden="true" className="h-px w-8 bg-mbg-green" />
 
             <p
               className="
@@ -199,40 +196,96 @@ export default function GrindModeHero({
             <Link
               href={withStoreLanguage("/grind-mode", lang)}
               className="
-                inline-flex
-                min-h-12
-                items-center
-                justify-center
-                border
-                border-mbg-green
-                bg-mbg-green
-                px-6
-                text-[10px]
-                font-black
-                uppercase
-                tracking-[0.18em]
-                text-white
-                transition
-                duration-300
-                hover:bg-transparent
-                hover:text-mbg-green
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-mbg-green
-                focus-visible:ring-offset-2
-                focus-visible:ring-offset-black
-              "
-            >
-              {t.primary}
+    group
+    relative
+    inline-flex
+    min-h-12
+    items-center
+    justify-center
+    overflow-hidden
+    border
+    border-mbg-green
+    bg-mbg-green
+    px-6
+    text-[10px]
+    font-black
+    uppercase
+    tracking-[0.18em]
+    text-white
+    transition-all
+    duration-300
 
+    hover:border-mbg-green
+    hover:bg-black
+    hover:text-white
+
+    focus-visible:outline-none
+    focus-visible:ring-2
+    focus-visible:ring-mbg-green
+    focus-visible:ring-offset-2
+    focus-visible:ring-offset-black
+  "
+            >
+              {/* BALAYAGE LUMINEUX */}
               <span
                 aria-hidden="true"
-                className="ml-4 text-base leading-none"
+                className="
+      pointer-events-none
+      absolute
+      inset-y-[-40%]
+      -left-[45%]
+      w-[38%]
+      -skew-x-12
+      bg-gradient-to-r
+      from-transparent
+      via-mbg-green/80
+      to-transparent
+      opacity-0
+      blur-md
+      transition-all
+      duration-700
+      ease-out
+
+      group-hover:left-[115%]
+      group-hover:opacity-100
+    "
+              />
+
+              {/* LÉGER GLOW INTERNE */}
+              <span
+                aria-hidden="true"
+                className="
+      pointer-events-none
+      absolute
+      inset-0
+      bg-mbg-green/0
+      transition-colors
+      duration-500
+      group-hover:bg-mbg-green/10
+    "
+              />
+
+              {/* TEXTE */}
+              <span className="relative z-10">{t.primary}</span>
+
+              {/* FLÈCHE */}
+              <span
+                aria-hidden="true"
+                className="
+      relative
+      z-10
+      ml-4
+      text-base
+      leading-none
+      transition-transform
+      duration-300
+      ease-out
+      group-hover:translate-x-1.5
+    "
               >
                 →
               </span>
             </Link>
-
             <Link
               href={withStoreLanguage("/the-background", lang)}
               className="
@@ -279,9 +332,7 @@ export default function GrindModeHero({
             "
           >
             <div>
-              <p className="text-xl font-black text-white">
-                05
-              </p>
+              <p className="text-xl font-black text-white">05</p>
 
               <p
                 className="
@@ -300,9 +351,7 @@ export default function GrindModeHero({
             <div className="h-8 w-px bg-white/15" />
 
             <div>
-              <p className="text-xl font-black text-mbg-green">
-                01
-              </p>
+              <p className="text-xl font-black text-mbg-green">01</p>
 
               <p
                 className="
