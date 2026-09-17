@@ -1187,7 +1187,7 @@ const ClientPage: React.FC = () => {
           <ol className="flex items-center gap-2">
             <li>
               <Link
-                href="/products"
+                href="/"
                 className="
                   font-medium
                   uppercase
@@ -1268,7 +1268,7 @@ const ClientPage: React.FC = () => {
           </div>
 
           <Link
-            href="/products"
+            href="/"
             className="
               inline-flex
               items-center
@@ -1418,19 +1418,19 @@ const ClientPage: React.FC = () => {
               <React.Fragment key={number}>
                 <span
                   className={`
-                      flex
-                      size-8
-                      items-center
-                      justify-center
-                      border
-                      text-xs
-                      font-bold
-                      ${
-                        number === "1" || number === "5"
-                          ? "border-mbg-green bg-mbg-green text-mbg-white"
-                          : "border-mbg-white/20 text-mbg-white"
-                      }
-                    `}
+        flex
+        size-8
+        items-center
+        justify-center
+        border
+        text-xs
+        font-bold
+        ${
+          number === "I" || number === "V"
+            ? "border-mbg-green bg-mbg-green text-mbg-white"
+            : "border-mbg-white/20 text-mbg-white"
+        }
+      `}
                 >
                   {number}
                 </span>

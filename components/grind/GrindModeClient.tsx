@@ -185,7 +185,7 @@ export default function GrindModeClient({
     if (!data?.activeCycle) return;
     const activeTasks = tasks.filter((task) => task.label.trim());
     if (!activeTasks.length) {
-      toast.error(lang === "fr" ? "Équipe au moins une mission." : "Equip at least one mission.");
+      toast.error(lang === "fr" ? "Ajoute au moins une mission." : "Equip at least one mission.");
       return;
     }
 
