@@ -212,12 +212,11 @@ export default function GrindModeHero({
     uppercase
     tracking-[0.18em]
     text-white
-    transition-all
+    transition
     duration-300
 
-    hover:border-mbg-green
-    hover:bg-black
-    hover:text-white
+    hover:bg-transparent
+    hover:text-mbg-green
 
     focus-visible:outline-none
     focus-visible:ring-2
@@ -226,42 +225,30 @@ export default function GrindModeHero({
     focus-visible:ring-offset-black
   "
             >
-              {/* BALAYAGE LUMINEUX */}
+              {/* GLOWING GRADIENT ANIMÉ EN PERMANENCE */}
               <span
                 aria-hidden="true"
                 className="
       pointer-events-none
       absolute
-      inset-y-[-40%]
-      -left-[45%]
-      w-[38%]
-      -skew-x-12
-      bg-gradient-to-r
-      from-transparent
-      via-mbg-green/80
-      to-transparent
-      opacity-0
-      blur-md
-      transition-all
-      duration-700
-      ease-out
-
-      group-hover:left-[115%]
-      group-hover:opacity-100
+      -inset-[80%]
+      animate-mbg-glow
+      bg-[conic-gradient(from_0deg,transparent_0deg,#00821A_80deg,transparent_150deg,#00821A_240deg,transparent_320deg)]
+      opacity-80
+      blur-xl
     "
               />
 
-              {/* LÉGER GLOW INTERNE */}
+              {/* FOND INTERNE */}
               <span
                 aria-hidden="true"
                 className="
-      pointer-events-none
       absolute
-      inset-0
-      bg-mbg-green/0
+      inset-[2px]
+      bg-mbg-green
       transition-colors
-      duration-500
-      group-hover:bg-mbg-green/10
+      duration-300
+      group-hover:bg-black
     "
               />
 
@@ -279,13 +266,13 @@ export default function GrindModeHero({
       leading-none
       transition-transform
       duration-300
-      ease-out
-      group-hover:translate-x-1.5
+      group-hover:translate-x-1
     "
               >
                 →
               </span>
             </Link>
+
             <Link
               href={withStoreLanguage("/the-background", lang)}
               className="
