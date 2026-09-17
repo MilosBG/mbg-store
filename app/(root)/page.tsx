@@ -5,8 +5,6 @@ import ProductList from "@/components/mbg-components/ProductList";
 import { buildMetadata } from "@/lib/seo";
 import { Suspense } from "react";
 import ProductCardSkeleton from "@/components/mbg-components/ProductCardSkeleton";
-import MilosBGModel from "./components/MilosBGModel";
-import MilosBGBook from "./components/MilosBGBook";
 import MilosBGAnimatedSlogan from "./components/MilosBGAnimatedSlogan/MilosBGAnimatedSlogan";
 import MilosBGSocialsSection from "./components/MilosBGSocialsSection";
 import GrindModeHero from "./components/GrindModeHero";
@@ -62,7 +60,6 @@ export default async function Home({
         <ProductList />
       </Suspense>
       <MilosBGAnimatedSlogan />
-      <MilosBGBook />
       <MilosBGSocialsSection />
     </Container>
   );
