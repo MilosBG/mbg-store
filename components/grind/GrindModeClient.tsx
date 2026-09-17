@@ -833,6 +833,18 @@ export default function GrindModeClient({
               ? renderCard()
               : renderLore();
 
+  const playerStats: Array<{
+    label: string;
+    value: number;
+    Icon: ComponentType<{ className?: string }>;
+  }> = [
+    { label: t.cycles, value: data.profile.cyclesCompleted, Icon: Trophy },
+    { label: t.grinds, value: data.profile.grindsCompleted, Icon: Crosshair },
+    { label: t.returns, value: data.profile.returns, Icon: RotateCcw },
+    { label: t.streak, value: data.profile.currentStreak, Icon: Flame },
+    { label: t.longest, value: data.profile.longestStreak, Icon: Sparkles },
+  ];
+
   return (
     <div className="relative my-6 overflow-hidden border border-white/15 bg-mbg-black text-white shadow-2xl shadow-black/20">
       <HudGrid />
@@ -930,24 +942,15 @@ export default function GrindModeClient({
           </div>
 
           <div className="mt-5 space-y-3">
-            {[
-              [t.cycles, data.profile.cyclesCompleted, Trophy],
-              [t.grinds, data.profile.grindsCompleted, Crosshair],
-              [t.returns, data.profile.returns, RotateCcw],
-              [t.streak, data.profile.currentStreak, Flame],
-              [t.longest, data.profile.longestStreak, Sparkles],
-            ].map(([label, value, Icon]) => {
-              const StatIcon = Icon as ComponentType<{ className?: string }>;
-              return (
-                <div key={String(label)} className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <StatIcon className="h-4 w-4 shrink-0 text-white/25" />
-                    <span className="truncate text-[8px] font-bold uppercase tracking-[0.12em] text-white/35">{label}</span>
-                  </div>
-                  <span className="text-sm font-black text-white">{value}</span>
+            {playerStats.map(({ label, value, Icon: StatIcon }) => (
+              <div key={label} className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <StatIcon className="h-4 w-4 shrink-0 text-white/25" />
+                  <span className="truncate text-[8px] font-bold uppercase tracking-[0.12em] text-white/35">{label}</span>
                 </div>
-              );
-            })}
+                <span className="text-sm font-black text-white">{value}</span>
+              </div>
+            ))}
           </div>
 
           <div className="mt-6 border border-white/10 p-4">
