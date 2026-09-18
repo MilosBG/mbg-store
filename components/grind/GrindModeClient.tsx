@@ -6,19 +6,23 @@ import type { ChangeEvent, ComponentType, ReactNode } from "react";
 import {
   Award,
   BookOpen,
+  Brain,
   Check,
+  Clock3,
   ChevronRight,
   Compass,
   Flame,
   Gem,
   Lock,
   Map,
+  Eye,
   RotateCcw,
   ScrollText,
   Shield,
   Sparkles,
   Star,
   Target,
+  TimerReset,
   Trophy,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -32,6 +36,10 @@ import type {
   GrindTask,
   GrindTaskKind,
 } from "@/types/grind";
+import type {
+  GrindLearningDashboardDTO,
+  GrindLearningSessionDTO,
+} from "@/types/grind-learning";
 
 type Props = {
   lang: GrindLanguage;
@@ -40,7 +48,7 @@ type Props = {
   playerName?: string;
 };
 
-type Screen = "ADVENTURE" | "MAP" | "BADGES" | "JOURNAL" | "BOOK";
+type Screen = "ADVENTURE" | "IMMERSION" | "MAP" | "BADGES" | "JOURNAL" | "BOOK";
 
 type OnboardingStep = "WELCOME" | "GOAL" | "WHY" | "CLUE" | "READY" | null;
 
@@ -147,6 +155,13 @@ const emptyTask = (kind: GrindTaskKind, index: number): GrindTask => ({
 });
 
 const defaultTasks = () => [emptyTask("MAIN", 1), emptyTask("SUPPORT", 1), emptyTask("SUPPORT", 2), emptyTask("MINIMUM", 1)];
+
+const formatCountdown = (seconds: number) => {
+  const safe = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(safe / 60);
+  const rest = safe % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+};
 
 const formatDate = (value: string | null | undefined, lang: GrindLanguage) => {
   if (!value) return "—";
@@ -309,7 +324,7 @@ function buildBadges(data: GrindDashboardDTO, t: typeof grindCopy.en): BadgeItem
 
 function getNextActionLabel(primaryTask: GrindTask | undefined, t: typeof grindCopy.en) {
   if (!primaryTask?.label.trim()) return t.choosePrimary;
-  if (!primaryTask.completed) return t.completePrimary;
+  if (!primaryTask.completed) return t.startImmersionCta;
   return t.saveProgress;
 }
 
@@ -330,7 +345,18 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>(null);
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [onboardingClue, setOnboardingClue] = useState("");
+  const [learning, setLearning] = useState<GrindLearningDashboardDTO | null>(null);
+  const [learningLoading, setLearningLoading] = useState(false);
+  const [immersionDuration, setImmersionDuration] = useState(10);
+  const [attentionCue, setAttentionCue] = useState("");
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const [immersionRecall, setImmersionRecall] = useState("");
+  const [immersionObservation, setImmersionObservation] = useState("");
+  const [immersionNextAction, setImmersionNextAction] = useState("");
+  const [reviewAnswer, setReviewAnswer] = useState("");
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
+  const countdownRef = useRef<number | null>(null);
 
   const displayName = (playerName || t.playerFallback).trim().toUpperCase();
 
@@ -353,9 +379,58 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     }
   }, [t.error]);
 
+  const loadLearning = useCallback(async (silent = false): Promise<GrindLearningDashboardDTO | null> => {
+    if (!silent) setLearningLoading(true);
+    try {
+      const res = await fetch("/api/grind/learning", { cache: "no-store" });
+      if (!res.ok) throw new Error("learning");
+      const payload = (await res.json()) as GrindLearningDashboardDTO;
+      setLearning(payload);
+      return payload;
+    } catch {
+      if (!silent) toast.error(t.error);
+      return null;
+    } finally {
+      if (!silent) setLearningLoading(false);
+    }
+  }, [t.error]);
+
   useEffect(() => {
     void load(false);
-  }, [load]);
+    void loadLearning(true);
+  }, [load, loadLearning]);
+
+  useEffect(() => {
+    if (learning?.activeSession?.id) setScreen("IMMERSION");
+  }, [learning?.activeSession?.id]);
+
+  useEffect(() => {
+    const active = learning?.activeSession;
+    if (!active) {
+      setRemainingSeconds(0);
+      if (countdownRef.current !== null) {
+        window.clearInterval(countdownRef.current);
+        countdownRef.current = null;
+      }
+      return;
+    }
+
+    const syncRemaining = () => {
+      const ms = Date.parse(active.endsAt) - Date.now();
+      setRemainingSeconds(Math.max(0, Math.ceil(ms / 1000)));
+    };
+
+    syncRemaining();
+    if (countdownRef.current !== null) window.clearInterval(countdownRef.current);
+    countdownRef.current = window.setInterval(syncRemaining, 500);
+
+    return () => {
+      if (countdownRef.current !== null) {
+        window.clearInterval(countdownRef.current);
+        countdownRef.current = null;
+      }
+    };
+  }, [learning?.activeSession]);
 
   useEffect(() => {
     if (!data || onboardingDismissed || onboardingStep || !data.profile.unlocked) return;
@@ -395,6 +470,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
 
   useEffect(() => () => {
     if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    if (countdownRef.current !== null) window.clearInterval(countdownRef.current);
   }, []);
 
   const badges = useMemo(() => (data ? buildBadges(data, t) : []), [data, t]);
@@ -508,9 +584,50 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     }
   };
 
-  const saveToday = async (showedUp = false) => {
+  const startImmersion = async () => {
     if (!data?.activeCycle) return;
-    const activeTasks = tasks.filter((task) => task.label.trim());
+    const mainClue = tasks.find((task) => task.kind === "MAIN" && task.label.trim());
+    if (!mainClue) {
+      toast.error(t.choosePrimary);
+      return;
+    }
+    if (!attentionCue.trim()) {
+      toast.error(t.attentionCueLabel);
+      return;
+    }
+
+    setLearningLoading(true);
+    try {
+      const res = await fetch("/api/grind/learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "START",
+          cycleId: data.activeCycle.id,
+          clue: mainClue.label,
+          attentionCue: attentionCue.trim(),
+          durationMinutes: immersionDuration,
+        }),
+      });
+      if (!res.ok) throw new Error("start immersion");
+      const session = (await res.json()) as GrindLearningSessionDTO;
+      setLearning((current) => ({
+        activeSession: session,
+        dueReviews: current?.dueReviews ?? [],
+        recentSessions: current?.recentSessions ?? [],
+      }));
+      setScreen("IMMERSION");
+    } catch {
+      toast.error(t.error);
+    } finally {
+      setLearningLoading(false);
+    }
+  };
+
+  const saveToday = async (showedUp = false, taskOverride?: GrindTask[], noteOverride?: string) => {
+    if (!data?.activeCycle) return;
+    const sourceTasks = taskOverride ?? tasks;
+    const activeTasks = sourceTasks.filter((task) => task.label.trim());
     if (!activeTasks.length) {
       toast.error(t.choosePrimary);
       return;
@@ -527,7 +644,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
         body: JSON.stringify({
           cycleId: data.activeCycle.id,
           tasks: activeTasks,
-          note,
+          note: noteOverride ?? note,
           showedUp: showedUp || activeTasks.some((task) => task.completed),
         }),
       });
@@ -588,6 +705,80 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
       toast.error(t.error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const completeImmersion = async () => {
+    const session = learning?.activeSession;
+    if (!session || !data?.activeCycle) return;
+    if (!immersionRecall.trim() || !immersionObservation.trim()) return;
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/grind/learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "COMPLETE",
+          sessionId: session.id,
+          recall: immersionRecall.trim(),
+          observation: immersionObservation.trim(),
+          nextAction: immersionNextAction.trim(),
+        }),
+      });
+      if (!res.ok) throw new Error("complete immersion");
+
+      const now = new Date().toISOString();
+      const nextTasks = tasks.map((task) =>
+        task.kind === "MAIN"
+          ? { ...task, completed: true, completedAt: now }
+          : task,
+      );
+      setTasks(nextTasks);
+
+      const learningNote = [
+        note.trim(),
+        `Recall: ${immersionRecall.trim()}`,
+        `Attention: ${immersionObservation.trim()}`,
+        immersionNextAction.trim() ? `Next signal: ${immersionNextAction.trim()}` : "",
+      ].filter(Boolean).join("\n\n");
+
+      await saveToday(true, nextTasks, learningNote);
+      setImmersionRecall("");
+      setImmersionObservation("");
+      setImmersionNextAction("");
+      setAttentionCue("");
+      await loadLearning(true);
+      setScreen("ADVENTURE");
+      toast.success(t.immersionSaved);
+    } catch {
+      toast.error(t.error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const reviewLearning = async (sessionId: string) => {
+    if (!reviewAnswer.trim()) return;
+    setReviewingId(sessionId);
+    try {
+      const res = await fetch("/api/grind/learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "REVIEW",
+          sessionId,
+          recall: reviewAnswer.trim(),
+        }),
+      });
+      if (!res.ok) throw new Error("review");
+      setReviewAnswer("");
+      await loadLearning(true);
+      toast.success(t.eventCheckpoint);
+    } catch {
+      toast.error(t.error);
+    } finally {
+      setReviewingId(null);
     }
   };
 
@@ -841,8 +1032,8 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   <Star className="h-10 w-10" />
                 </div>
                 <p className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#C28A2B]">{t.eventQuestStarted}</p>
-                <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.045em] sm:text-6xl">{t.onboardingReadyTitle}</h2>
-                <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#6B5B4D]">{t.onboardingReadyBody}</p>
+                <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.045em] sm:text-6xl">{t.onboardingImmersionTitle}</h2>
+                <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#6B5B4D]">{t.onboardingImmersionBody}</p>
 
                 <div className="mx-auto mt-7 max-w-2xl rounded-[30px] border border-[#E7D6BE] bg-white/82 p-6 text-left shadow-lg">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.primaryClue}</p>
@@ -858,22 +1049,14 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   onClick={() => {
                     setOnboardingDismissed(true);
                     setOnboardingStep(null);
-                    setScreen("ADVENTURE");
-                    pushEvents([
-                      {
-                        id: eventId("QUEST_STARTED"),
-                        kind: "QUEST_STARTED",
-                        eyebrow: t.eventQuestStarted,
-                        title: data.activeCycle?.title ?? t.title,
-                        body: t.eventQuestStartedBody,
-                        duration: 2100,
-                      },
-                    ]);
+                    setAttentionCue(t.attentionPreset2);
+                    setImmersionDuration(10);
+                    setScreen("IMMERSION");
                   }}
                   className="mt-8 inline-flex min-h-14 items-center gap-3 rounded-full bg-[linear-gradient(90deg,#F59E42,#F4C542)] px-8 text-xs font-black uppercase tracking-[0.16em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px]"
                 >
-                  {t.onboardingEnterAdventure}
-                  <ChevronRight className="h-4 w-4" />
+                  {t.startImmersionCta}
+                  <Clock3 className="h-4 w-4" />
                 </button>
               </div>
             ) : null}
@@ -944,6 +1127,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
 
   const navItems: Array<{ id: Screen; label: string; icon: ComponentType<{ className?: string }> }> = [
     { id: "ADVENTURE", label: t.navAdventure, icon: Map },
+    { id: "IMMERSION", label: t.navImmersion, icon: Clock3 },
     { id: "MAP", label: t.navMap, icon: Compass },
     { id: "BADGES", label: t.navBadges, icon: Award },
     { id: "JOURNAL", label: t.navJournal, icon: ScrollText },
@@ -969,7 +1153,8 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
       return;
     }
     if (!mainEntry.task.completed) {
-      toggleTask(mainEntry.index);
+      if (!attentionCue.trim()) setAttentionCue(t.attentionPreset2);
+      setScreen("IMMERSION");
       return;
     }
     void saveToday(true);
@@ -1278,6 +1463,279 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     );
   };
 
+  const renderImmersion = () => {
+    if (!data.activeCycle) return renderCreateQuest();
+
+    const mainClue = mainEntry?.task.label.trim() ?? "";
+    const activeSession = learning?.activeSession ?? null;
+    const timerDone = Boolean(activeSession && remainingSeconds <= 0);
+    const totalSeconds = activeSession ? Math.max(1, activeSession.durationMinutes * 60) : 1;
+    const elapsedPercent = activeSession
+      ? Math.min(100, Math.max(0, ((totalSeconds - remainingSeconds) / totalSeconds) * 100))
+      : 0;
+    const dueReview = learning?.dueReviews?.[0] ?? null;
+
+    return (
+      <div className="space-y-5">
+        <Card accent className="p-6 sm:p-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#EFE8FF] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#7650D7] shadow-sm">
+                <Brain className="h-4 w-4" />
+                {t.immersionEyebrow}
+              </div>
+              <h2 className="mt-5 text-3xl font-black uppercase tracking-[-0.04em] text-[#4B372A] sm:text-5xl">{t.immersionTitle}</h2>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[#6B5B4D]">{t.immersionBody}</p>
+            </div>
+            <div className="rounded-[24px] border border-[#E7D6BE] bg-white/80 px-5 py-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.timerClue}</p>
+              <p className="mt-2 max-w-xs text-lg font-black uppercase text-[#4B372A]">{activeSession?.clue || mainClue || t.choosePrimary}</p>
+            </div>
+          </div>
+        </Card>
+
+        {!activeSession ? (
+          <div className="grid gap-5 xl:grid-cols-[.9fr_1.1fr]">
+            <Card className="p-6 sm:p-7">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF6DA] text-[#C28A2B] shadow-sm">
+                  <Clock3 className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.immersionDuration}</p>
+                  <p className="mt-1 text-sm text-[#6B5B4D]">{mainClue || t.choosePrimary}</p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid grid-cols-4 gap-2">
+                {[5, 10, 15, 25].map((minutes) => (
+                  <button
+                    key={minutes}
+                    type="button"
+                    onClick={() => setImmersionDuration(minutes)}
+                    className={`min-h-14 rounded-2xl border text-center transition ${immersionDuration === minutes ? "border-[#9A6BFF] bg-[#EFE8FF] text-[#7650D7] shadow-sm" : "border-[#E7D6BE] bg-white/75 text-[#7A604A] hover:bg-white"}`}
+                  >
+                    <span className="block text-xl font-black">{minutes}</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em]">{t.immersionMinutes}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6 rounded-[24px] border border-[#E7D6BE] bg-[#FFFDF9] p-5">
+                <div className="flex items-start gap-3">
+                  <Eye className="mt-0.5 h-5 w-5 shrink-0 text-[#EF6F5E]" />
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C85A4A]">{t.attentionCompass} · {lang === "fr" ? "SAR" : "RAS"}</p>
+                    <p className="mt-2 text-sm leading-6 text-[#6B5B4D]">{t.attentionCompassBody}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 sm:p-7">
+              <label className="block">
+                <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.attentionCueLabel}</span>
+                <textarea
+                  value={attentionCue}
+                  onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setAttentionCue(event.target.value)}
+                  rows={4}
+                  placeholder={t.attentionCuePlaceholder}
+                  className="mt-3 w-full resize-none rounded-[24px] border border-[#E7D6BE] bg-white/80 px-4 py-4 text-sm font-semibold text-[#4B372A] outline-none placeholder:font-normal placeholder:text-[#B39B8A] focus:border-[#9A6BFF]"
+                />
+              </label>
+
+              <div className="mt-4 space-y-2">
+                {[t.attentionPreset1, t.attentionPreset2, t.attentionPreset3].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setAttentionCue(preset)}
+                    className="w-full rounded-2xl border border-[#E7D6BE] bg-white/70 px-4 py-3 text-left text-sm font-semibold text-[#6B5B4D] transition hover:border-[#9A6BFF]/50 hover:bg-[#F8F4FF]"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void startImmersion()}
+                disabled={learningLoading || !mainClue || !attentionCue.trim()}
+                className="mt-6 flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(90deg,#9A6BFF,#43C6B9)] px-7 text-xs font-black uppercase tracking-[0.16em] text-white shadow-lg transition hover:translate-y-[-1px] disabled:opacity-40"
+              >
+                <Clock3 className="h-4 w-4" />
+                {t.immersionStart}
+              </button>
+            </Card>
+          </div>
+        ) : !timerDone ? (
+          <Card accent className="overflow-hidden p-6 sm:p-8">
+            <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
+              <div className="text-center">
+                <div
+                  className="mx-auto flex h-56 w-56 items-center justify-center rounded-full p-[12px] shadow-xl"
+                  style={{ background: `conic-gradient(#9A6BFF ${elapsedPercent}%, #E8DFF5 ${elapsedPercent}% 100%)` }}
+                >
+                  <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-[#FFFDF9]">
+                    <Clock3 className="h-7 w-7 text-[#7650D7]" />
+                    <p className="mt-3 text-5xl font-black tabular-nums tracking-[-0.05em] text-[#4B372A]">{formatCountdown(remainingSeconds)}</p>
+                    <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.timerRunning}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.timerClue}</p>
+                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-4xl">{activeSession.clue}</h3>
+
+                <div className="mt-6 rounded-[26px] border border-[#F0B8AE] bg-[#FFF0EC] p-5">
+                  <div className="flex items-start gap-3">
+                    <Eye className="mt-0.5 h-5 w-5 shrink-0 text-[#EF6F5E]" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#C85A4A]">{t.timerAttention}</p>
+                      <p className="mt-2 text-base font-bold leading-7 text-[#6B5B4D]">{activeSession.attentionCue}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="mt-6 text-sm leading-6 text-[#6B5B4D]">{t.timerInstruction}</p>
+                <div className="mt-5 flex items-center gap-3 rounded-2xl bg-[#E4FAF6] px-4 py-3 text-sm font-bold text-[#2A736B]">
+                  <TimerReset className="h-5 w-5 shrink-0" />
+                  PRIME → IMMERSE → RECALL → NOTICE → REPEAT
+                </div>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <Card accent className="p-6 sm:p-8">
+            <div className="mx-auto max-w-3xl">
+              <div className="text-center">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#F4C542] text-[#4B372A] shadow-lg">
+                  <Sparkles className="h-8 w-8" />
+                </div>
+                <p className="mt-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#C28A2B]">{t.timerFinished}</p>
+                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#4B372A] sm:text-5xl">{t.activeRecall}</h3>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#6B5B4D]">{t.timerFinishedBody}</p>
+              </div>
+
+              <div className="mt-8 space-y-5">
+                <label className="block rounded-[26px] border border-[#E7D6BE] bg-white/75 p-5 shadow-sm">
+                  <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#7650D7]"><Brain className="h-4 w-4" /> {t.activeRecall}</span>
+                  <p className="mt-2 text-sm leading-6 text-[#6B5B4D]">{t.activeRecallBody}</p>
+                  <textarea
+                    value={immersionRecall}
+                    onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setImmersionRecall(event.target.value)}
+                    rows={4}
+                    placeholder={t.activeRecallPlaceholder}
+                    className="mt-3 w-full resize-none rounded-2xl border border-[#E7D6BE] bg-[#FFFDF9] px-4 py-4 text-sm text-[#4B372A] outline-none placeholder:text-[#B39B8A] focus:border-[#9A6BFF]"
+                  />
+                </label>
+
+                <label className="block rounded-[26px] border border-[#F0B8AE] bg-[#FFF0EC] p-5 shadow-sm">
+                  <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#C85A4A]"><Eye className="h-4 w-4" /> {t.sarObservation}</span>
+                  <p className="mt-2 text-sm leading-6 text-[#6B5B4D]">{t.sarObservationBody}</p>
+                  <textarea
+                    value={immersionObservation}
+                    onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setImmersionObservation(event.target.value)}
+                    rows={3}
+                    placeholder={t.sarObservationPlaceholder}
+                    className="mt-3 w-full resize-none rounded-2xl border border-[#F0B8AE] bg-white/75 px-4 py-4 text-sm text-[#4B372A] outline-none placeholder:text-[#B39B8A] focus:border-[#EF6F5E]"
+                  />
+                </label>
+
+                <label className="block rounded-[26px] border border-[#A8DDD7] bg-[#E4FAF6] p-5 shadow-sm">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2A736B]">{t.nextSignal}</span>
+                  <p className="mt-2 text-sm leading-6 text-[#53746F]">{t.nextSignalBody}</p>
+                  <input
+                    value={immersionNextAction}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => setImmersionNextAction(event.target.value)}
+                    placeholder={t.nextSignalPlaceholder}
+                    className="mt-3 w-full rounded-2xl border border-[#A8DDD7] bg-white/75 px-4 py-4 text-sm font-semibold text-[#4B372A] outline-none placeholder:font-normal placeholder:text-[#8CA8A4] focus:border-[#43C6B9]"
+                  />
+                </label>
+              </div>
+
+              <button
+                type="button"
+                disabled={saving || !immersionRecall.trim() || !immersionObservation.trim()}
+                onClick={() => void completeImmersion()}
+                className="mt-6 flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(90deg,#F59E42,#F4C542)] px-7 text-xs font-black uppercase tracking-[0.16em] text-[#4B372A] shadow-lg transition hover:translate-y-[-1px] disabled:opacity-40"
+              >
+                <Gem className="h-4 w-4" />
+                {t.sealExpedition}
+              </button>
+            </div>
+          </Card>
+        )}
+
+        <div className="grid gap-5 xl:grid-cols-[1.05fr_.95fr]">
+          <Card className="p-6 sm:p-7">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#7650D7]">{t.recallQueue}</p>
+                <h3 className="mt-2 text-2xl font-black uppercase text-[#4B372A]">{learning?.dueReviews.length ?? 0} {t.reviewDue}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#6B5B4D]">{t.recallQueueBody}</p>
+              </div>
+              <Brain className="h-7 w-7 text-[#9A6BFF]" />
+            </div>
+
+            {dueReview ? (
+              <div className="mt-5 rounded-[24px] border border-[#D9CCF9] bg-[#F7F3FF] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#7650D7]">{t.timerClue}</p>
+                <p className="mt-2 text-lg font-black uppercase text-[#4B372A]">{dueReview.clue}</p>
+                <label className="mt-4 block">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.reviewAnswer}</span>
+                  <textarea
+                    value={reviewAnswer}
+                    onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setReviewAnswer(event.target.value)}
+                    rows={3}
+                    placeholder={t.reviewPlaceholder}
+                    className="mt-3 w-full resize-none rounded-2xl border border-[#D9CCF9] bg-white/80 px-4 py-4 text-sm text-[#4B372A] outline-none placeholder:text-[#B39B8A] focus:border-[#9A6BFF]"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={reviewingId === dueReview.id || !reviewAnswer.trim()}
+                  onClick={() => void reviewLearning(dueReview.id)}
+                  className="mt-4 min-h-11 w-full rounded-full bg-[#9A6BFF] px-5 text-[11px] font-black uppercase tracking-[0.15em] text-white shadow-md disabled:opacity-40"
+                >
+                  {t.reviewSubmit}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-[24px] border border-[#E7D6BE] bg-white/65 p-5 text-sm text-[#6B5B4D]">{t.noReviews}</div>
+            )}
+          </Card>
+
+          <Card className="p-6 sm:p-7">
+            <div className="flex items-center gap-3">
+              <TimerReset className="h-6 w-6 text-[#43C6B9]" />
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2A736B]">{t.reviewSchedule}</p>
+                <p className="mt-1 text-sm leading-6 text-[#6B5B4D]">{t.reviewScheduleBody}</p>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {["+1D", "+3D", "+7D", "+14D", "+30D"].map((step) => (
+                <span key={step} className="rounded-full bg-[#E4FAF6] px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#2A736B]">{step}</span>
+              ))}
+            </div>
+
+            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-[#9B816D]">{t.immersionHistory}</p>
+            <div className="mt-3 space-y-2">
+              {(learning?.recentSessions ?? []).slice(0, 3).map((session) => (
+                <div key={session.id} className="rounded-2xl border border-[#E7D6BE] bg-white/70 px-4 py-3">
+                  <p className="truncate text-sm font-black uppercase text-[#4B372A]">{session.clue}</p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#9B816D]">{session.durationMinutes} {t.immersionMinutes} · {formatDate(session.completedAt, lang)}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  };
+
   const renderMap = () => {
     if (!data.activeCycle) return renderCreateQuest();
     return (
@@ -1519,6 +1977,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
 
         <main className="min-w-0">
           {screen === "ADVENTURE" ? renderAdventure() : null}
+          {screen === "IMMERSION" ? renderImmersion() : null}
           {screen === "MAP" ? renderMap() : null}
           {screen === "BADGES" ? renderBadges() : null}
           {screen === "JOURNAL" ? renderJournal() : null}
