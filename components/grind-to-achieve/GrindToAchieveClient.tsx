@@ -14,6 +14,7 @@ import {
   Heart,
   History,
   Medal,
+  Lock,
   RefreshCcw,
   Share2,
   Shield,
@@ -21,6 +22,7 @@ import {
   Target,
   TrendingUp,
   Trophy,
+  UserRound,
   Volume2,
   VolumeX,
   Zap,
@@ -133,6 +135,19 @@ const copy = {
     pts: "PTS",
     versus: "VS",
     noLeaderboard: "NO LEADERBOARD // PLAY YOUR PREVIOUS SELF",
+    hustlerCard: "HUSTLER CARD",
+    playerProfile: "PLAYER PROFILE",
+    seasonForm: "SEASON FORM",
+    yourShadowWaiting: "YOUR SHADOW IS WAITING",
+    shadowWaitingBody: "Build a streak, close it, then come back to beat it. Your previous self becomes the opponent.",
+    shadowPreview: "SHADOW PREVIEW",
+    collection: "BADGE COLLECTION",
+    collectionBody: "Every badge remains visible before it is earned, so you always know what can be unlocked.",
+    earned: "EARNED",
+    locked: "LOCKED",
+    challengeBoard: "CHALLENGE BOARD",
+    availableNow: "AVAILABLE NOW",
+    hustleRating: "HUSTLE PROFILE",
   },
   fr: {
     title: "GRIND to ACHIEVE",
@@ -219,6 +234,19 @@ const copy = {
     pts: "PTS",
     versus: "VS",
     noLeaderboard: "AUCUN CLASSEMENT // JOUE CONTRE TON ANCIEN TOI",
+    hustlerCard: "CARTE HUSTLER",
+    playerProfile: "PROFIL JOUEUR",
+    seasonForm: "FORME DU MOMENT",
+    yourShadowWaiting: "TON SHADOW T’ATTEND",
+    shadowWaitingBody: "Construis une série, clôture-la, puis reviens pour la dépasser. Ton ancien toi devient l’adversaire.",
+    shadowPreview: "APERÇU SHADOW",
+    collection: "COLLECTION DE BADGES",
+    collectionBody: "Tous les badges restent visibles avant d’être obtenus pour que tu saches toujours ce qui peut être débloqué.",
+    earned: "OBTENU",
+    locked: "VERROUILLÉ",
+    challengeBoard: "TABLEAU DES CHALLENGES",
+    availableNow: "DISPONIBLES",
+    hustleRating: "PROFIL HUSTLE",
   },
 } as const;
 
@@ -231,6 +259,27 @@ const iconByBadge: Record<string, ComponentType<{ className?: string }>> = {
   REPEAT: History,
   FOCUS: CircleDot,
 };
+
+const badgeCatalog = {
+  en: [
+    { code: "ENCOURAGEMENT", name: "ENCOURAGEMENT", description: "Recognition from Milos BG for visible effort and momentum.", iconKey: "HEART" },
+    { code: "DONT_GIVE_UP", name: "DON'T GIVE UP", description: "Return after a broken streak and keep moving.", iconKey: "RETURN" },
+    { code: "EFFORT", name: "EFFORT", description: "Accumulate meaningful 5-minute work over time.", iconKey: "FLAME" },
+    { code: "CHALLENGER", name: "CHALLENGER", description: "Step onto the court against your own Shadow.", iconKey: "TARGET" },
+    { code: "SHADOW_BREAKER", name: "SHADOW BREAKER", description: "Beat one of your previous personal streaks.", iconKey: "SHIELD" },
+    { code: "CONSISTENT", name: "CONSISTENT", description: "Build a reliable pattern of showing up over time.", iconKey: "REPEAT" },
+    { code: "LOCKED_IN", name: "LOCKED IN", description: "Build a strong record of focused five-minute sessions.", iconKey: "FOCUS" },
+  ],
+  fr: [
+    { code: "ENCOURAGEMENT", name: "ENCOURAGEMENT", description: "Une reconnaissance Milos BG pour un effort visible et une dynamique positive.", iconKey: "HEART" },
+    { code: "DONT_GIVE_UP", name: "N'ABANDONNE PAS", description: "Reviens après une série cassée et continue d’avancer.", iconKey: "RETURN" },
+    { code: "EFFORT", name: "EFFORT", description: "Accumule du travail réel par sessions de cinq minutes.", iconKey: "FLAME" },
+    { code: "CHALLENGER", name: "CHALLENGER", description: "Entre sur le terrain face à ton propre Shadow.", iconKey: "TARGET" },
+    { code: "SHADOW_BREAKER", name: "SHADOW BREAKER", description: "Dépasse l’une de tes anciennes séries personnelles.", iconKey: "SHIELD" },
+    { code: "CONSISTENT", name: "CONSISTENT", description: "Construis une présence régulière dans le temps.", iconKey: "REPEAT" },
+    { code: "LOCKED_IN", name: "LOCKED IN", description: "Construis un historique solide de sessions concentrées.", iconKey: "FOCUS" },
+  ],
+} as const;
 
 const formatClock = (seconds: number) => {
   const safe = Math.max(0, Math.floor(seconds));
@@ -270,6 +319,14 @@ function GameStyles() {
         0% { transform: scale(.97); opacity: .2; }
         100% { transform: scale(1); opacity: 1; }
       }
+      @keyframes gta-screen-in {
+        0% { transform: translateY(8px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes gta-clock-live {
+        0%,100% { text-shadow: 0 0 0 rgba(0,130,26,0); }
+        50% { text-shadow: 0 0 28px rgba(0,130,26,.48); }
+      }
       .gta-glass-orb { animation: gta-glow 2.8s ease-in-out infinite; }
       .gta-glass-orb::after {
         content: "";
@@ -281,8 +338,10 @@ function GameStyles() {
       }
       .gta-live { animation: gta-pulse 1.2s ease-in-out infinite; }
       .gta-pop { animation: gta-score-pop .24s ease-out both; }
+      .gta-screen { animation: gta-screen-in .28s ease-out both; }
+      .gta-clock-live { animation: gta-clock-live 1.8s ease-in-out infinite; }
       @media (prefers-reduced-motion: reduce) {
-        .gta-glass-orb, .gta-glass-orb::after, .gta-live, .gta-pop { animation: none !important; }
+        .gta-glass-orb, .gta-glass-orb::after, .gta-live, .gta-pop, .gta-screen, .gta-clock-live { animation: none !important; }
       }
     `}</style>
   );
@@ -315,8 +374,8 @@ function Metric({ label, value, suffix = "" }: { label: string; value: string | 
 
 function RadarChart({ stats, labels }: { stats: GTAStatsDTO; labels: [string, string, string] }) {
   const values = [stats.resilience.rating, stats.consistency.rating, stats.focus.rating];
-  const center = 120;
-  const radius = 82;
+  const center = 150;
+  const radius = 104;
   const point = (index: number, scale: number) => {
     const angle = (-90 + index * 120) * (Math.PI / 180);
     return [center + Math.cos(angle) * radius * scale, center + Math.sin(angle) * radius * scale] as const;
@@ -324,32 +383,34 @@ function RadarChart({ stats, labels }: { stats: GTAStatsDTO; labels: [string, st
   const polygon = values.map((value, index) => point(index, value / 100).join(",")).join(" ");
   const ring = (scale: number) => [0, 1, 2].map((index) => point(index, scale).join(",")).join(" ");
   return (
-    <div className="relative mx-auto h-[270px] w-full max-w-[360px]">
-      <svg viewBox="0 0 240 240" className="h-full w-full overflow-visible" role="img" aria-label="Resilience, consistency and focus radar">
-        {[1, .75, .5, .25].map((scale) => (
-          <polygon key={scale} points={ring(scale)} fill="none" stroke="#BFBFBF" strokeWidth="1" opacity={scale === 1 ? .8 : .45} />
+    <div className="relative mx-auto h-[420px] w-full max-w-[580px] xl:h-[500px] xl:max-w-[680px]">
+      <div className="absolute inset-[12%] rounded-full bg-[#00821A]/[0.035] blur-3xl" />
+      <svg viewBox="0 0 300 300" className="relative z-[1] h-full w-full overflow-visible" role="img" aria-label="Resilience, consistency and focus radar">
+        {[1, .8, .6, .4, .2].map((scale) => (
+          <polygon key={scale} points={ring(scale)} fill="none" stroke="#BFBFBF" strokeWidth="1" opacity={scale === 1 ? .9 : .42} />
         ))}
         {[0, 1, 2].map((index) => {
           const [x, y] = point(index, 1);
-          return <line key={index} x1={center} y1={center} x2={x} y2={y} stroke="#BFBFBF" strokeWidth="1" />;
+          return <line key={index} x1={center} y1={center} x2={x} y2={y} stroke="#BFBFBF" strokeWidth="1" opacity=".75" />;
         })}
-        <polygon points={polygon} fill="rgba(0,130,26,.18)" stroke="#00821A" strokeWidth="3" />
+        <polygon points={polygon} fill="rgba(0,130,26,.16)" stroke="#00821A" strokeWidth="3" />
         {values.map((value, index) => {
           const [x, y] = point(index, value / 100);
-          return <circle key={index} cx={x} cy={y} r="5" fill="#FFFFFF" stroke="#00821A" strokeWidth="3" />;
+          return <circle key={index} cx={x} cy={y} r="6" fill="#FFFFFF" stroke="#00821A" strokeWidth="3" />;
         })}
+        <circle cx={center} cy={center} r="7" fill="#000000" />
       </svg>
-      <div className="pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 text-center">
-        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">{labels[0]}</p>
-        <p className="text-lg font-black text-[#000000]">{values[0]}</p>
+      <div className="pointer-events-none absolute left-1/2 top-2 z-[2] -translate-x-1/2 text-center">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{labels[0]}</p>
+        <p className="mt-1 text-3xl font-black tabular-nums text-[#000000]">{values[0]}</p>
       </div>
-      <div className="pointer-events-none absolute bottom-5 left-0 text-left">
-        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">{labels[1]}</p>
-        <p className="text-lg font-black text-[#000000]">{values[1]}</p>
+      <div className="pointer-events-none absolute bottom-4 left-0 z-[2] text-left sm:left-3">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{labels[1]}</p>
+        <p className="mt-1 text-3xl font-black tabular-nums text-[#000000]">{values[1]}</p>
       </div>
-      <div className="pointer-events-none absolute bottom-5 right-0 text-right">
-        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">{labels[2]}</p>
-        <p className="text-lg font-black text-[#000000]">{values[2]}</p>
+      <div className="pointer-events-none absolute bottom-4 right-0 z-[2] text-right sm:right-3">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{labels[2]}</p>
+        <p className="mt-1 text-3xl font-black tabular-nums text-[#00821A]">{values[2]}</p>
       </div>
     </div>
   );
@@ -358,8 +419,8 @@ function RadarChart({ stats, labels }: { stats: GTAStatsDTO; labels: [string, st
 function TrendGraph({ stats }: { stats: GTAStatsDTO }) {
   const rows = stats.trend.slice(-8);
   if (rows.length < 2) return <div className="flex h-40 items-center justify-center border border-[#BFBFBF] bg-white/50 text-xs font-bold uppercase tracking-[0.16em] text-[#404040]">Not enough sessions yet</div>;
-  const width = 700;
-  const height = 180;
+  const width = 920;
+  const height = 220;
   const coords = (key: "resilience" | "consistency" | "focus") => rows.map((row, index) => {
     const x = (index / Math.max(1, rows.length - 1)) * width;
     const y = height - (row[key] / 100) * height;
@@ -367,7 +428,7 @@ function TrendGraph({ stats }: { stats: GTAStatsDTO }) {
   }).join(" ");
   return (
     <div className="overflow-x-auto rounded-sm border border-[#BFBFBF] bg-white/50 p-4">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-44 min-w-[620px] w-full" aria-label="Recent stats trend">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-56 min-w-[720px] w-full" aria-label="Recent stats trend">
         {[25, 50, 75].map((v) => <line key={v} x1="0" y1={height - (v / 100) * height} x2={width} y2={height - (v / 100) * height} stroke="#BFBFBF" strokeWidth="1" />)}
         <polyline points={coords("resilience")} fill="none" stroke="#000000" strokeWidth="4" />
         <polyline points={coords("consistency")} fill="none" stroke="#404040" strokeWidth="4" strokeDasharray="10 6" />
@@ -694,41 +755,59 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   ];
 
   const renderCourt = () => (
-    <div className="space-y-5">
-      <div className="grid gap-5 xl:grid-cols-[1.38fr_.62fr]">
-        <Panel green className="bg-[#000000] p-5 text-[#FFFFFF] sm:p-7">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#404040] pb-5">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#BFBFBF]">{active?.type === "SHADOW" ? t.shadowActive : t.adminChallenge}</p>
-              <h2 className="mt-2 max-w-2xl text-3xl font-black uppercase tracking-[-0.04em] sm:text-5xl">{active?.title ?? selectedChallenge?.title ?? t.noChallenge}</h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-[#BFBFBF]">{active?.description ?? selectedChallenge?.description ?? t.noChallengeBody}</p>
+    <div className="space-y-6">
+      <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.8fr)_340px]">
+        <Panel green className="bg-[#000000] p-6 text-[#FFFFFF] sm:p-8 xl:p-10">
+          <div className="flex flex-col gap-5 border-b border-[#404040] pb-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-4xl">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#00821A]">
+                  {active?.type === "SHADOW" ? t.shadowActive : t.adminChallenge}
+                </span>
+                <span className="h-1 w-1 rounded-full bg-[#BFBFBF]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#BFBFBF]">Q1 // 05:00</span>
+              </div>
+              <h2 className="mt-3 max-w-4xl text-4xl font-black uppercase leading-[.94] tracking-[-0.055em] sm:text-6xl xl:text-7xl">
+                {active?.title ?? selectedChallenge?.title ?? t.noChallenge}
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-[#BFBFBF]">
+                {active?.description ?? selectedChallenge?.description ?? t.noChallengeBody}
+              </p>
             </div>
-            <span className={`rounded-sm border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${clockState === t.live ? "gta-live border-[#00821A] text-[#00821A]" : "border-[#404040] text-[#BFBFBF]"}`}>{clockState}</span>
+            <span className={`shrink-0 rounded-sm border px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] ${clockState === t.live ? "gta-live border-[#00821A] bg-[#00821A]/10 text-[#00821A]" : "border-[#404040] text-[#BFBFBF]"}`}>
+              {clockState}
+            </span>
           </div>
 
-          <div className="grid gap-7 py-8 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-            <div className="text-center lg:text-right">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">HUSTLER</p>
-              <p className="mt-2 text-3xl font-black uppercase">{hustler}</p>
-              <p className="mt-2 text-sm font-bold text-[#00821A]">{dashboard.stats.totals.currentStreak} {t.days}</p>
-            </div>
-
-            <div className="border-y border-[#404040] px-6 py-6 text-center lg:min-w-[300px] lg:border-x lg:border-y-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#BFBFBF]">{t.gameClock}</p>
-              <p className={`mt-3 font-mono text-7xl font-black tabular-nums tracking-[-0.08em] sm:text-8xl ${remaining <= 30 && active ? "text-[#00821A]" : "text-[#FFFFFF]"}`}>{active ? formatClock(remaining) : "05:00"}</p>
-              <div className="mt-3 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">
-                <span>Q1</span><span className="h-1 w-1 rounded-full bg-[#00821A]" /><span>{active ? t.live : t.ready}</span>
+          <div className="py-8 sm:py-10 xl:py-12">
+            <div className="mx-auto max-w-5xl text-center">
+              <div className="flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#BFBFBF]">
+                <span>{t.gameClock}</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-[#00821A]" />
+                <span>{active ? t.live : t.ready}</span>
+              </div>
+              <p className={`mt-4 font-mono text-[clamp(5rem,12vw,11rem)] font-black leading-[.78] tabular-nums tracking-[-0.085em] ${active && remaining <= 30 ? "gta-clock-live text-[#00821A]" : "text-[#FFFFFF]"}`}>
+                {active ? formatClock(remaining) : "05:00"}
+              </p>
+              <div className="mx-auto mt-7 grid max-w-3xl grid-cols-[1fr_auto_1fr] items-center gap-4 border-y border-[#404040] py-5">
+                <div className="text-right">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">HUSTLER</p>
+                  <p className="mt-1 text-xl font-black uppercase sm:text-2xl">{hustler}</p>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#404040] bg-[#FFFFFF]/10 text-sm font-black text-[#00821A]">
+                  VS
+                </div>
+                <div className="text-left">
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{active?.type === "SHADOW" ? "SHADOW" : "CLOCK"}</p>
+                  <p className="mt-1 text-xl font-black uppercase sm:text-2xl">
+                    {active?.type === "SHADOW" ? String(dashboard.activeShadow?.baselineLength ?? 0).padStart(2, "0") : "05:00"}
+                  </p>
+                </div>
               </div>
             </div>
-
-            <div className="text-center lg:text-left">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{active?.type === "SHADOW" ? "SHADOW" : "MILOS BG"}</p>
-              <p className="mt-2 text-3xl font-black uppercase">{active?.type === "SHADOW" ? String(dashboard.activeShadow?.baselineLength ?? 0).padStart(2, "0") : "05:00"}</p>
-              <p className="mt-2 text-sm font-bold text-[#00821A]">{active?.type === "SHADOW" ? `${t.beat} ${dashboard.activeShadow?.targetLength ?? 0}` : t.subtitle}</p>
-            </div>
           </div>
 
-          <div className="flex flex-col gap-3 border-t border-[#404040] pt-5 sm:flex-row">
+          <div className="grid gap-3 border-t border-[#404040] pt-6 sm:grid-cols-[1fr_auto]">
             <button
               type="button"
               disabled={busy || (!active && !selectedChallenge) || Boolean(active && remaining > 0)}
@@ -736,35 +815,59 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                 if (active && remaining <= 0) setAchieveOpen(true);
                 else if (!active && selectedChallenge) void startChallenge(selectedChallenge);
               }}
-              className={`min-h-14 flex-1 rounded-sm px-6 text-sm font-black uppercase tracking-[0.2em] transition disabled:cursor-not-allowed ${actionLabel === t.achieve ? "bg-[#FFFFFF] text-[#000000] hover:bg-[#BFBFBF]" : "bg-[#00821A] text-[#FFFFFF] hover:brightness-95 disabled:opacity-60"}`}
+              className={`min-h-16 rounded-sm px-8 text-base font-black uppercase tracking-[0.24em] transition disabled:cursor-not-allowed ${actionLabel === t.achieve ? "bg-[#FFFFFF] text-[#000000] hover:bg-[#BFBFBF]" : "bg-[#00821A] text-[#FFFFFF] hover:brightness-95 disabled:opacity-55"}`}
             >
               {actionLabel}
             </button>
-            <button type="button" onClick={() => setSoundEnabled((v) => !v)} className="inline-flex min-h-14 items-center justify-center gap-2 rounded-sm border border-[#404040] px-5 text-[10px] font-black uppercase tracking-[0.17em] text-[#BFBFBF]">
-              {soundEnabled ? <Volume2 className="h-4 w-4 text-[#00821A]" /> : <VolumeX className="h-4 w-4" />}{soundEnabled ? t.sound : t.muted}
+            <button
+              type="button"
+              onClick={() => setSoundEnabled((v) => !v)}
+              className="inline-flex min-h-16 min-w-36 items-center justify-center gap-2 rounded-sm border border-[#404040] px-5 text-[10px] font-black uppercase tracking-[0.17em] text-[#BFBFBF]"
+            >
+              {soundEnabled ? <Volume2 className="h-4 w-4 text-[#00821A]" /> : <VolumeX className="h-4 w-4" />}
+              {soundEnabled ? t.buzzer : t.muted}
             </button>
           </div>
         </Panel>
 
-        <div className="space-y-5">
-          <Panel className="p-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">HUSTLER CARD</p>
-            <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="space-y-6">
+          <Panel green className="p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.hustlerCard}</p>
+                <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em] text-[#000000]">{hustler}</h3>
+              </div>
+              <GlassOrb className="h-14 w-14"><UserRound className="h-6 w-6" /></GlassOrb>
+            </div>
+            <div className="mt-6 grid grid-cols-2 gap-3">
               <Metric label={t.currentStreak} value={dashboard.stats.totals.currentStreak} />
               <Metric label={t.bestStreak} value={dashboard.stats.totals.bestStreak} />
               <Metric label={t.sessions} value={dashboard.stats.totals.sessionsAchieved} />
               <Metric label={t.minutes} value={dashboard.stats.totals.totalMinutes} />
             </div>
+            <div className="mt-5 grid grid-cols-3 border-t border-[#BFBFBF] pt-5 text-center">
+              <div><p className="text-2xl font-black text-[#000000]">{dashboard.stats.resilience.rating}</p><p className="mt-1 text-[8px] font-black uppercase tracking-[0.15em] text-[#404040]">R</p></div>
+              <div className="border-x border-[#BFBFBF]"><p className="text-2xl font-black text-[#000000]">{dashboard.stats.consistency.rating}</p><p className="mt-1 text-[8px] font-black uppercase tracking-[0.15em] text-[#404040]">C</p></div>
+              <div><p className="text-2xl font-black text-[#00821A]">{dashboard.stats.focus.rating}</p><p className="mt-1 text-[8px] font-black uppercase tracking-[0.15em] text-[#404040]">F</p></div>
+            </div>
           </Panel>
-          <Panel className="p-5">
+
+          <Panel className="p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.shadow}</p>
-                <p className="mt-2 text-xl font-black uppercase text-[#000000]">{dashboard.activeShadow ? `${dashboard.activeShadow.currentRun} ${t.versus} ${dashboard.activeShadow.baselineLength}` : "NO ACTIVE SHADOW"}</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.shadow}</p>
+                <p className="mt-2 text-2xl font-black uppercase text-[#000000]">
+                  {dashboard.activeShadow ? `${String(dashboard.activeShadow.currentRun).padStart(2, "0")} ${t.versus} ${String(dashboard.activeShadow.baselineLength).padStart(2, "0")}` : t.yourShadowWaiting}
+                </p>
               </div>
               <GlassOrb className="h-12 w-12"><Swords className="h-5 w-5" /></GlassOrb>
             </div>
-            <button type="button" onClick={() => setScreen("SHADOW")} className="mt-5 min-h-11 w-full rounded-sm border border-[#00821A] bg-white/70 text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.shadow}</button>
+            <p className="mt-4 text-sm leading-6 text-[#404040]">
+              {dashboard.activeShadow ? `${t.beat} ${dashboard.activeShadow.targetLength}` : t.shadowWaitingBody}
+            </p>
+            <button type="button" onClick={() => setScreen("SHADOW")} className="mt-5 min-h-12 w-full rounded-sm border border-[#00821A] bg-white/70 text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">
+              {t.shadow}
+            </button>
           </Panel>
         </div>
       </div>
@@ -779,31 +882,37 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                 <p className="mt-1 text-lg font-black uppercase text-[#000000]">{lastAchieved.title}</p>
               </div>
             </div>
-            <button type="button" disabled={shareBusy} onClick={() => void shareEffort({ title: lastAchieved.title, subtitle: "05:00 ACHIEVED", statLabel: t.currentStreak, statValue: String(lastAchieved.streak) })} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-[#00821A] px-5 text-[10px] font-black uppercase tracking-[0.16em] text-[#FFFFFF] disabled:opacity-40"><Share2 className="h-4 w-4" />{t.shareStory}</button>
+            <button type="button" disabled={shareBusy} onClick={() => void shareEffort({ title: lastAchieved.title, subtitle: "05:00 ACHIEVED", statLabel: t.currentStreak, statValue: String(lastAchieved.streak) })} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-[#00821A] px-5 text-[10px] font-black uppercase tracking-[0.16em] text-[#FFFFFF] disabled:opacity-40">
+              <Share2 className="h-4 w-4" />{t.shareStory}
+            </button>
           </div>
         </Panel>
       ) : null}
 
-      <Panel className="p-5 sm:p-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+      <Panel className="p-5 sm:p-7">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#BFBFBF] pb-5">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.chooseChallenge}</p>
-            <h3 className="mt-2 text-2xl font-black uppercase text-[#000000]">MILOS BG / 5:00</h3>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.challengeBoard}</p>
+            <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.04em] text-[#000000]">MILOS BG / 5:00</h3>
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#404040]">{dashboard.challenges.length} AVAILABLE</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#404040]">{dashboard.challenges.length} {t.availableNow}</p>
         </div>
         {dashboard.challenges.length ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {dashboard.challenges.map((challenge) => {
+          <div className="mt-5 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            {dashboard.challenges.map((challenge, index) => {
               const selected = selectedChallenge?.id === challenge.id;
               return (
-                <button key={challenge.id} type="button" disabled={Boolean(active)} onClick={() => setSelectedChallengeId(challenge.id)} className={`min-h-[150px] rounded-sm border p-4 text-left transition ${selected ? "border-[#00821A] bg-white shadow-[0_8px_24px_rgba(0,130,26,.10)]" : "border-[#BFBFBF] bg-white/55 hover:bg-white"}`}>
+                <button key={challenge.id} type="button" disabled={Boolean(active)} onClick={() => setSelectedChallengeId(challenge.id)} className={`group min-h-[180px] rounded-sm border p-5 text-left transition ${selected ? "border-[#00821A] bg-white shadow-[0_12px_30px_rgba(0,130,26,.10)]" : "border-[#BFBFBF] bg-white/55 hover:border-[#00821A] hover:bg-white"}`}>
                   <div className="flex items-start justify-between gap-3">
-                    <GlassOrb className="h-10 w-10"><Target className="h-4 w-4" /></GlassOrb>
+                    <div className="flex items-center gap-3">
+                      <GlassOrb className="h-11 w-11"><Target className="h-4 w-4" /></GlassOrb>
+                      <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[#404040]">#{String(index + 1).padStart(2, "0")}</span>
+                    </div>
                     <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#00821A]">05:00</span>
                   </div>
-                  <p className="mt-4 text-base font-black uppercase text-[#000000]">{challenge.title}</p>
+                  <p className="mt-5 text-lg font-black uppercase leading-tight text-[#000000]">{challenge.title}</p>
                   <p className="mt-2 line-clamp-2 text-sm leading-5 text-[#404040]">{challenge.description}</p>
+                  <div className="mt-4 h-1 w-full bg-[#BFBFBF]/40"><div className={`h-full transition-all ${selected ? "w-full bg-[#00821A]" : "w-1/4 bg-[#404040] group-hover:w-2/3 group-hover:bg-[#00821A]"}`} /></div>
                 </button>
               );
             })}
@@ -816,42 +925,105 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   const renderShadow = () => {
     const pastSeries = dashboard.historicalSeries.filter((series) => !series.active && series.length > 0);
     return (
-      <div className="space-y-5">
-        <Panel green className="p-6 sm:p-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">SHADOW CHALLENGE</p>
-              <h2 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em] text-[#000000] sm:text-6xl">{t.shadowTitle}</h2>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-[#404040]">{t.shadowBody}</p>
+      <div className="space-y-6">
+        <Panel green className="overflow-hidden bg-[#000000] text-[#FFFFFF]">
+          <div className="grid lg:grid-cols-[1.1fr_.9fr]">
+            <div className="p-6 sm:p-8 xl:p-10">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#00821A]">SHADOW CHALLENGE</p>
+              <h2 className="mt-3 text-4xl font-black uppercase leading-[.94] tracking-[-0.05em] sm:text-6xl xl:text-7xl">{t.shadowTitle}</h2>
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-[#BFBFBF]">{t.shadowBody}</p>
+              <div className="mt-8 inline-flex items-center gap-3 border-t border-[#404040] pt-5 text-[9px] font-black uppercase tracking-[0.2em] text-[#BFBFBF]">
+                <Swords className="h-4 w-4 text-[#00821A]" />
+                {t.noLeaderboard}
+              </div>
             </div>
-            <GlassOrb className="h-20 w-20"><Swords className="h-8 w-8" /></GlassOrb>
+            <div className="relative flex min-h-[320px] items-center justify-center border-t border-[#404040] p-6 lg:border-l lg:border-t-0">
+              <div className="absolute inset-0 bg-[#FFFFFF]/[0.02]" />
+              <div className="relative z-[1] w-full max-w-md">
+                <p className="text-center text-[9px] font-black uppercase tracking-[0.24em] text-[#BFBFBF]">{t.shadowPreview}</p>
+                <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-center">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">YOU</p>
+                    <p className="mt-2 text-6xl font-black tabular-nums text-[#00821A]">{String(dashboard.activeShadow?.currentRun ?? dashboard.stats.totals.currentStreak).padStart(2, "0")}</p>
+                  </div>
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#404040] bg-[#FFFFFF]/10 text-xs font-black text-[#FFFFFF]">VS</div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">SHADOW</p>
+                    <p className="mt-2 text-6xl font-black tabular-nums text-[#FFFFFF]">{String(dashboard.activeShadow?.baselineLength ?? pastSeries[0]?.length ?? 0).padStart(2, "0")}</p>
+                  </div>
+                </div>
+                <div className="mt-6 border-t border-[#404040] pt-4 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">
+                    {dashboard.activeShadow ? `${t.beat} ${dashboard.activeShadow.targetLength}` : t.yourShadowWaiting}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </Panel>
 
         {dashboard.activeShadow ? (
-          <Panel className="bg-[#000000] p-6 text-[#FFFFFF] sm:p-8">
-            <div className="grid gap-5 md:grid-cols-4">
-              <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.previousRun}</p><p className="mt-2 text-5xl font-black">{dashboard.activeShadow.baselineLength}</p></div>
-              <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.currentRun}</p><p className="mt-2 text-5xl font-black text-[#00821A]">{dashboard.activeShadow.currentRun}</p></div>
-              <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.shadowTarget}</p><p className="mt-2 text-5xl font-black">{dashboard.activeShadow.targetLength}</p></div>
-              <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.attempts} / {t.returns}</p><p className="mt-2 text-5xl font-black">{dashboard.activeShadow.attempts}/{dashboard.activeShadow.returnCount}</p></div>
+          <Panel green className="p-6 sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.shadowActive}</p>
+                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.04em] text-[#000000]">YOU {dashboard.activeShadow.currentRun} {t.versus} {dashboard.activeShadow.baselineLength} SHADOW</h3>
+              </div>
+              <GlassOrb className="h-14 w-14"><Swords className="h-6 w-6" /></GlassOrb>
             </div>
-            <button type="button" disabled={Boolean(active) || busy} onClick={() => void startChallenge(undefined, dashboard.activeShadow!.id)} className="mt-7 min-h-14 w-full rounded-sm bg-[#00821A] px-6 text-sm font-black uppercase tracking-[0.2em] text-[#FFFFFF] disabled:opacity-45">{t.grind}</button>
+            <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <Metric label={t.previousRun} value={dashboard.activeShadow.baselineLength} />
+              <Metric label={t.currentRun} value={dashboard.activeShadow.currentRun} />
+              <Metric label={t.shadowTarget} value={dashboard.activeShadow.targetLength} />
+              <Metric label={`${t.attempts} / ${t.returns}`} value={`${dashboard.activeShadow.attempts} / ${dashboard.activeShadow.returnCount}`} />
+            </div>
+            <button type="button" disabled={Boolean(active) || busy} onClick={() => void startChallenge(undefined, dashboard.activeShadow!.id)} className="mt-7 min-h-16 w-full rounded-sm bg-[#00821A] px-6 text-sm font-black uppercase tracking-[0.22em] text-[#FFFFFF] disabled:opacity-45">
+              {t.grind}
+            </button>
           </Panel>
-        ) : (
+        ) : pastSeries.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {pastSeries.length ? pastSeries.slice(0, 9).map((series) => (
-              <Panel key={series.id} className="p-5">
+            {pastSeries.slice(0, 9).map((series) => (
+              <Panel key={series.id} className="p-6">
                 <div className="flex items-center justify-between gap-3">
                   <GlassOrb className="h-12 w-12"><History className="h-5 w-5" /></GlassOrb>
                   <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.previousRun}</span>
                 </div>
-                <p className="mt-5 text-5xl font-black text-[#000000]">{series.length}</p>
-                <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-[#404040]">{t.shadowTarget}: {series.length + 1}</p>
-                <button type="button" disabled={busy} onClick={() => void createShadow(series)} className="mt-5 min-h-11 w-full rounded-sm border border-[#00821A] bg-[#00821A] px-4 text-[10px] font-black uppercase tracking-[0.17em] text-[#FFFFFF]">{t.launchShadow}</button>
+                <div className="mt-6 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-6xl font-black leading-none tabular-nums text-[#000000]">{String(series.length).padStart(2, "0")}</p>
+                    <p className="mt-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#404040]">SHADOW</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.shadowTarget}</p>
+                    <p className="mt-1 text-3xl font-black text-[#00821A]">{String(series.length + 1).padStart(2, "0")}</p>
+                  </div>
+                </div>
+                <button type="button" disabled={busy} onClick={() => void createShadow(series)} className="mt-6 min-h-12 w-full rounded-sm bg-[#00821A] px-4 text-[10px] font-black uppercase tracking-[0.17em] text-[#FFFFFF]">
+                  {t.launchShadow}
+                </button>
               </Panel>
-            )) : <Panel className="p-6 text-sm text-[#404040]">{t.noSeries}</Panel>}
+            ))}
           </div>
+        ) : (
+          <Panel className="p-7 sm:p-9">
+            <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr] lg:items-center">
+              <div>
+                <GlassOrb className="h-16 w-16"><Lock className="h-6 w-6" /></GlassOrb>
+                <p className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.yourShadowWaiting}</p>
+                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.04em] text-[#000000]">BUILD A RUN. THEN BEAT IT.</h3>
+                <p className="mt-4 max-w-xl text-sm leading-7 text-[#404040]">{t.shadowWaitingBody}</p>
+              </div>
+              <div className="border border-[#BFBFBF] bg-[#000000] p-6 text-[#FFFFFF]">
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-center">
+                  <div><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#BFBFBF]">YOU</p><p className="mt-2 text-5xl font-black text-[#00821A]">--</p></div>
+                  <Lock className="h-5 w-5 text-[#BFBFBF]" />
+                  <div><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#BFBFBF]">SHADOW</p><p className="mt-2 text-5xl font-black">--</p></div>
+                </div>
+                <p className="mt-6 border-t border-[#404040] pt-4 text-center text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.noSeries}</p>
+              </div>
+            </div>
+          </Panel>
         )}
       </div>
     );
@@ -860,46 +1032,92 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   const renderStats = () => {
     const s = dashboard.stats;
     return (
-      <div className="space-y-5">
-        <Panel green className="p-6 sm:p-8">
-          <div className="grid gap-8 xl:grid-cols-[.65fr_1.35fr] xl:items-center">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.playerStats}</p>
-              <h2 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em] text-[#000000] sm:text-6xl">{hustler}</h2>
-              <p className="mt-4 text-sm leading-6 text-[#404040]">{t.performanceBody}</p>
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <Metric label={t.currentStreak} value={s.totals.currentStreak} />
-                <Metric label={t.bestStreak} value={s.totals.bestStreak} />
-                <Metric label={t.sessions} value={s.totals.sessionsAchieved} />
-                <Metric label={t.minutes} value={s.totals.totalMinutes} />
+      <div className="space-y-6">
+        <Panel green className="overflow-hidden">
+          <div className="grid xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+            <div className="bg-[#000000] p-6 text-[#FFFFFF] sm:p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.playerProfile}</p>
+                  <h2 className="mt-2 text-4xl font-black uppercase leading-[.92] tracking-[-0.05em]">{hustler}</h2>
+                </div>
+                <GlassOrb className="h-14 w-14"><UserRound className="h-6 w-6" /></GlassOrb>
+              </div>
+              <p className="mt-6 text-sm leading-6 text-[#BFBFBF]">{t.performanceBody}</p>
+              <div className="mt-7 grid grid-cols-2 gap-3">
+                <div className="border border-[#404040] p-4"><p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.currentStreak}</p><p className="mt-2 text-4xl font-black tabular-nums">{s.totals.currentStreak}</p></div>
+                <div className="border border-[#404040] p-4"><p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.bestStreak}</p><p className="mt-2 text-4xl font-black tabular-nums">{s.totals.bestStreak}</p></div>
+                <div className="border border-[#404040] p-4"><p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.sessions}</p><p className="mt-2 text-4xl font-black tabular-nums text-[#00821A]">{s.totals.sessionsAchieved}</p></div>
+                <div className="border border-[#404040] p-4"><p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.minutes}</p><p className="mt-2 text-4xl font-black tabular-nums">{s.totals.totalMinutes}</p></div>
+              </div>
+              <div className="mt-6 border-t border-[#404040] pt-5">
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.noLeaderboard}</p>
               </div>
             </div>
-            <RadarChart stats={s} labels={[t.resilience, t.consistency, t.focus]} />
+
+            <div className="flex min-h-[520px] items-center justify-center bg-[#FFFFFF]/80 p-5 sm:p-8 xl:min-h-[620px]">
+              <div className="w-full">
+                <div className="mb-2 text-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#00821A]">{t.hustleRating}</p>
+                  <p className="mt-1 text-2xl font-black uppercase tracking-[-0.04em] text-[#000000]">RESILIENCE / CONSISTENCY / FOCUS</p>
+                </div>
+                <RadarChart stats={s} labels={[t.resilience, t.consistency, t.focus]} />
+              </div>
+            </div>
+
+            <div className="border-t border-[#BFBFBF] bg-white/70 p-6 sm:p-8 xl:border-l xl:border-t-0">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#404040]">{t.seasonForm}</p>
+              <div className="mt-5 space-y-5">
+                {[
+                  [t.resilience, s.resilience.rating, Shield],
+                  [t.consistency, s.consistency.rating, History],
+                  [t.focus, s.focus.rating, Target],
+                ].map(([label, value, Icon], index) => {
+                  const C = Icon as ComponentType<{ className?: string }>;
+                  const n = Number(value);
+                  return (
+                    <div key={String(label)}>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3"><C className={`h-5 w-5 ${index === 2 ? "text-[#00821A]" : "text-[#000000]"}`} /><span className="text-xs font-black uppercase tracking-[0.14em] text-[#000000]">{String(label)}</span></div>
+                        <span className={`text-3xl font-black tabular-nums ${index === 2 ? "text-[#00821A]" : "text-[#000000]"}`}>{n}</span>
+                      </div>
+                      <div className="mt-3 h-1.5 bg-[#BFBFBF]/40"><div className="h-full bg-[#00821A]" style={{ width: `${Math.max(0, Math.min(100, n))}%` }} /></div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-8 border-t border-[#BFBFBF] pt-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <Metric label={t.completion} value={s.consistency.completionRate} suffix="%" />
+                  <Metric label={t.timerCompletion} value={s.focus.timerCompletionRate} suffix="%" />
+                </div>
+              </div>
+            </div>
           </div>
         </Panel>
 
         <div className="grid gap-5 xl:grid-cols-3">
-          <Panel className="p-5">
-            <div className="flex items-center justify-between gap-3"><h3 className="text-xl font-black uppercase text-[#000000]">{t.resilience}</h3><span className="text-4xl font-black text-[#00821A]">{s.resilience.rating}</span></div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
+          <Panel className="p-6">
+            <div className="flex items-center justify-between gap-3"><h3 className="text-xl font-black uppercase text-[#000000]">{t.resilience}</h3><span className="text-5xl font-black text-[#00821A]">{s.resilience.rating}</span></div>
+            <div className="mt-6 grid grid-cols-2 gap-3">
               <Metric label={t.returnRate} value={s.resilience.returnRate} suffix="%" />
               <Metric label={t.recovery} value={s.resilience.medianRecoveryHours ?? "—"} suffix={s.resilience.medianRecoveryHours !== null ? t.hours : ""} />
               <Metric label={t.shadowWin} value={s.resilience.shadowWinRate} suffix="%" />
               <Metric label={t.comeback} value={s.resilience.bestComebackStreak} />
             </div>
           </Panel>
-          <Panel className="p-5">
-            <div className="flex items-center justify-between gap-3"><h3 className="text-xl font-black uppercase text-[#000000]">{t.consistency}</h3><span className="text-4xl font-black text-[#00821A]">{s.consistency.rating}</span></div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
+          <Panel className="p-6">
+            <div className="flex items-center justify-between gap-3"><h3 className="text-xl font-black uppercase text-[#000000]">{t.consistency}</h3><span className="text-5xl font-black text-[#00821A]">{s.consistency.rating}</span></div>
+            <div className="mt-6 grid grid-cols-2 gap-3">
               <Metric label={t.sevenDay} value={s.consistency.sevenDayRate} suffix="%" />
               <Metric label={t.twentyEightDay} value={s.consistency.twentyEightDayRate} suffix="%" />
               <Metric label={t.progression} value={`${s.consistency.progressionPoints >= 0 ? "+" : ""}${s.consistency.progressionPoints}`} suffix={` ${t.pts}`} />
               <Metric label={t.completion} value={s.consistency.completionRate} suffix="%" />
             </div>
           </Panel>
-          <Panel className="p-5">
-            <div className="flex items-center justify-between gap-3"><h3 className="text-xl font-black uppercase text-[#000000]">{t.focus}</h3><span className="text-4xl font-black text-[#00821A]">{s.focus.rating}</span></div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
+          <Panel className="p-6">
+            <div className="flex items-center justify-between gap-3"><h3 className="text-xl font-black uppercase text-[#000000]">{t.focus}</h3><span className="text-5xl font-black text-[#00821A]">{s.focus.rating}</span></div>
+            <div className="mt-6 grid grid-cols-2 gap-3">
               <Metric label={t.timerCompletion} value={s.focus.timerCompletionRate} suffix="%" />
               <Metric label={t.focusAverage} value={s.focus.focusCheckAverage} suffix="%" />
               <Metric label={t.cleanSessions} value={s.focus.cleanSessions} />
@@ -908,49 +1126,99 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
           </Panel>
         </div>
 
-        <Panel className="p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between gap-3"><h3 className="text-lg font-black uppercase text-[#000000]">{t.trend}</h3><TrendingUp className="h-5 w-5 text-[#00821A]" /></div>
+        <Panel className="p-6 sm:p-7">
+          <div className="mb-6 flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.trend}</p><h3 className="mt-1 text-2xl font-black uppercase text-[#000000]">R / C / F PERFORMANCE</h3></div><TrendingUp className="h-6 w-6 text-[#00821A]" /></div>
           <TrendGraph stats={s} />
-          <div className="mt-4 flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-[0.15em] text-[#404040]">
-            <span className="flex items-center gap-2"><span className="h-2 w-6 bg-[#000000]" />{t.resilience}</span>
-            <span className="flex items-center gap-2"><span className="h-2 w-6 bg-[#404040]" />{t.consistency}</span>
-            <span className="flex items-center gap-2"><span className="h-2 w-6 bg-[#00821A]" />{t.focus}</span>
+          <div className="mt-5 flex flex-wrap gap-5 text-[10px] font-black uppercase tracking-[0.15em] text-[#404040]">
+            <span className="flex items-center gap-2"><span className="h-2 w-8 bg-[#000000]" />{t.resilience}</span>
+            <span className="flex items-center gap-2"><span className="h-2 w-8 bg-[#404040]" />{t.consistency}</span>
+            <span className="flex items-center gap-2"><span className="h-2 w-8 bg-[#00821A]" />{t.focus}</span>
           </div>
         </Panel>
       </div>
     );
   };
 
-  const renderBadges = () => (
-    <div className="space-y-5">
-      <Panel green className="p-6 sm:p-8">
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.badges}</p>
-        <h2 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em] text-[#000000] sm:text-6xl">{t.badgesTitle}</h2>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-[#404040]">{t.badgesBody}</p>
-      </Panel>
-      {dashboard.badges.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {dashboard.badges.map((badge) => {
+  const renderBadges = () => {
+    const catalog = badgeCatalog[lang];
+    const knownCodes = new Set<string>(catalog.map((item) => item.code));
+    const customAwards = dashboard.badges.filter((badge) => !knownCodes.has(badge.code));
+
+    return (
+      <div className="space-y-6">
+        <Panel green className="p-6 sm:p-8 xl:p-10">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.collection}</p>
+              <h2 className="mt-2 text-4xl font-black uppercase leading-[.94] tracking-[-0.05em] text-[#000000] sm:text-6xl xl:text-7xl">{t.badgesTitle}</h2>
+              <p className="mt-5 max-w-3xl text-sm leading-7 text-[#404040]">{t.collectionBody}</p>
+            </div>
+            <div className="min-w-40 border border-[#BFBFBF] bg-white/60 p-5 text-center">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.earned}</p>
+              <p className="mt-2 text-5xl font-black text-[#00821A]">{dashboard.badges.length}</p>
+              <p className="mt-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">/ {catalog.length + customAwards.length}</p>
+            </div>
+          </div>
+        </Panel>
+
+        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          {catalog.map((item) => {
+            const award = dashboard.badges.find((badge) => badge.code === item.code);
+            const Icon = iconByBadge[award?.iconKey ?? item.iconKey] ?? Medal;
+            const earned = Boolean(award);
+            return (
+              <Panel key={item.code} green={earned} className={`p-6 transition ${earned ? "bg-white" : "bg-white/45"}`}>
+                <div className="flex items-start justify-between gap-4">
+                  <GlassOrb className={`h-16 w-16 ${earned ? "opacity-100" : "opacity-55 grayscale"}`}>
+                    {earned ? <Icon className="h-7 w-7 text-[#000000]" /> : <Lock className="h-6 w-6 text-[#404040]" />}
+                  </GlassOrb>
+                  <span className={`rounded-sm border px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] ${earned ? "border-[#00821A] text-[#00821A]" : "border-[#BFBFBF] text-[#404040]"}`}>
+                    {earned ? t.earned : t.locked}
+                  </span>
+                </div>
+                <h3 className={`mt-6 text-2xl font-black uppercase tracking-[-0.03em] ${earned ? "text-[#000000]" : "text-[#404040]"}`}>{award?.name ?? item.name}</h3>
+                <p className="mt-3 min-h-[48px] text-sm leading-6 text-[#404040]">{award?.description ?? item.description}</p>
+                {award?.message ? <blockquote className="mt-4 border-l-2 border-[#00821A] pl-3 text-sm font-semibold text-[#404040]">{award.message}</blockquote> : null}
+                <div className="mt-6 border-t border-[#BFBFBF] pt-4">
+                  {earned && award ? (
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#404040]">{award.source === "ADMIN" ? t.byAdmin : t.bySystem}</p>
+                        <p className="mt-1 text-[10px] font-bold text-[#000000]">{new Date(award.awardedAt).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US")}</p>
+                      </div>
+                      <button type="button" disabled={shareBusy} onClick={() => void shareEffort({ title: award.name, subtitle: "BADGE EARNED", badge: award.name })} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-white/70 px-4 text-[9px] font-black uppercase tracking-[0.15em] text-[#00821A] disabled:opacity-40">
+                        <Share2 className="h-4 w-4" />{t.shareBadge}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]"><Lock className="h-3.5 w-3.5" />{item.code.replaceAll("_", " ")}</div>
+                  )}
+                </div>
+              </Panel>
+            );
+          })}
+
+          {customAwards.map((badge) => {
             const Icon = iconByBadge[badge.iconKey] ?? Medal;
             return (
-              <Panel key={badge.id} className="p-5">
+              <Panel key={badge.id} green className="p-6">
                 <div className="flex items-start justify-between gap-4">
-                  <GlassOrb className="h-14 w-14"><Icon className="h-6 w-6 text-[#000000]" /></GlassOrb>
-                  <span className="rounded-sm border border-[#BFBFBF] bg-white/60 px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A]">{badge.source === "ADMIN" ? t.byAdmin : t.bySystem}</span>
+                  <GlassOrb className="h-16 w-16"><Icon className="h-7 w-7 text-[#000000]" /></GlassOrb>
+                  <span className="rounded-sm border border-[#00821A] px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A]">{t.earned}</span>
                 </div>
-                <h3 className="mt-5 text-xl font-black uppercase text-[#000000]">{badge.name}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#404040]">{badge.description}</p>
+                <h3 className="mt-6 text-2xl font-black uppercase tracking-[-0.03em] text-[#000000]">{badge.name}</h3>
+                <p className="mt-3 text-sm leading-6 text-[#404040]">{badge.description}</p>
                 {badge.message ? <blockquote className="mt-4 border-l-2 border-[#00821A] pl-3 text-sm font-semibold text-[#404040]">{badge.message}</blockquote> : null}
-                <button type="button" disabled={shareBusy} onClick={() => void shareEffort({ title: badge.name, subtitle: "BADGE EARNED", badge: badge.name })} className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-white/70 px-4 text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A]">
+                <button type="button" disabled={shareBusy} onClick={() => void shareEffort({ title: badge.name, subtitle: "BADGE EARNED", badge: badge.name })} className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-white/70 px-4 text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A] disabled:opacity-40">
                   <Share2 className="h-4 w-4" />{t.shareBadge}
                 </button>
               </Panel>
             );
           })}
         </div>
-      ) : <Panel className="p-6 text-sm text-[#404040]">{t.noBadges}</Panel>}
-    </div>
-  );
+      </div>
+    );
+  };
 
   const renderBook = () => (
     <Panel green className="p-6 sm:p-9">
@@ -1008,12 +1276,15 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
         </div>
       ) : null}
 
-      <header className="border-b border-[#BFBFBF] bg-[#FFFFFF]/85 px-5 py-5 backdrop-blur-md sm:px-7">
+      <header className="border-b border-[#BFBFBF] bg-[#FFFFFF]/85 px-5 py-5 backdrop-blur-md sm:px-7 xl:px-9">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
-            <GlassOrb className="h-12 w-12"><Mark className="h-6 w-6" /></GlassOrb>
+          <div className="flex items-center gap-4">
+            <GlassOrb className="h-14 w-14"><Mark className="h-7 w-7" /></GlassOrb>
             <div>
-              <div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-black tracking-[-0.04em] text-[#000000] sm:text-3xl">{t.title}</h1><span className="rounded-sm border border-[#00821A] px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A]">{t.member}</span></div>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-3xl font-black tracking-[-0.05em] text-[#000000] sm:text-4xl">{t.title}</h1>
+                <span className="rounded-sm border border-[#00821A] px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A]">{t.member}</span>
+              </div>
               <p className="mt-1 text-sm text-[#404040]">{t.subtitle}</p>
             </div>
           </div>
@@ -1025,32 +1296,52 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
         </div>
       </header>
 
-      <div className="grid gap-5 p-5 lg:grid-cols-[205px_1fr] lg:p-7">
-        <aside className="space-y-4">
+      <div className="grid gap-6 p-4 sm:p-6 xl:grid-cols-[250px_minmax(0,1fr)] xl:p-8">
+        <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
           <Panel className="p-3">
-            <nav className="space-y-2">
+            <nav className="grid grid-cols-2 gap-2 sm:grid-cols-5 xl:grid-cols-1">
               {nav.map(({ id, label, Icon }) => (
-                <button key={id} type="button" onClick={() => setScreen(id)} className={`flex min-h-11 w-full items-center gap-3 rounded-sm px-4 text-left text-[10px] font-black uppercase tracking-[0.16em] ${screen === id ? "bg-[#00821A] text-[#FFFFFF]" : "bg-white/50 text-[#404040] hover:bg-white"}`}>
+                <button key={id} type="button" onClick={() => setScreen(id)} className={`flex min-h-12 w-full items-center gap-3 rounded-sm px-4 text-left text-[10px] font-black uppercase tracking-[0.16em] transition ${screen === id ? "bg-[#00821A] text-[#FFFFFF] shadow-[0_10px_22px_rgba(0,130,26,.16)]" : "bg-white/50 text-[#404040] hover:bg-white"}`}>
                   <Icon className="h-4 w-4" />{label}
                 </button>
               ))}
             </nav>
           </Panel>
-          <Panel className="p-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.17em] text-[#404040]">{t.noLeaderboard}</p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="text-center"><p className="text-xl font-black text-[#000000]">{dashboard.stats.resilience.rating}</p><p className="text-[8px] font-black uppercase text-[#404040]">R</p></div>
-              <div className="text-center"><p className="text-xl font-black text-[#000000]">{dashboard.stats.consistency.rating}</p><p className="text-[8px] font-black uppercase text-[#404040]">C</p></div>
-              <div className="text-center"><p className="text-xl font-black text-[#00821A]">{dashboard.stats.focus.rating}</p><p className="text-[8px] font-black uppercase text-[#404040]">F</p></div>
+
+          <Panel green className="hidden p-5 xl:block">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.hustlerCard}</p>
+                <p className="mt-2 text-xl font-black uppercase tracking-[-0.03em] text-[#000000]">{hustler}</p>
+              </div>
+              <GlassOrb className="h-11 w-11"><UserRound className="h-5 w-5" /></GlassOrb>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <div className="border border-[#BFBFBF] bg-white/60 p-3"><p className="text-[7px] font-black uppercase tracking-[0.16em] text-[#404040]">CURRENT</p><p className="mt-1 text-2xl font-black text-[#000000]">{dashboard.stats.totals.currentStreak}</p></div>
+              <div className="border border-[#BFBFBF] bg-white/60 p-3"><p className="text-[7px] font-black uppercase tracking-[0.16em] text-[#404040]">BEST</p><p className="mt-1 text-2xl font-black text-[#000000]">{dashboard.stats.totals.bestStreak}</p></div>
+              <div className="col-span-2 border border-[#BFBFBF] bg-white/60 p-3"><p className="text-[7px] font-black uppercase tracking-[0.16em] text-[#404040]">5-MIN SESSIONS</p><p className="mt-1 text-2xl font-black text-[#00821A]">{dashboard.stats.totals.sessionsAchieved}</p></div>
+            </div>
+            <div className="mt-5 grid grid-cols-3 border-t border-[#BFBFBF] pt-4 text-center">
+              <div><p className="text-xl font-black text-[#000000]">{dashboard.stats.resilience.rating}</p><p className="text-[7px] font-black uppercase tracking-[0.15em] text-[#404040]">R</p></div>
+              <div className="border-x border-[#BFBFBF]"><p className="text-xl font-black text-[#000000]">{dashboard.stats.consistency.rating}</p><p className="text-[7px] font-black uppercase tracking-[0.15em] text-[#404040]">C</p></div>
+              <div><p className="text-xl font-black text-[#00821A]">{dashboard.stats.focus.rating}</p><p className="text-[7px] font-black uppercase tracking-[0.15em] text-[#404040]">F</p></div>
             </div>
           </Panel>
+
+          <Panel className="hidden p-5 xl:block">
+            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.noLeaderboard}</p>
+            <div className="mt-4 h-1 w-full bg-[#BFBFBF]/40"><div className="h-full w-3/5 bg-[#00821A]" /></div>
+          </Panel>
         </aside>
+
         <main className="min-w-0">
-          {screen === "COURT" ? renderCourt() : null}
-          {screen === "SHADOW" ? renderShadow() : null}
-          {screen === "STATS" ? renderStats() : null}
-          {screen === "BADGES" ? renderBadges() : null}
-          {screen === "BOOK" ? renderBook() : null}
+          <div key={screen} className="gta-screen">
+            {screen === "COURT" ? renderCourt() : null}
+            {screen === "SHADOW" ? renderShadow() : null}
+            {screen === "STATS" ? renderStats() : null}
+            {screen === "BADGES" ? renderBadges() : null}
+            {screen === "BOOK" ? renderBook() : null}
+          </div>
         </main>
       </div>
     </div>
