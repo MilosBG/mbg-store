@@ -7,7 +7,6 @@ import type { ComponentType, ReactNode } from "react";
 import {
   Award,
   BookOpen,
-  Check,
   ChevronRight,
   CircleDot,
   Clock3,
@@ -20,7 +19,6 @@ import {
   Shield,
   Swords,
   Target,
-  TimerReset,
   TrendingUp,
   Trophy,
   Volume2,
@@ -31,7 +29,6 @@ import { toast } from "react-hot-toast";
 
 import { GrindUntilAchieve2 } from "@/images";
 import type {
-  GTABadgeAwardDTO,
   GTAChallengeDTO,
   GTADashboardDTO,
   GTAFocusCheck,

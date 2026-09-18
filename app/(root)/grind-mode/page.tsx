@@ -20,7 +20,7 @@ export default async function GrindModePage({
     <Container className="mt-4 min-h-[70vh]">
       <GrindToAchieveClient
         lang={lang}
-        playerName={playerName}
+        hustlerName={playerName}
         bookUrl={process.env.NEXT_PUBLIC_MBG_BOOK_URL || "/the-book"}
         ebookUrl={process.env.NEXT_PUBLIC_MBG_EBOOK_URL || "/the-book"}
       />
