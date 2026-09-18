@@ -1,49 +1,28 @@
-import type { Metadata } from "next";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+import { currentUser } from "@clerk/nextjs/server";
 
 import Container from "@/components/mbg-components/Container";
-import GrindModeClient from "@/components/grind/GrindModeClient";
-import { normalizeGrindLanguage } from "@/lib/grind/i18n";
+import GrindToAchieveClient from "@/components/grind-to-achieve/GrindToAchieveClient";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "GRIND MODE | Milos BG",
-  description:
-    "A private Milos BG game-like progression system built around GRIND, RESILIENCE, CONSISTENCY, FOCUS and ACHIEVE.",
-  robots: { index: false, follow: false },
-};
-
-type Props = {
+export default async function GrindModePage({
+  searchParams,
+}: {
   searchParams: Promise<{ lang?: string | string[] }>;
-};
-
-export default async function GrindModePage({ searchParams }: Props) {
-  const { userId } = await auth();
-  const { lang: rawLang } = await searchParams;
-  const lang = normalizeGrindLanguage(rawLang);
-
-  if (!userId) {
-    redirect(`/sign-in?redirect_url=${encodeURIComponent(`/grind-mode?lang=${lang}`)}`);
-  }
-
+}) {
   const user = await currentUser();
-  const playerName =
-    user?.firstName ||
-    user?.username ||
-    "GRINDER";
-
-  const bookUrl = process.env.NEXT_PUBLIC_MBG_BOOK_URL || "/the-book";
-  const ebookUrl = process.env.NEXT_PUBLIC_MBG_EBOOK_URL || "/the-book";
+  const params = await searchParams;
+  const raw = Array.isArray(params.lang) ? params.lang[0] : params.lang;
+  const lang = raw === "fr" ? "fr" : "en";
+  const playerName = user?.firstName || user?.username || "Hustler";
 
   return (
-    <Container className="min-h-screen">
-      <GrindModeClient
+    <Container className="mt-4 min-h-[70vh]">
+      <GrindToAchieveClient
         lang={lang}
-        bookUrl={bookUrl}
-        ebookUrl={ebookUrl}
         playerName={playerName}
+        bookUrl={process.env.NEXT_PUBLIC_MBG_BOOK_URL || "/the-book"}
+        ebookUrl={process.env.NEXT_PUBLIC_MBG_EBOOK_URL || "/the-book"}
       />
     </Container>
   );
