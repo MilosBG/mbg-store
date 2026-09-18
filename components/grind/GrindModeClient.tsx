@@ -23,6 +23,8 @@ import {
   Target,
   TimerReset,
   Trophy,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -181,8 +183,119 @@ function GrindMark({ className = "h-6 w-6" }: { className?: string }) {
       alt="GRIND UNTIL ACHIEVE"
       width={40}
       height={40}
-      className={`shrink-0 object-contain ${className}`}
+      className={`shrink-0 object-contain brightness-0 ${className}`}
     />
+  );
+}
+
+function GlassOrb({ children, className = "", glow = true }: { children: ReactNode; className?: string; glow?: boolean }) {
+  return (
+    <div
+      className={`relative flex items-center justify-center rounded-full border border-white/80 bg-white/25 text-[#000000] backdrop-blur-md shadow-[0_10px_24px_rgba(0,0,0,.10),inset_0_1px_0_rgba(255,255,255,.95)] ${glow ? "quest-glow" : ""} ${className}`}
+    >
+      <span
+        aria-hidden="true"
+        className="quest-orb-shimmer pointer-events-none absolute inset-0 rounded-full"
+        style={{
+          background:
+            "linear-gradient(120deg, transparent 15%, rgba(255,255,255,.56) 42%, transparent 68%), radial-gradient(circle at 30% 24%, rgba(255,255,255,.75), transparent 42%)",
+        }}
+      />
+      <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full shadow-[0_0_22px_rgba(0,130,26,.14)]" />
+      <span className="relative z-[1] flex items-center justify-center">{children}</span>
+    </div>
+  );
+}
+
+function GlassCard({
+  children,
+  className = "",
+  active = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  active?: boolean;
+}) {
+  return (
+    <section
+      className={`relative overflow-hidden rounded-sm border border-white/75 bg-white/35 backdrop-blur-xl shadow-[0_18px_50px_rgba(0,0,0,.09),inset_0_1px_0_rgba(255,255,255,.92)] ${
+        active ? "shadow-[0_18px_50px_rgba(0,130,26,.11),inset_0_1px_0_rgba(255,255,255,.96)]" : ""
+      } ${className}`}
+    >
+      <span
+        aria-hidden="true"
+        className="quest-glass-shimmer pointer-events-none absolute inset-y-0 -left-1/3 w-1/4"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent)" }}
+      />
+      <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/90" />
+      <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[#BFBFBF]/70" />
+      <div className="relative z-[1]">{children}</div>
+    </section>
+  );
+}
+
+function TimerCompleteOverlay({
+  open,
+  lang,
+  soundEnabled,
+  hapticsEnabled,
+  onContinue,
+}: {
+  open: boolean;
+  lang: GrindLanguage;
+  soundEnabled: boolean;
+  hapticsEnabled: boolean;
+  onContinue: () => void;
+}) {
+  if (!open) return null;
+  const isFr = lang === "fr";
+
+  return (
+    <div className="fixed inset-0 z-[205] flex items-center justify-center bg-[#000000]/70 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-live="assertive">
+      <div className="quest-event relative w-full max-w-xl overflow-hidden rounded-sm border border-white/70 bg-white/25 p-7 text-center text-[#FFFFFF] backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,.45)] sm:p-10">
+        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white" />
+        <span aria-hidden="true" className="pointer-events-none absolute -left-20 top-6 h-36 w-36 rounded-full bg-[#00821A]/20 blur-3xl" />
+        <span aria-hidden="true" className="pointer-events-none absolute -right-20 bottom-8 h-40 w-40 rounded-full bg-[#FFFFFF]/10 blur-3xl" />
+
+        <div className="relative mx-auto h-28 w-28">
+          <span aria-hidden="true" className="quest-finish-ring absolute inset-0 rounded-full border border-[#00821A]" />
+          <span aria-hidden="true" className="quest-finish-ring absolute inset-2 rounded-full border border-white/70 [animation-delay:.55s]" />
+          <GlassOrb className="quest-finish-mark absolute inset-3 h-[88px] w-[88px] border-white/90 bg-white/30">
+            <GrindMark className="h-11 w-11" />
+          </GlassOrb>
+        </div>
+
+        <p className="mt-7 text-[10px] font-black uppercase tracking-[0.24em] text-[#00821A]">
+          {isFr ? "EXPÉDITION TERMINÉE" : "EXPEDITION COMPLETE"}
+        </p>
+        <p className="mt-2 text-6xl font-black tabular-nums tracking-[-0.06em] text-[#FFFFFF]">00:00</p>
+        <h2 className="mt-3 text-3xl font-black uppercase tracking-[-0.035em] text-[#FFFFFF] sm:text-5xl">
+          {isFr ? "MAINTENANT, RAPPELLE-TOI" : "NOW, RECALL"}
+        </h2>
+        <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-[#BFBFBF]">
+          {isFr
+            ? "La mission est terminée. Ne relis rien pour l'instant : reconstruis d'abord l'expérience de mémoire."
+            : "The mission is complete. Do not reread anything yet: reconstruct the experience from memory first."}
+        </p>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <span className="rounded-sm border border-white/35 bg-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#FFFFFF]">
+            {soundEnabled ? (isFr ? "SON ✓" : "SOUND ✓") : (isFr ? "SON OFF" : "SOUND OFF")}
+          </span>
+          <span className="rounded-sm border border-white/35 bg-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#FFFFFF]">
+            {hapticsEnabled ? (isFr ? "HAPTIQUE ✓" : "HAPTICS ✓") : (isFr ? "HAPTIQUE OFF" : "HAPTICS OFF")}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={onContinue}
+          className="mt-8 min-h-14 w-full rounded-sm bg-[#00821A] px-6 text-xs font-black uppercase tracking-[0.18em] text-[#FFFFFF] shadow-[0_0_28px_rgba(0,130,26,.28)] transition hover:bg-[#00821A]/90"
+        >
+          {isFr ? "COMMENCER LE RAPPEL ACTIF" : "START ACTIVE RECALL"}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -205,6 +318,32 @@ function QuestStyles() {
       @keyframes quest-bounce {
         0%,100% { transform: scale(1); }
         50% { transform: scale(1.03); }
+      }
+      @keyframes quest-glow {
+        0%, 100% { box-shadow: 0 0 0 1px rgba(255,255,255,.58), 0 0 16px rgba(0,130,26,.14), inset 0 1px 0 rgba(255,255,255,.92); }
+        50% { box-shadow: 0 0 0 1px rgba(255,255,255,.72), 0 0 24px rgba(0,130,26,.22), inset 0 1px 0 rgba(255,255,255,1); }
+      }
+      @keyframes quest-orb-shimmer {
+        0% { transform: translateX(-160%) rotate(16deg); opacity: 0; }
+        18% { opacity: .42; }
+        45% { opacity: .2; }
+        100% { transform: translateX(190%) rotate(16deg); opacity: 0; }
+      }
+      @keyframes quest-finish-ring {
+        0% { transform: scale(.72); opacity: .62; }
+        70% { opacity: .08; }
+        100% { transform: scale(1.42); opacity: 0; }
+      }
+      @keyframes quest-finish-mark {
+        0% { transform: scale(.72) rotate(-6deg); opacity: 0; }
+        58% { transform: scale(1.08) rotate(1deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      }
+      @keyframes quest-glass-shimmer {
+        0% { transform: translateX(-130%); opacity: 0; }
+        20% { opacity: .34; }
+        60% { opacity: .12; }
+        100% { transform: translateX(230%); opacity: 0; }
       }
       .quest-shell::before {
         content: "";
@@ -232,9 +371,14 @@ function QuestStyles() {
       }
       .quest-float { animation: quest-float 3s ease-in-out infinite; }
       .quest-bounce { animation: quest-bounce 2.2s ease-in-out infinite; }
+      .quest-glow { animation: quest-glow 2.8s ease-in-out infinite; }
+      .quest-orb-shimmer { animation: quest-orb-shimmer 4.8s ease-in-out infinite; }
+      .quest-finish-ring { animation: quest-finish-ring 2.2s ease-out infinite; }
+      .quest-finish-mark { animation: quest-finish-mark .62s cubic-bezier(.2,.85,.25,1) both; }
+      .quest-glass-shimmer { animation: quest-glass-shimmer 7s ease-in-out infinite; }
       .quest-event { animation: quest-pop .28s ease-out both; }
       @media (prefers-reduced-motion: reduce) {
-        .quest-card::after, .quest-float, .quest-bounce, .quest-event { animation: none !important; }
+        .quest-card::after, .quest-float, .quest-bounce, .quest-glow, .quest-orb-shimmer, .quest-finish-ring, .quest-finish-mark, .quest-glass-shimmer, .quest-event { animation: none !important; }
       }
     `}</style>
   );
@@ -254,7 +398,7 @@ function Card({ children, className = "", accent = false }: { children: ReactNod
 
 function TinyStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-sm border border-[#BFBFBF] bg-white/80 px-4 py-3 shadow-sm">
+    <div className="relative overflow-hidden rounded-sm border border-white/75 bg-white/35 px-4 py-3 backdrop-blur-md shadow-[0_10px_24px_rgba(0,0,0,.07),inset_0_1px_0_rgba(255,255,255,.9)]">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{label}</p>
       <p className="mt-2 text-2xl font-black text-[#000000]">{value}</p>
     </div>
@@ -283,9 +427,9 @@ function EventOverlay({ event, onDismiss, skipLabel }: { event: GameEvent; onDis
       <div className="pointer-events-none fixed inset-x-4 bottom-5 z-[180] flex justify-end" aria-live="polite">
         <div className="quest-event pointer-events-auto w-full max-w-sm rounded-sm border border-[#00821A]/75 bg-[#FFFFFF] p-4 text-[#000000] shadow-2xl">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-sm">
+            <GlassOrb className="h-11 w-11">
               <Icon className="h-5 w-5" />
-            </div>
+            </GlassOrb>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{event.eyebrow}</p>
               <p className="mt-1 text-base font-black text-[#000000]">{event.title}</p>
@@ -302,9 +446,9 @@ function EventOverlay({ event, onDismiss, skipLabel }: { event: GameEvent; onDis
       <div className="quest-event relative w-full max-w-2xl overflow-hidden rounded-sm border border-[#00821A]/70 bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFFFF_100%)] p-8 text-center text-[#000000] shadow-[0_25px_80px_rgba(0,0,0,.35)] sm:p-10">
         <div className="absolute -left-12 top-10 h-24 w-24 rounded-full bg-[#00821A]/20 blur-2xl" />
         <div className="absolute -right-10 bottom-8 h-24 w-24 rounded-full bg-[#00821A]/25 blur-2xl" />
-        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-[#00821A] text-[#000000] shadow-lg">
+        <GlassOrb className="mx-auto h-24 w-24 border-2 border-white/85">
           <Icon className="h-10 w-10" />
-        </div>
+        </GlassOrb>
         <p className="mt-6 text-[11px] font-black uppercase tracking-[0.23em] text-[#00821A]">{event.eyebrow}</p>
         <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.04em] sm:text-6xl">{event.title}</h2>
         <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-[#404040] sm:text-base">{event.body}</p>
@@ -369,8 +513,59 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
   const countdownRef = useRef<number | null>(null);
+  const timerDoneSoundPlayedRef = useRef(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [hapticsEnabled, setHapticsEnabled] = useState(true);
+  const [hapticsSupported, setHapticsSupported] = useState(false);
+  const [timerFinishOverlayOpen, setTimerFinishOverlayOpen] = useState(false);
 
   const displayName = (playerName || t.playerFallback).trim().toUpperCase();
+
+  const ensureAudioContext = useCallback(async () => {
+    if (typeof window === "undefined") return null;
+    try {
+      const AudioContextCtor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextCtor) return null;
+      if (!audioContextRef.current || audioContextRef.current.state === "closed") {
+        audioContextRef.current = new AudioContextCtor();
+      }
+      if (audioContextRef.current.state === "suspended") {
+        await audioContextRef.current.resume();
+      }
+      return audioContextRef.current;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const playTimerDoneSound = useCallback(async () => {
+    if (!soundEnabled) return;
+    try {
+      const ctx = await ensureAudioContext();
+      if (!ctx || ctx.state !== "running") return;
+
+      const playTone = (frequency: number, offset: number, duration: number, volume: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(frequency, ctx.currentTime + offset);
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + offset + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + offset + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + offset);
+        osc.stop(ctx.currentTime + offset + duration + 0.03);
+      };
+
+      playTone(523.25, 0, 0.24, 0.12);
+      playTone(659.25, 0.14, 0.28, 0.10);
+      playTone(783.99, 0.32, 0.48, 0.09);
+    } catch {
+      // Visual completion feedback remains available when browser audio is blocked.
+    }
+  }, [ensureAudioContext, soundEnabled]);
 
   const load = useCallback(async (silent = false): Promise<GrindDashboardDTO | null> => {
     if (!silent) setLoading(true);
@@ -407,10 +602,19 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     }
   }, [t.error]);
 
+  const pushEvents = useCallback((events: GameEvent[]) => {
+    if (!events.length) return;
+    setEventQueue((current) => [...current, ...events]);
+  }, []);
+
   useEffect(() => {
     void load(false);
     void loadLearning(true);
   }, [load, loadLearning]);
+
+  useEffect(() => {
+    setHapticsSupported(typeof navigator !== "undefined" && "vibrate" in navigator);
+  }, []);
 
   useEffect(() => {
     if (learning?.activeSession?.id) setScreen("IMMERSION");
@@ -445,6 +649,27 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   }, [learning?.activeSession]);
 
   useEffect(() => {
+    const active = learning?.activeSession;
+    if (!active) {
+      timerDoneSoundPlayedRef.current = false;
+      setTimerFinishOverlayOpen(false);
+      return;
+    }
+    if (remainingSeconds > 0) {
+      timerDoneSoundPlayedRef.current = false;
+      return;
+    }
+    if (!timerDoneSoundPlayedRef.current) {
+      timerDoneSoundPlayedRef.current = true;
+      setTimerFinishOverlayOpen(true);
+      void playTimerDoneSound();
+      if (hapticsEnabled && hapticsSupported && typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate([80, 55, 120]);
+      }
+    }
+  }, [hapticsEnabled, hapticsSupported, learning?.activeSession, remainingSeconds, playTimerDoneSound]);
+
+  useEffect(() => {
     if (!data || onboardingDismissed || onboardingStep || !data.profile.unlocked) return;
 
     const firstAdventure = data.profile.cyclesCompleted === 0 && data.profile.grindsCompleted === 0;
@@ -462,11 +687,6 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     setOnboardingStep(savedMainClue ? "READY" : "CLUE");
   }, [data, onboardingDismissed, onboardingStep]);
 
-  const pushEvents = useCallback((events: GameEvent[]) => {
-    if (!events.length) return;
-    setEventQueue((current) => [...current, ...events]);
-  }, []);
-
   useEffect(() => {
     if (activeEvent || eventQueue.length === 0) return;
     const [first, ...rest] = eventQueue;
@@ -483,6 +703,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   useEffect(() => () => {
     if (timerRef.current !== null) window.clearTimeout(timerRef.current);
     if (countdownRef.current !== null) window.clearInterval(countdownRef.current);
+    if (audioContextRef.current) void audioContextRef.current.close();
   }, []);
 
   const badges = useMemo(() => (data ? buildBadges(data, t) : []), [data, t]);
@@ -607,6 +828,8 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
       toast.error(t.attentionCueLabel);
       return;
     }
+
+    void ensureAudioContext();
 
     setLearningLoading(true);
     try {
@@ -872,9 +1095,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
 
             <div className="relative z-[1] flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-md">
-                  <Map className="h-5 w-5" />
-                </div>
+                <GlassOrb className="h-11 w-11">
+                  <Map className="h-5 w-5 text-[#000000]" />
+                </GlassOrb>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">GRIND QUEST</p>
                   <p className="text-sm font-bold text-[#404040]">{displayName}</p>
@@ -928,13 +1151,13 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                 <div className="relative mx-auto w-full max-w-md rounded-sm border border-[#BFBFBF] bg-white/65 p-6 shadow-lg">
                   <div className="rounded-sm border-2 border-dashed border-[#BFBFBF] bg-[linear-gradient(180deg,#BFBFBF_0%,#FFFFFF_100%)] p-6">
                     <div className="flex items-center justify-between">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#00821A] text-white shadow-md">
-                        <Target className="h-7 w-7" />
-                      </div>
+                      <GlassOrb className="h-16 w-16">
+                        <Target className="h-7 w-7 text-[#000000]" />
+                      </GlassOrb>
                       <div className="h-1 flex-1 bg-[#BFBFBF]" />
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-md">
-                        <Trophy className="h-7 w-7" />
-                      </div>
+                      <GlassOrb className="h-16 w-16">
+                        <Trophy className="h-7 w-7 text-[#000000]" />
+                      </GlassOrb>
                     </div>
                     <p className="mt-6 text-center text-2xl font-black uppercase text-[#000000]">GRIND → ACHIEVE</p>
                     <p className="mt-2 text-center text-sm leading-6 text-[#404040]">{t.subtitle}</p>
@@ -1040,9 +1263,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
 
             {onboardingStep === "READY" ? (
               <div className="relative z-[1] mx-auto max-w-4xl py-8 text-center">
-                <div className="quest-bounce mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-xl">
+                <GlassOrb className="quest-bounce mx-auto h-24 w-24">
                   <GrindMark className="h-10 w-10" />
-                </div>
+                </GlassOrb>
                 <p className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.eventQuestStarted}</p>
                 <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.045em] sm:text-6xl">{t.onboardingImmersionTitle}</h2>
                 <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#404040]">{t.onboardingImmersionBody}</p>
@@ -1082,9 +1305,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     return (
       <div className="relative my-8 overflow-hidden rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] px-6 py-20 text-center text-[#000000] shadow-lg">
         <QuestStyles />
-        <div className="quest-float mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-lg">
-          <Map className="h-8 w-8" />
-        </div>
+        <GlassOrb className="quest-float mx-auto h-16 w-16">
+          <Map className="h-8 w-8 text-[#000000]" />
+        </GlassOrb>
         <p className="mt-5 text-xs font-black uppercase tracking-[0.24em] text-[#00821A]">{t.loading}</p>
       </div>
     );
@@ -1124,9 +1347,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
               <div className="absolute inset-5 rounded-sm border-2 border-dashed border-[#BFBFBF]" />
               <div className="absolute -top-5 left-8 rounded-sm bg-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#404040] shadow-sm">{t.title}</div>
               <div className="text-center">
-                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-lg">
-                  <Map className="h-10 w-10" />
-                </div>
+                <GlassOrb className="mx-auto h-24 w-24">
+                  <Map className="h-10 w-10 text-[#000000]" />
+                </GlassOrb>
                 <p className="mt-5 text-lg font-black uppercase">GRIND QUEST</p>
                 <p className="mt-2 text-sm text-[#404040]">{t.subtitle}</p>
               </div>
@@ -1173,7 +1396,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
   };
 
   const renderCreateQuest = () => (
-    <Card accent className="p-6 sm:p-8">
+    <GlassCard active className="p-6 sm:p-8">
       <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr] lg:items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-sm bg-[#FFFFFF] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A] shadow-sm">
@@ -1190,7 +1413,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
             ))}
           </div>
         </div>
-        <div className="rounded-sm border border-[#BFBFBF] bg-white/80 p-5 shadow-sm">
+        <div className="rounded-sm border border-white/75 bg-white/35 p-5 backdrop-blur-xl shadow-[0_12px_34px_rgba(0,0,0,.08),inset_0_1px_0_rgba(255,255,255,.9)]">
           <label className="block">
             <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.createQuestTitle}</span>
             <input
@@ -1221,12 +1444,12 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
           </button>
         </div>
       </div>
-    </Card>
+    </GlassCard>
   );
 
   const renderMapRibbon = () => (
     <div className="grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
-      <Card accent className="p-6 sm:p-7">
+      <GlassCard active className="p-6 sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.activeQuest}</p>
@@ -1270,27 +1493,27 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
             })}
           </div>
         </div>
-      </Card>
+      </GlassCard>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-        <Card className="p-5 sm:p-6">
+        <GlassCard className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.nextUnlock}</p>
               <p className="mt-2 text-2xl font-black uppercase" style={{ color: nextMeta.color }}>{nextMeta.shortTitle}</p>
               <p className="mt-1 text-sm text-[#404040]">{nextMeta.mapTitle}</p>
             </div>
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFFFFF] text-[#00821A] shadow-sm">
+            <GlassOrb className="h-16 w-16">
               <GrindMark className="h-9 w-9" />
-            </div>
+            </GlassOrb>
           </div>
           <div className="mt-5 h-4 overflow-hidden rounded-sm bg-[#BFBFBF] p-[2px]">
             <div className="h-full rounded-sm bg-[linear-gradient(90deg,#00821A,#00821A)]" style={{ width: `${Math.max(6, data.activeCycle?.progress ?? 0)}%` }} />
           </div>
           <p className="mt-3 text-sm text-[#404040]">{t.stepReady}</p>
-        </Card>
+        </GlassCard>
 
-        <Card className="p-5 sm:p-6">
+        <GlassCard className="p-5 sm:p-6">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.statsTitle}</p>
           <div className="mt-4 grid grid-cols-2 gap-3">
             <TinyStat label={t.quests} value={data.profile.cyclesCompleted + (data.activeCycle ? 1 : 0)} />
@@ -1298,7 +1521,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
             <TinyStat label={t.returns} value={data.profile.returns} />
             <TinyStat label={t.streak} value={data.profile.currentStreak} />
           </div>
-        </Card>
+        </GlassCard>
       </div>
     </div>
   );
@@ -1314,7 +1537,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
 
         <div className="grid gap-5 xl:grid-cols-[1.3fr_.7fr]">
           <div className="space-y-5">
-            <Card accent className="p-6 sm:p-7">
+            <GlassCard active className="p-6 sm:p-7">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.nextStep}</p>
@@ -1327,12 +1550,12 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                 </div>
               </div>
 
-              <div className="mt-6 rounded-sm border border-[#BFBFBF] bg-white/75 p-5 shadow-sm">
+              <div className="mt-6 rounded-sm border border-white/75 bg-white/30 p-5 backdrop-blur-md shadow-[0_12px_30px_rgba(0,0,0,.07),inset_0_1px_0_rgba(255,255,255,.9)]">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full shadow-sm" style={{ background: activeMeta.color, color: "#FFFFFF" }}>
-                      <Target className="h-6 w-6" />
-                    </div>
+                    <GlassOrb className="h-14 w-14">
+                      <Target className="h-6 w-6 text-[#000000]" />
+                    </GlassOrb>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.primaryClue}</p>
                       <p className="mt-1 text-xl font-black uppercase text-[#000000]">{mainEntry?.task.label.trim() || t.choosePrimary}</p>
@@ -1348,9 +1571,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   </button>
                 </div>
               </div>
-            </Card>
+            </GlassCard>
 
-            <Card className="p-6 sm:p-7">
+            <GlassCard className="p-6 sm:p-7">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="text-lg font-black uppercase text-[#000000]">{t.bonusClues}</h3>
                 <span className="rounded-sm bg-[#FFFFFF] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.optional}</span>
@@ -1359,7 +1582,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                 {bonusEntries.map(({ task, index }) => (
                   <div
                     key={task.id}
-                    className={`rounded-sm border bg-white/70 p-4 shadow-sm transition ${flashTaskId === task.id ? "border-[#00821A]" : "border-[#BFBFBF]"}`}
+                    className={`rounded-sm border border-white/70 bg-white/28 p-4 backdrop-blur-md shadow-[0_10px_26px_rgba(0,0,0,.06),inset_0_1px_0_rgba(255,255,255,.88)] transition ${flashTaskId === task.id ? "border-[#00821A]" : "border-[#BFBFBF]"}`}
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div className="min-w-0 flex-1">
@@ -1384,9 +1607,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   </div>
                 ))}
               </div>
-            </Card>
+            </GlassCard>
 
-            <Card className="p-6 sm:p-7">
+            <GlassCard className="p-6 sm:p-7">
               <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                 <label className="block">
                   <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.journalPrompt}</span>
@@ -1407,15 +1630,15 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   {t.saveProgress}
                 </button>
               </div>
-            </Card>
+            </GlassCard>
           </div>
 
           <div className="space-y-5">
-            <Card className="p-5 sm:p-6">
+            <GlassCard className="p-5 sm:p-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#BFBFBF] text-[#404040] shadow-sm">
-                  <Shield className="h-6 w-6" />
-                </div>
+                <GlassOrb className="h-12 w-12" glow={false}>
+                  <Shield className="h-6 w-6 text-[#000000]" />
+                </GlassOrb>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.fallbackClue}</p>
                   <p className="mt-1 text-sm text-[#404040]">{t.fallbackHint}</p>
@@ -1429,7 +1652,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                       setTasks((current) => current.map((item, i) => (i === fallbackEntry.index ? { ...item, label: event.target.value } : item)))
                     }
                     placeholder={t.fallbackClue}
-                    className="mt-4 w-full rounded-sm border border-[#BFBFBF] bg-white/70 px-4 py-4 text-sm font-bold text-[#000000] outline-none placeholder:text-[#BFBFBF]"
+                    className="mt-4 w-full rounded-sm border border-white/70 bg-white/28 px-4 py-4 backdrop-blur-md text-sm font-bold text-[#000000] outline-none placeholder:text-[#BFBFBF]"
                   />
                   <button
                     type="button"
@@ -1440,9 +1663,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   </button>
                 </>
               ) : null}
-            </Card>
+            </GlassCard>
 
-            <Card className="p-5 sm:p-6">
+            <GlassCard className="p-5 sm:p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.equipLibrary}</p>
               <div className="mt-4 space-y-3">
                 {[
@@ -1451,7 +1674,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   { label: t.presetFocus, body: t.presetFocusBody, kind: "MAIN" as GrindTaskKind, color: "#00821A" },
                   { label: t.presetReturn, body: t.presetReturnBody, kind: "MINIMUM" as GrindTaskKind, color: "#404040" },
                 ].map((preset) => (
-                  <div key={preset.label} className="rounded-sm border border-[#BFBFBF] bg-white/70 p-4 shadow-sm">
+                  <div key={preset.label} className="rounded-sm border border-white/70 bg-white/28 p-4 backdrop-blur-md shadow-[0_10px_26px_rgba(0,0,0,.06),inset_0_1px_0_rgba(255,255,255,.88)]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-black uppercase" style={{ color: preset.color }}>{preset.label}</p>
@@ -1468,7 +1691,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   </div>
                 ))}
               </div>
-            </Card>
+            </GlassCard>
           </div>
         </div>
       </div>
@@ -1499,9 +1722,36 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
               <h2 className="mt-5 text-3xl font-black uppercase tracking-[-0.04em] text-[#000000] sm:text-5xl">{t.immersionTitle}</h2>
               <p className="mt-4 max-w-2xl text-base leading-7 text-[#404040]">{t.immersionBody}</p>
             </div>
-            <div className="rounded-sm border border-[#BFBFBF] bg-white/80 px-5 py-4 shadow-sm">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.timerClue}</p>
-              <p className="mt-2 max-w-xs text-lg font-black uppercase text-[#000000]">{activeSession?.clue || mainClue || t.choosePrimary}</p>
+            <div className="space-y-3 rounded-sm border border-[#BFBFBF] bg-white/80 px-5 py-4 shadow-sm">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.timerClue}</p>
+                <p className="mt-2 max-w-xs text-lg font-black uppercase text-[#000000]">{activeSession?.clue || mainClue || t.choosePrimary}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSoundEnabled((current) => !current)}
+                  aria-pressed={soundEnabled}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-[#BFBFBF] bg-white/65 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#404040] transition hover:bg-white"
+                >
+                  {soundEnabled ? <Volume2 className="h-4 w-4 text-[#00821A]" /> : <VolumeX className="h-4 w-4 text-[#404040]" />}
+                  {soundEnabled ? (lang === "fr" ? "SON ACTIVÉ" : "SOUND ON") : (lang === "fr" ? "SON COUPÉ" : "SOUND OFF")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHapticsEnabled((current) => !current)}
+                  aria-pressed={hapticsEnabled && hapticsSupported}
+                  disabled={!hapticsSupported}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-[#BFBFBF] bg-white/65 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#404040] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <span className={`h-2.5 w-2.5 rounded-full ${hapticsEnabled && hapticsSupported ? "bg-[#00821A]" : "bg-[#BFBFBF]"}`} />
+                  {!hapticsSupported
+                    ? (lang === "fr" ? "HAPTIQUE N/A" : "HAPTICS N/A")
+                    : hapticsEnabled
+                      ? (lang === "fr" ? "HAPTIQUE ON" : "HAPTICS ON")
+                      : (lang === "fr" ? "HAPTIQUE OFF" : "HAPTICS OFF")}
+                </button>
+              </div>
             </div>
           </div>
         </Card>
@@ -1510,9 +1760,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
           <div className="grid gap-5 xl:grid-cols-[.9fr_1.1fr]">
             <Card className="p-6 sm:p-7">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FFFFFF] text-[#00821A] shadow-sm">
+                <GlassOrb className="h-12 w-12">
                   <Clock3 className="h-6 w-6" />
-                </div>
+                </GlassOrb>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.immersionDuration}</p>
                   <p className="mt-1 text-sm text-[#404040]">{mainClue || t.choosePrimary}</p>
@@ -1611,9 +1861,28 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                 </div>
 
                 <p className="mt-6 text-sm leading-6 text-[#404040]">{t.timerInstruction}</p>
-                <div className="mt-5 flex items-center gap-3 rounded-sm bg-[#FFFFFF] px-4 py-3 text-sm font-bold text-[#00821A]">
+                <div className="mt-5 flex flex-wrap items-center gap-3 rounded-sm bg-[#FFFFFF] px-4 py-3 text-sm font-bold text-[#00821A]">
                   <TimerReset className="h-5 w-5 shrink-0" />
-                  PRIME → IMMERSE → RECALL → NOTICE → REPEAT
+                  <span>PRIME → IMMERSE → RECALL → NOTICE → REPEAT</span>
+                  <button
+                    type="button"
+                    onClick={() => setSoundEnabled((current) => !current)}
+                    aria-pressed={soundEnabled}
+                    className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-sm border border-[#BFBFBF] bg-white/75 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]"
+                  >
+                    {soundEnabled ? <Volume2 className="h-4 w-4 text-[#00821A]" /> : <VolumeX className="h-4 w-4 text-[#404040]" />}
+                    {soundEnabled ? (lang === "fr" ? "SON" : "SOUND") : (lang === "fr" ? "MUET" : "MUTED")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHapticsEnabled((current) => !current)}
+                    aria-pressed={hapticsEnabled && hapticsSupported}
+                    disabled={!hapticsSupported}
+                    className="inline-flex min-h-9 items-center gap-2 rounded-sm border border-[#BFBFBF] bg-white/75 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#404040] disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <span className={`h-2.5 w-2.5 rounded-full ${hapticsEnabled && hapticsSupported ? "bg-[#00821A]" : "bg-[#BFBFBF]"}`} />
+                    {!hapticsSupported ? "N/A" : hapticsEnabled ? (lang === "fr" ? "HAPTIQUE" : "HAPTICS") : "OFF"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1622,12 +1891,13 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
           <Card accent className="p-6 sm:p-8">
             <div className="mx-auto max-w-3xl">
               <div className="text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-lg">
+                <GlassOrb className="mx-auto h-20 w-20">
                   <GrindMark className="h-9 w-9" />
-                </div>
+                </GlassOrb>
                 <p className="mt-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.timerFinished}</p>
                 <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#000000] sm:text-5xl">{t.activeRecall}</h3>
                 <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#404040]">{t.timerFinishedBody}</p>
+                <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{soundEnabled ? (lang === "fr" ? "SIGNAL SONORE ACTIVÉ" : "AUDIO SIGNAL ENABLED") : (lang === "fr" ? "SIGNAL VISUEL UNIQUEMENT" : "VISUAL SIGNAL ONLY")}</p>
               </div>
 
               <div className="mt-8 space-y-5">
@@ -1752,14 +2022,14 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     if (!data.activeCycle) return renderCreateQuest();
     return (
       <div className="space-y-5">
-        <Card accent className="p-6 sm:p-8">
+        <GlassCard active className="p-6 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.mapTitle}</p>
               <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#000000] sm:text-5xl">{data.activeCycle.title}</h2>
               <p className="mt-4 max-w-2xl text-base leading-7 text-[#404040]">{t.mapBody}</p>
             </div>
-            <div className="rounded-sm border border-[#BFBFBF] bg-white/75 px-5 py-4 shadow-sm">
+            <div className="rounded-sm border border-white/75 bg-white/30 px-5 py-4 backdrop-blur-md shadow-[0_10px_26px_rgba(0,0,0,.06),inset_0_1px_0_rgba(255,255,255,.9)]">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.progress}</p>
               <p className="mt-2 text-3xl font-black text-[#000000]">{data.activeCycle.progress}%</p>
             </div>
@@ -1769,11 +2039,11 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
               const meta = chapterMeta[chapter];
               const state = index < activeIndex ? "done" : index === activeIndex ? "active" : "locked";
               return (
-                <div key={chapter} className="rounded-sm border border-[#BFBFBF] bg-white/80 p-4 shadow-sm">
+                <div key={chapter} className="rounded-sm border border-white/75 bg-white/30 p-4 backdrop-blur-md shadow-[0_10px_26px_rgba(0,0,0,.06),inset_0_1px_0_rgba(255,255,255,.9)]">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border-4 bg-white shadow-sm" style={{ borderColor: meta.color, color: meta.color }}>
-                      {state === "done" ? <Check className="h-5 w-5" /> : state === "active" ? <Compass className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
-                    </div>
+                    <GlassOrb className="h-12 w-12 border-2" glow={state !== "locked"}>
+                      {state === "done" ? <Check className="h-5 w-5 text-[#000000]" /> : state === "active" ? <Compass className="h-5 w-5 text-[#000000]" /> : <Lock className="h-4 w-4 text-[#404040]" />}
+                    </GlassOrb>
                     <span className="text-lg font-black" style={{ color: meta.color }}>{meta.number}</span>
                   </div>
                   <p className="mt-4 text-sm font-black uppercase text-[#000000]">{meta.shortTitle}</p>
@@ -1795,9 +2065,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
               );
             })}
           </div>
-        </Card>
+        </GlassCard>
 
-        <Card className="p-6 sm:p-7">
+        <GlassCard className="p-6 sm:p-7">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.completeQuest}</p>
           <label className="mt-4 block">
             <span className="text-sm font-bold text-[#404040]">{t.reflection}</span>
@@ -1818,7 +2088,7 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
             {t.completeQuest}
           </button>
           <p className="mt-3 text-sm text-[#404040]">{t.completeQuestHint}</p>
-        </Card>
+        </GlassCard>
       </div>
     );
   };
@@ -1832,11 +2102,11 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
       </Card>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {badges.map((badge) => (
-          <Card key={badge.id} className={`p-5 ${badge.earned ? "border-[#00821A]" : ""}`}>
+          <Card key={badge.id} className={`p-5 ${badge.earned ? "border-[#00821A] shadow-[0_14px_34px_rgba(0,130,26,.08)]" : ""}`}>
             <div className="flex items-start justify-between gap-4">
-              <div className={`flex h-14 w-14 items-center justify-center rounded-full shadow-sm ${badge.earned ? "bg-[#00821A] text-[#000000]" : "bg-[#BFBFBF] text-[#BFBFBF]"}`}>
-                <badge.Icon className="h-7 w-7" />
-              </div>
+              <GlassOrb className={`h-14 w-14 ${badge.earned ? "opacity-100" : "opacity-70 grayscale-[.15]"}`} glow={badge.earned}>
+                <badge.Icon className={`h-7 w-7 ${badge.earned ? "text-[#000000]" : "text-[#404040]"}`} />
+              </GlassOrb>
               <span className={`rounded-sm px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${badge.earned ? "bg-[#FFFFFF] text-[#00821A]" : "bg-[#BFBFBF] text-[#404040]"}`}>
                 {badge.earned ? t.earnedMark : t.lockedMark}
               </span>
@@ -1851,15 +2121,15 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
 
   const renderJournal = () => (
     <div className="space-y-5">
-      <Card accent className="p-6 sm:p-8">
+      <GlassCard active className="p-6 sm:p-8">
         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.archiveTitle}</p>
         <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em] text-[#000000] sm:text-5xl">{archive.length}</h2>
         <p className="mt-4 max-w-2xl text-base leading-7 text-[#404040]">{t.archiveBody}</p>
-      </Card>
+      </GlassCard>
       {archive.length ? (
         <div className="space-y-4">
           {archive.map((cycle) => (
-            <Card key={cycle.id} className="p-5 sm:p-6">
+            <GlassCard key={cycle.id} className="p-5 sm:p-6">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.activeQuest}</p>
@@ -1877,11 +2147,11 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
                   </div>
                 </div>
               </div>
-            </Card>
+            </GlassCard>
           ))}
         </div>
       ) : (
-        <Card className="p-6 text-sm text-[#404040]">{t.noArchive}</Card>
+        <GlassCard className="p-6 text-sm text-[#404040]">{t.noArchive}</GlassCard>
       )}
     </div>
   );
@@ -1903,9 +2173,9 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
       </Card>
       <Card className="flex items-center justify-center p-6 sm:p-8">
         <div className="quest-float w-full max-w-sm rounded-sm border border-[#BFBFBF] bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFFFF_100%)] p-6 text-center shadow-lg">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-lg">
-            <BookOpen className="h-9 w-9" />
-          </div>
+          <GlassOrb className="mx-auto h-20 w-20">
+            <BookOpen className="h-9 w-9 text-[#000000]" />
+          </GlassOrb>
           <p className="mt-5 text-2xl font-black uppercase tracking-[-0.03em] text-[#000000]">{t.bookTitle}</p>
           <p className="mt-3 text-sm leading-6 text-[#404040]">{t.subtitle}</p>
         </div>
@@ -1917,14 +2187,21 @@ export default function GrindModeClient({ lang, bookUrl, ebookUrl, playerName }:
     <div className="quest-shell relative my-8 overflow-hidden rounded-sm border border-[#BFBFBF] bg-[linear-gradient(180deg,#FFFFFF_0%,#BFBFBF_35%,#BFBFBF_100%)] text-[#000000] shadow-[0_25px_70px_rgba(0,0,0,.12)]">
       <QuestStyles />
       {renderOnboarding()}
+      <TimerCompleteOverlay
+        open={timerFinishOverlayOpen}
+        lang={lang}
+        soundEnabled={soundEnabled}
+        hapticsEnabled={hapticsEnabled && hapticsSupported}
+        onContinue={() => setTimerFinishOverlayOpen(false)}
+      />
       {activeEvent ? <EventOverlay event={activeEvent} onDismiss={() => setActiveEvent(null)} skipLabel={t.skipEvent} /> : null}
 
       <div className="relative z-[1] border-b border-[#BFBFBF] bg-white/55 px-5 py-5 backdrop-blur-sm sm:px-7">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#00821A] text-[#000000] shadow-md">
-              <Map className="h-6 w-6" />
-            </div>
+            <GlassOrb className="h-12 w-12">
+              <Map className="h-6 w-6 text-[#000000]" />
+            </GlassOrb>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black uppercase tracking-[-0.04em] text-[#000000] sm:text-3xl">{t.title}</h1>
