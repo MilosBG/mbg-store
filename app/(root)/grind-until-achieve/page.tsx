@@ -1,5 +1,6 @@
 import { buildMetadata } from "@/lib/seo";
 import ClientPage from "./ClientPage";
+import Container from "@/components/mbg-components/Container";
 
 export const metadata = buildMetadata({
   title: "GRIND UNTIL ACHIEVE | Book & Ebook",
@@ -23,5 +24,9 @@ export const metadata = buildMetadata({
 });
 
 export default function Page() {
-  return <ClientPage />;
+  return (
+    <Container className="pb-10">
+      <ClientPage />
+    </Container>
+  );
 }

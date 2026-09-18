@@ -355,9 +355,25 @@ function GlassOrb({ children, className = "" }: { children: ReactNode; className
   );
 }
 
-function Panel({ children, className = "", green = false }: { children: ReactNode; className?: string; green?: boolean }) {
+function Panel({
+  children,
+  className = "",
+  green = false,
+  dark = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  green?: boolean;
+  dark?: boolean;
+}) {
   return (
-    <section className={`relative overflow-hidden rounded-sm border bg-white/80 backdrop-blur-md shadow-[0_12px_35px_rgba(0,0,0,.08)] ${green ? "border-[#00821A]" : "border-[#BFBFBF]"} ${className}`}>
+    <section
+      className={`relative overflow-hidden rounded-sm border backdrop-blur-md shadow-[0_12px_35px_rgba(0,0,0,.08)] ${
+        dark
+          ? "bg-[#000000] text-[#FFFFFF]"
+          : "bg-[#FFFFFF]/80 text-[#000000]"
+      } ${green ? "border-[#00821A]" : "border-[#BFBFBF]"} ${className}`}
+    >
       {children}
     </section>
   );
@@ -757,7 +773,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   const renderCourt = () => (
     <div className="space-y-6">
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.8fr)_340px]">
-        <Panel green className="bg-[#000000] p-6 text-[#FFFFFF] sm:p-8 xl:p-10">
+        <Panel green dark className="p-6 sm:p-8 xl:p-10">
           <div className="flex flex-col gap-5 border-b border-[#404040] pb-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-4xl">
               <div className="flex flex-wrap items-center gap-3">
@@ -926,7 +942,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
     const pastSeries = dashboard.historicalSeries.filter((series) => !series.active && series.length > 0);
     return (
       <div className="space-y-6">
-        <Panel green className="overflow-hidden bg-[#000000] text-[#FFFFFF]">
+        <Panel green dark className="overflow-hidden">
           <div className="grid lg:grid-cols-[1.1fr_.9fr]">
             <div className="p-6 sm:p-8 xl:p-10">
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#00821A]">SHADOW CHALLENGE</p>
