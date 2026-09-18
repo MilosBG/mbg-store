@@ -396,9 +396,17 @@ export async function calculateStats(clerkId: string): Promise<GTAStatsDTO> {
   const timerReached = attempts.filter((item) => item.timerReachedZero).length;
   const timerCompletionRate = pct(timerReached, attempts.length);
   const recentFocus = [...achieved].reverse().slice(0, 20);
-  const focusScores = recentFocus.map((item) =>
-    item.focusCheck === "LOCKED_IN" ? 100 : item.focusCheck === "RETURNED" ? 70 : item.focusCheck === "LOST_FOCUS" ? 30 : 0,
-  ).filter((value) => value > 0);
+  const focusScores: number[] = recentFocus
+    .map((item): number =>
+      item.focusCheck === "LOCKED_IN"
+        ? 100
+        : item.focusCheck === "RETURNED"
+          ? 70
+          : item.focusCheck === "LOST_FOCUS"
+            ? 30
+            : 0,
+    )
+    .filter((value) => value > 0);
   const focusCheckAverage = focusScores.length ? Math.round(focusScores.reduce((a, b) => a + b, 0) / focusScores.length) : 0;
   const cleanSessions = achieved.filter((item) => item.timerReachedZero && item.focusCheck === "LOCKED_IN").length;
   const lastTen = [...achieved].reverse().slice(0, 10);
@@ -413,7 +421,17 @@ export async function calculateStats(clerkId: string): Promise<GTAStatsDTO> {
   }
   const trend = [...weeks.entries()].slice(-8).map(([week, weekAttempts]) => {
     const achievedWeek = weekAttempts.filter((item) => item.status === "ACHIEVED");
-    const focused = achievedWeek.map((item) => item.focusCheck === "LOCKED_IN" ? 100 : item.focusCheck === "RETURNED" ? 70 : item.focusCheck === "LOST_FOCUS" ? 30 : 0).filter(Boolean);
+    const focused: number[] = achievedWeek
+      .map((item): number =>
+        item.focusCheck === "LOCKED_IN"
+          ? 100
+          : item.focusCheck === "RETURNED"
+            ? 70
+            : item.focusCheck === "LOST_FOCUS"
+              ? 30
+              : 0,
+      )
+      .filter((value) => value > 0);
     return {
       week,
       resilience: resilienceRating,
