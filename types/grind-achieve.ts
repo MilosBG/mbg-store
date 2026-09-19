@@ -1,7 +1,8 @@
-export type GTAChallengeSource = "ADMIN" | "SHADOW";
+export type GTAChallengeSource = "ADMIN" | "SHADOW" | "SELF";
 export type GTAAttemptStatus = "READY" | "LIVE" | "ACHIEVED" | "ABANDONED";
 export type GTAFocusCheck = "LOCKED_IN" | "RETURNED" | "LOST_FOCUS";
 export type GTAShadowStatus = "READY" | "ACTIVE" | "BROKEN" | "RETURNED" | "WON" | "ABANDONED";
+export type GTAMeasurementType = "COUNT" | "DISTANCE" | "TIME_HELD" | "PAGES" | "WORDS" | "CUSTOM";
 
 export type GTAChallengeDTO = {
   id: string;
@@ -10,6 +11,9 @@ export type GTAChallengeDTO = {
   category: string;
   source: GTAChallengeSource;
   durationSeconds: number;
+  measurementType: GTAMeasurementType;
+  unitLabel: string;
+  targetValue: number | null;
   media?: string | null;
   priority: number;
   startsAt?: string | null;
@@ -24,6 +28,12 @@ export type GTAAttemptDTO = {
   shadowChallengeId?: string | null;
   title: string;
   description: string;
+  measurementType: GTAMeasurementType;
+  unitLabel: string;
+  targetValue: number | null;
+  resultValue?: number | null;
+  resultDelta?: number | null;
+  personalBest?: boolean;
   startedAt: string;
   endsAt: string;
   timerReachedZero: boolean;
@@ -45,9 +55,15 @@ export type GTAStreakSeriesDTO = {
 export type GTAShadowDTO = {
   id: string;
   clerkId: string;
-  baselineSeriesId: string;
-  baselineLength: number;
-  targetLength: number;
+  baselineSeriesId?: string;
+  baselineLength?: number;
+  targetLength?: number;
+  baselineAttemptId?: string | null;
+  baselineValue?: number | null;
+  targetValue?: number | null;
+  unitLabel?: string;
+  measurementType?: GTAMeasurementType;
+  currentBest?: number;
   currentRun: number;
   bestRun: number;
   attempts: number;
@@ -56,6 +72,19 @@ export type GTAShadowDTO = {
   status: GTAShadowStatus;
   startedAt: string;
   wonAt?: string | null;
+};
+
+export type GTAPerformanceDTO = {
+  attemptId: string;
+  title: string;
+  type: GTAChallengeSource;
+  measurementType: GTAMeasurementType;
+  unitLabel: string;
+  targetValue: number | null;
+  resultValue: number;
+  resultDelta: number | null;
+  personalBest: boolean;
+  achievedAt: string;
 };
 
 export type GTAStatsDTO = {
@@ -74,6 +103,7 @@ export type GTAStatsDTO = {
     bestComebackStreak: number;
     returns: number;
     breaks: number;
+    retryImprovementRate: number;
   };
   consistency: {
     rating: number;
@@ -84,6 +114,7 @@ export type GTAStatsDTO = {
     previousTwentyEightDayRate: number;
     progressionPoints: number;
     completionRate: number;
+    performanceProgressionRate: number;
   };
   focus: {
     rating: number;
@@ -91,6 +122,14 @@ export type GTAStatsDTO = {
     focusCheckAverage: number;
     cleanSessions: number;
     repeatFocusRate: number;
+    resultCaptureRate: number;
+  };
+  performance: {
+    measuredSessions: number;
+    targetHitRate: number;
+    personalBests: number;
+    latestResult: number | null;
+    latestUnit: string;
   };
   trend: Array<{
     week: string;
@@ -126,6 +165,7 @@ export type GTADashboardDTO = {
   activeAttempt: GTAAttemptDTO | null;
   activeShadow: GTAShadowDTO | null;
   historicalSeries: GTAStreakSeriesDTO[];
+  performances: GTAPerformanceDTO[];
   stats: GTAStatsDTO;
   badges: GTABadgeAwardDTO[];
 };

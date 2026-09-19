@@ -12,7 +12,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const action = String(body?.action ?? "CREATE").toUpperCase();
     if (action === "CREATE") {
-      return NextResponse.json(await createShadow(userId, String(body?.seriesId ?? "")));
+      return NextResponse.json(await createShadow(
+        userId,
+        String(body?.attemptId ?? body?.seriesId ?? ""),
+      ));
     }
     if (action === "ABANDON") {
       await abandonShadow(userId, String(body?.shadowId ?? ""));

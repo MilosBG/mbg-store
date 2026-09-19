@@ -10,10 +10,7 @@ import {
   ChevronRight,
   CircleDot,
   Clock3,
-  Flame,
-  Heart,
   History,
-  Medal,
   Lock,
   RefreshCcw,
   Share2,
@@ -30,12 +27,15 @@ import {
 import { toast } from "react-hot-toast";
 
 import { GrindUntilAchieve2 } from "@/images";
+import { BadgeEmblem } from "@/components/grind-to-achieve/BadgeEmblems";
 import type {
   GTAChallengeDTO,
   GTADashboardDTO,
   GTAFocusCheck,
   GTAStatsDTO,
   GTAStreakSeriesDTO,
+  GTAMeasurementType,
+  GTAPerformanceDTO,
 } from "@/types/grind-achieve";
 
 type Props = {
@@ -45,7 +45,7 @@ type Props = {
   hustlerName?: string;
 };
 
-type Screen = "COURT" | "SHADOW" | "STATS" | "BADGES" | "BOOK";
+type Screen = "COURT" | "SHADOW" | "SELF" | "STATS" | "BADGES" | "BOOK";
 
 type Copy = typeof copy.en;
 
@@ -56,6 +56,7 @@ const copy = {
     member: "HUSTLER ACCESS",
     court: "COURT",
     shadow: "SHADOW",
+    self: "SELF",
     stats: "STATS",
     badges: "BADGES",
     book: "BOOK",
@@ -148,6 +149,21 @@ const copy = {
     challengeBoard: "CHALLENGE BOARD",
     availableNow: "AVAILABLE NOW",
     hustleRating: "HUSTLE PROFILE",
+    selfTitle: "BUILD YOUR OWN 5",
+    selfBody: "Create a measurable five-minute challenge, set a target, GRIND, then record what you actually achieved.",
+    selfChallengeName: "CHALLENGE NAME",
+    measure: "MEASURE",
+    unit: "UNIT",
+    target: "TARGET",
+    startSelf: "GRIND YOUR CHALLENGE",
+    resultQuestion: "WHAT DID YOU ACTUALLY DO?",
+    resultBody: "Enter the measurable result you completed during these five minutes.",
+    result: "RESULT",
+    performanceProgress: "PERFORMANCE PROGRESS",
+    retryImprovement: "RETRY IMPROVEMENT",
+    resultCapture: "RESULT CAPTURE",
+    personalBests: "PERSONAL BESTS",
+    targetHit: "TARGET HIT RATE",
   },
   fr: {
     title: "GRIND to ACHIEVE",
@@ -155,6 +171,7 @@ const copy = {
     member: "ACCÈS HUSTLER",
     court: "COURT",
     shadow: "SHADOW",
+    self: "SELF",
     stats: "STATS",
     badges: "BADGES",
     book: "LIVRE",
@@ -247,18 +264,23 @@ const copy = {
     challengeBoard: "TABLEAU DES CHALLENGES",
     availableNow: "DISPONIBLES",
     hustleRating: "PROFIL HUSTLE",
+    selfTitle: "CRÉE TON PROPRE 5",
+    selfBody: "Crée un défi mesurable de cinq minutes, fixe un objectif, GRIND, puis enregistre ce que tu as réellement accompli.",
+    selfChallengeName: "NOM DU CHALLENGE",
+    measure: "MESURE",
+    unit: "UNITÉ",
+    target: "OBJECTIF",
+    startSelf: "GRIND TON CHALLENGE",
+    resultQuestion: "QU'AS-TU RÉELLEMENT ACCOMPLI ?",
+    resultBody: "Saisis le résultat mesurable réalisé pendant ces cinq minutes.",
+    result: "RÉSULTAT",
+    performanceProgress: "PROGRESSION PERFORMANCE",
+    retryImprovement: "AMÉLIORATION AU RETRY",
+    resultCapture: "RÉSULTATS SAISIS",
+    personalBests: "RECORDS PERSONNELS",
+    targetHit: "OBJECTIFS ATTEINTS",
   },
 } as const;
-
-const iconByBadge: Record<string, ComponentType<{ className?: string }>> = {
-  HEART: Heart,
-  RETURN: RefreshCcw,
-  FLAME: Flame,
-  TARGET: Target,
-  SHIELD: Shield,
-  REPEAT: History,
-  FOCUS: CircleDot,
-};
 
 const badgeCatalog = {
   en: [
@@ -538,12 +560,128 @@ function TrendGraph({ stats }: { stats: GTAStatsDTO }) {
   );
 }
 
+async function loadCanvasImage(src: string) {
+  return await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("IMAGE_LOAD_FAILED"));
+    image.src = src;
+  });
+}
+
+function drawCollectorGlyph(
+  ctx: CanvasRenderingContext2D,
+  code: string,
+  cx: number,
+  cy: number,
+  scale = 1,
+) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.strokeStyle = "#000000";
+  ctx.fillStyle = "#000000";
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  const normalized = code.toUpperCase();
+
+  if (normalized.includes("DONT") || normalized.includes("RETURN")) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 58, Math.PI * .25, Math.PI * 1.85);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(38, -54);
+    ctx.lineTo(73, -50);
+    ctx.lineTo(62, -17);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-34, 18);
+    ctx.lineTo(-7, -5);
+    ctx.lineTo(15, 11);
+    ctx.lineTo(46, -29);
+    ctx.stroke();
+  } else if (normalized.includes("SHADOW")) {
+    ctx.beginPath();
+    ctx.arc(-18, 0, 50, Math.PI * .55, Math.PI * 1.45);
+    ctx.stroke();
+    ctx.globalAlpha = .45;
+    ctx.beginPath();
+    ctx.arc(18, 0, 50, -Math.PI * .45, Math.PI * .45);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.moveTo(10, -72);
+    ctx.lineTo(-12, -10);
+    ctx.lineTo(16, 0);
+    ctx.lineTo(-18, 76);
+    ctx.stroke();
+  } else if (normalized.includes("CONSIST")) {
+    [-52, -26, 0, 26, 52].forEach((x, index) => {
+      const heights = [46, 66, 34, 76, 56];
+      ctx.fillRect(x - 7, 50 - heights[index], 14, heights[index]);
+    });
+    ctx.beginPath();
+    ctx.moveTo(-56, 55);
+    ctx.lineTo(58, 55);
+    ctx.stroke();
+  } else if (normalized.includes("LOCKED") || normalized.includes("FOCUS")) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 58, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, 27, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillRect(-9, -9, 18, 18);
+    ctx.beginPath();
+    ctx.moveTo(0, -84); ctx.lineTo(0, -62);
+    ctx.moveTo(0, 62); ctx.lineTo(0, 84);
+    ctx.moveTo(-84, 0); ctx.lineTo(-62, 0);
+    ctx.moveTo(62, 0); ctx.lineTo(84, 0);
+    ctx.stroke();
+  } else if (normalized.includes("CHALLENG")) {
+    ctx.beginPath();
+    ctx.arc(-28, 0, 42, 0, Math.PI * 2);
+    ctx.arc(28, 0, 42, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-24, -54); ctx.lineTo(24, 54);
+    ctx.moveTo(24, -54); ctx.lineTo(-24, 54);
+    ctx.stroke();
+  } else if (normalized.includes("EFFORT")) {
+    ctx.beginPath();
+    ctx.moveTo(-52, 52);
+    ctx.bezierCurveTo(-55, 5, -18, -8, 0, -66);
+    ctx.bezierCurveTo(18, -24, 10, 0, 34, -38);
+    ctx.bezierCurveTo(62, 8, 52, 54, 0, 64);
+    ctx.bezierCurveTo(-24, 68, -44, 60, -52, 52);
+    ctx.stroke();
+  } else {
+    // Five-petal encouragement bloom
+    for (let i = 0; i < 5; i += 1) {
+      ctx.save();
+      ctx.rotate((Math.PI * 2 * i) / 5);
+      ctx.beginPath();
+      ctx.ellipse(0, -43, 18, 35, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, 13, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 async function makeStoryBlob(args: {
   title: string;
   subtitle: string;
   statLabel?: string;
   statValue?: string;
   badge?: string;
+  badgeCode?: string;
 }) {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
@@ -551,70 +689,125 @@ async function makeStoryBlob(args: {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("CANVAS_UNAVAILABLE");
 
-  ctx.fillStyle = "#FFFFFF";
+  await document.fonts?.load?.("900 64px Kanit").catch(() => undefined);
+  await document.fonts?.load?.("700 32px Kanit").catch(() => undefined);
+
+  const logo = await loadCanvasImage("/grind/milos-bg-logo.png").catch(() => null);
+
+  ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(0, 0, canvas.width, 170);
-  ctx.fillStyle = "#00821A";
-  ctx.fillRect(0, 170, canvas.width, 14);
-  ctx.fillRect(72, 340, 14, 990);
 
+  // Trading-card frame
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "900 54px Arial";
-  ctx.fillText("MILOS BG", 72, 108);
+  ctx.fillRect(58, 70, 964, 1760);
+  ctx.strokeStyle = "#00821A";
+  ctx.lineWidth = 8;
+  ctx.strokeRect(76, 88, 928, 1724);
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(94, 106, 892, 1688);
 
+  // Header
   ctx.fillStyle = "#000000";
-  ctx.font = "900 76px Arial";
-  ctx.fillText("GRIND to ACHIEVE", 120, 390);
-
-  ctx.fillStyle = "#404040";
-  ctx.font = "700 30px Arial";
-  ctx.fillText("5-MINUTE HUSTLE", 120, 445);
+  ctx.fillRect(94, 106, 892, 190);
+  if (logo) {
+    const maxW = 360;
+    const maxH = 110;
+    const ratio = Math.min(maxW / logo.width, maxH / logo.height);
+    const w = logo.width * ratio;
+    const h = logo.height * ratio;
+    ctx.drawImage(logo, 130, 145, w, h);
+  } else {
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 58px Kanit, Arial";
+    ctx.fillText("MILOS BG", 130, 220);
+  }
 
   ctx.fillStyle = "#00821A";
-  ctx.font = "900 170px Arial";
-  ctx.fillText("05:00", 120, 680);
+  ctx.fillRect(94, 296, 892, 12);
 
   ctx.fillStyle = "#000000";
-  ctx.font = "900 68px Arial";
-  const title = args.title.toUpperCase().slice(0, 24);
-  ctx.fillText(title, 120, 815);
+  ctx.font = "900 64px Kanit, Arial";
+  ctx.fillText("GRIND to ACHIEVE", 130, 390);
+
   ctx.fillStyle = "#404040";
-  ctx.font = "700 34px Arial";
-  ctx.fillText(args.subtitle.toUpperCase().slice(0, 44), 120, 875);
+  ctx.font = "700 28px Kanit, Arial";
+  ctx.fillText("5-MINUTE HUSTLE · COLLECTOR SERIES", 130, 438);
+
+  if (args.badge) {
+    // Holo collector zone
+    const gx = 130;
+    const gy = 510;
+    const gw = 820;
+    const gh = 790;
+    const grad = ctx.createLinearGradient(gx, gy, gx + gw, gy + gh);
+    grad.addColorStop(0, "#FFFFFF");
+    grad.addColorStop(.36, "#BFBFBF");
+    grad.addColorStop(.62, "#FFFFFF");
+    grad.addColorStop(1, "#00821A");
+    ctx.globalAlpha = .22;
+    ctx.fillStyle = grad;
+    ctx.fillRect(gx, gy, gw, gh);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = "#00821A";
+    ctx.lineWidth = 5;
+    ctx.strokeRect(gx, gy, gw, gh);
+
+    ctx.fillStyle = "#00821A";
+    ctx.font = "900 25px Kanit, Arial";
+    ctx.fillText("BADGE EARNED", gx + 36, gy + 58);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "900 62px Kanit, Arial";
+    const badgeTitle = args.badge.toUpperCase().slice(0, 24);
+    ctx.fillText(badgeTitle, gx + 36, gy + 135);
+
+    // Emblem plate
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.arc(540, 880, 165, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#00821A";
+    ctx.lineWidth = 7;
+    ctx.stroke();
+    drawCollectorGlyph(ctx, args.badgeCode ?? args.badge, 540, 880, 1.45);
+
+    ctx.fillStyle = "#404040";
+    ctx.font = "700 27px Kanit, Arial";
+    ctx.fillText("GRIND to ACHIEVE COLLECTOR BADGE", gx + 36, gy + gh - 70);
+  } else {
+    ctx.fillStyle = "#00821A";
+    ctx.font = "900 170px Kanit, Arial";
+    ctx.fillText("05:00", 130, 690);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "900 66px Kanit, Arial";
+    ctx.fillText(args.title.toUpperCase().slice(0, 24), 130, 805);
+    ctx.fillStyle = "#404040";
+    ctx.font = "700 32px Kanit, Arial";
+    ctx.fillText(args.subtitle.toUpperCase().slice(0, 42), 130, 865);
+  }
 
   if (args.statLabel && args.statValue) {
     ctx.strokeStyle = "#BFBFBF";
     ctx.lineWidth = 3;
-    ctx.strokeRect(120, 1010, 840, 210);
+    ctx.strokeRect(130, 1360, 820, 180);
     ctx.fillStyle = "#404040";
-    ctx.font = "800 28px Arial";
-    ctx.fillText(args.statLabel.toUpperCase(), 165, 1075);
+    ctx.font = "800 24px Kanit, Arial";
+    ctx.fillText(args.statLabel.toUpperCase(), 168, 1420);
     ctx.fillStyle = "#000000";
-    ctx.font = "900 90px Arial";
-    ctx.fillText(args.statValue, 165, 1175);
-  }
-
-  if (args.badge) {
-    ctx.strokeStyle = "#00821A";
-    ctx.lineWidth = 4;
-    ctx.strokeRect(120, 1260, 840, 150);
-    ctx.fillStyle = "#00821A";
-    ctx.font = "900 34px Arial";
-    ctx.fillText("BADGE", 165, 1320);
-    ctx.fillStyle = "#000000";
-    ctx.font = "900 48px Arial";
-    ctx.fillText(args.badge.toUpperCase().slice(0, 26), 165, 1380);
+    ctx.font = "900 74px Kanit, Arial";
+    ctx.fillText(args.statValue, 168, 1510);
   }
 
   ctx.fillStyle = "#000000";
-  ctx.font = "900 46px Arial";
-  ctx.fillText("@m.i.l.o.s.bg", 120, 1690);
+  ctx.font = "900 44px Kanit, Arial";
+  ctx.fillText("@m.i.l.o.s.bg", 130, 1665);
   ctx.fillStyle = "#404040";
-  ctx.font = "700 28px Arial";
-  ctx.fillText("GRIND UNTIL ACHIEVE", 120, 1745);
+  ctx.font = "700 26px Kanit, Arial";
+  ctx.fillText("GRIND UNTIL ACHIEVE", 130, 1715);
   ctx.fillStyle = "#00821A";
-  ctx.fillRect(120, 1795, 250, 12);
+  ctx.fillRect(130, 1762, 260, 11);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("STORY_RENDER_FAILED"))), "image/png", 1);
@@ -633,8 +826,14 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   const [achieveOpen, setAchieveOpen] = useState(false);
   const [focusCheck, setFocusCheck] = useState<GTAFocusCheck | null>(null);
   const [postNote, setPostNote] = useState("");
+  const [resultValue, setResultValue] = useState("");
+  const [selfTitle, setSelfTitle] = useState("");
+  const [selfDescription, setSelfDescription] = useState("");
+  const [selfMeasurementType, setSelfMeasurementType] = useState<GTAMeasurementType>("COUNT");
+  const [selfUnitLabel, setSelfUnitLabel] = useState("reps");
+  const [selfTargetValue, setSelfTargetValue] = useState("");
   const [shareBusy, setShareBusy] = useState(false);
-  const [lastAchieved, setLastAchieved] = useState<{ title: string; streak: number } | null>(null);
+  const [lastAchieved, setLastAchieved] = useState<{ title: string; streak: number; resultValue?: number; unitLabel?: string; personalBest?: boolean } | null>(null);
   const tickRef = useRef<number | null>(null);
   const buzzerPlayedRef = useRef(false);
   const audioRef = useRef<AudioContext | null>(null);
@@ -742,23 +941,67 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
     }
   };
 
-  const achieve = async () => {
-    const active = dashboard?.activeAttempt;
-    if (!active || remaining > 0 || !focusCheck) return;
+  const startSelfChallenge = async () => {
+    if (!selfTitle.trim() || !selfUnitLabel.trim()) return;
+    void armAudio();
     setBusy(true);
     try {
       const res = await fetch("/api/grind-achieve/attempts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "ACHIEVE", attemptId: active.id, focusCheck, note: postNote }),
+        body: JSON.stringify({
+          action: "START_SELF",
+          title: selfTitle,
+          description: selfDescription,
+          measurementType: selfMeasurementType,
+          unitLabel: selfUnitLabel,
+          targetValue: selfTargetValue.trim() ? Number(selfTargetValue) : null,
+        }),
+      });
+      if (!res.ok) throw new Error("START_SELF_FAILED");
+      await load(true);
+      setScreen("COURT");
+      toast.success("SELF CHALLENGE LIVE");
+    } catch {
+      toast.error("Self challenge unavailable");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const achieve = async () => {
+    const active = dashboard?.activeAttempt;
+    if (!active || remaining > 0 || !focusCheck || !resultValue.trim()) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/grind-achieve/attempts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ACHIEVE",
+          attemptId: active.id,
+          focusCheck,
+          note: postNote,
+          resultValue: Number(resultValue),
+        }),
       });
       if (!res.ok) throw new Error("ACHIEVE_FAILED");
       setAchieveOpen(false);
       setFocusCheck(null);
       setPostNote("");
+      setResultValue("");
+      const result = (await res.json()) as { resultValue?: number | null; unitLabel?: string; personalBest?: boolean };
       const updated = await load(true);
-      toast.success("ACHIEVE");
-      if (updated) setLastAchieved({ title: active.title, streak: updated.stats.totals.currentStreak });
+      toast.success(result.personalBest ? "ACHIEVE · PERSONAL BEST" : "ACHIEVE");
+      if (updated) {
+        setLastAchieved({
+          title: active.title,
+          streak: updated.stats.totals.currentStreak,
+          resultValue: result.resultValue ?? Number(resultValue),
+          unitLabel: result.unitLabel ?? active.unitLabel,
+          personalBest: Boolean(result.personalBest),
+        });
+      }
     } catch {
       toast.error("ACHIEVE unavailable");
     } finally {
@@ -766,13 +1009,18 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
     }
   };
 
-  const createShadow = async (series: GTAStreakSeriesDTO) => {
+  const createShadow = async (performance: GTAPerformanceDTO | GTAStreakSeriesDTO) => {
     setBusy(true);
     try {
       const res = await fetch("/api/grind-achieve/shadow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "CREATE", seriesId: series.id }),
+        body: JSON.stringify({
+          action: "CREATE",
+          ...( "attemptId" in performance
+            ? { attemptId: performance.attemptId }
+            : { seriesId: performance.id }),
+        }),
       });
       if (!res.ok) throw new Error("SHADOW_FAILED");
       await load(true);
@@ -784,7 +1032,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   };
 
   const shareEffort = async (
-    payload: { title: string; subtitle: string; statLabel?: string; statValue?: string; badge?: string },
+    payload: { title: string; subtitle: string; statLabel?: string; statValue?: string; badge?: string; badgeCode?: string },
     announce = true,
   ) => {
     setShareBusy(true);
@@ -849,6 +1097,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   const nav: Array<{ id: Screen; label: string; Icon: ComponentType<{ className?: string }> }> = [
     { id: "COURT", label: t.court, Icon: Clock3 },
     { id: "SHADOW", label: t.shadow, Icon: Swords },
+    { id: "SELF", label: t.self, Icon: Target },
     { id: "STATS", label: t.stats, Icon: TrendingUp },
     { id: "BADGES", label: t.badges, Icon: Award },
     { id: "BOOK", label: t.book, Icon: BookOpen },
@@ -862,7 +1111,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
             <div className="max-w-4xl">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#00821A]">
-                  {active?.type === "SHADOW" ? t.shadowActive : t.adminChallenge}
+                  {active?.type === "SHADOW" ? t.shadowActive : active?.type === "SELF" ? t.self : t.adminChallenge}
                 </span>
                 <span className="h-1 w-1 rounded-full bg-[#BFBFBF]" />
                 <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#BFBFBF]">Q1 // 05:00</span>
@@ -873,6 +1122,17 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#BFBFBF]">
                 {active?.description ?? selectedChallenge?.description ?? t.noChallengeBody}
               </p>
+              {(active ?? selectedChallenge) ? (
+                <div className="mt-5 inline-flex flex-wrap items-center gap-3 rounded-sm border border-[#404040] bg-[#FFFFFF]/[0.04] px-4 py-3">
+                  <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.target}</span>
+                  <span className="text-lg font-black tabular-nums text-[#FFFFFF]">
+                    {(active?.targetValue ?? selectedChallenge?.targetValue) ?? "OPEN"}
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#00821A]">
+                    {active?.unitLabel ?? selectedChallenge?.unitLabel ?? ""}
+                  </span>
+                </div>
+              ) : null}
             </div>
             <span className={`shrink-0 rounded-sm border px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] ${clockState === t.live ? "gta-live border-[#00821A] bg-[#00821A]/10 text-[#00821A]" : "border-[#404040] text-[#BFBFBF]"}`}>
               {clockState}
@@ -898,9 +1158,11 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                   VS
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{active?.type === "SHADOW" ? "SHADOW" : "CLOCK"}</p>
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{active?.type === "SHADOW" ? "SHADOW" : t.target}</p>
                   <p className="mt-1 text-xl font-black uppercase sm:text-2xl">
-                    {active?.type === "SHADOW" ? String(dashboard.activeShadow?.baselineLength ?? 0).padStart(2, "0") : "05:00"}
+                    {active?.type === "SHADOW"
+                      ? `${dashboard.activeShadow?.baselineValue ?? dashboard.activeShadow?.baselineLength ?? 0} ${dashboard.activeShadow?.unitLabel ?? ""}`
+                      : `${active?.targetValue ?? selectedChallenge?.targetValue ?? "OPEN"} ${active?.unitLabel ?? selectedChallenge?.unitLabel ?? ""}`}
                   </p>
                 </div>
               </div>
@@ -957,13 +1219,17 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.shadow}</p>
                 <p className="mt-2 text-2xl font-black uppercase text-[#000000]">
-                  {dashboard.activeShadow ? `${String(dashboard.activeShadow.currentRun).padStart(2, "0")} ${t.versus} ${String(dashboard.activeShadow.baselineLength).padStart(2, "0")}` : t.yourShadowWaiting}
+                  {dashboard.activeShadow
+                    ? `${dashboard.activeShadow.currentBest ?? dashboard.activeShadow.currentRun} ${t.versus} ${dashboard.activeShadow.baselineValue ?? dashboard.activeShadow.baselineLength ?? 0} ${dashboard.activeShadow.unitLabel ?? ""}`
+                    : t.yourShadowWaiting}
                 </p>
               </div>
               <GlassOrb className="h-12 w-12"><Swords className="h-5 w-5" /></GlassOrb>
             </div>
             <p className="mt-4 text-sm leading-6 text-[#404040]">
-              {dashboard.activeShadow ? `${t.beat} ${dashboard.activeShadow.targetLength}` : t.shadowWaitingBody}
+              {dashboard.activeShadow
+                ? `${t.beat} ${dashboard.activeShadow.targetValue ?? dashboard.activeShadow.targetLength ?? "—"} ${dashboard.activeShadow.unitLabel ?? ""}`
+                : t.shadowWaitingBody}
             </p>
             <button type="button" onClick={() => setScreen("SHADOW")} className="mt-5 min-h-12 w-full rounded-sm border border-[#00821A] bg-white/70 text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">
               {t.shadow}
@@ -980,6 +1246,11 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">ACHIEVE // 05:00</p>
                 <p className="mt-1 text-lg font-black uppercase text-[#000000]">{lastAchieved.title}</p>
+                {lastAchieved.resultValue != null ? (
+                  <p className="mt-1 text-sm font-black uppercase text-[#00821A]">
+                    {lastAchieved.resultValue} {lastAchieved.unitLabel} {lastAchieved.personalBest ? "· PERSONAL BEST" : ""}
+                  </p>
+                ) : null}
               </div>
             </div>
             <button type="button" disabled={shareBusy} onClick={() => void shareEffort({ title: lastAchieved.title, subtitle: "05:00 ACHIEVED", statLabel: t.currentStreak, statValue: String(lastAchieved.streak) })} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-[#00821A] px-5 text-[10px] font-black uppercase tracking-[0.16em] text-[#FFFFFF] disabled:opacity-40">
@@ -1012,6 +1283,9 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                   </div>
                   <p className="mt-5 text-lg font-black uppercase leading-tight text-[#000000]">{challenge.title}</p>
                   <p className="mt-2 line-clamp-2 text-sm leading-5 text-[#404040]">{challenge.description}</p>
+                  <p className="mt-3 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A]">
+                    TARGET · {challenge.targetValue ?? "OPEN"} {challenge.unitLabel}
+                  </p>
                   <div className="mt-4 h-1 w-full bg-[#BFBFBF]/40"><div className={`h-full transition-all ${selected ? "w-full bg-[#00821A]" : "w-1/4 bg-[#404040] group-hover:w-2/3 group-hover:bg-[#00821A]"}`} /></div>
                 </button>
               );
@@ -1023,7 +1297,12 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   );
 
   const renderShadow = () => {
-    const pastSeries = dashboard.historicalSeries.filter((series) => !series.active && series.length > 0);
+    const performances = dashboard.performances ?? [];
+    const activeShadow = dashboard.activeShadow;
+    const shadowBaseline = activeShadow?.baselineValue ?? activeShadow?.baselineLength ?? 0;
+    const shadowTarget = activeShadow?.targetValue ?? activeShadow?.targetLength ?? 0;
+    const shadowUnit = activeShadow?.unitLabel ?? "";
+
     return (
       <div className="space-y-6">
         <Panel green dark className="overflow-hidden">
@@ -1031,75 +1310,83 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
             <div className="p-6 sm:p-8 xl:p-10">
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#00821A]">SHADOW CHALLENGE</p>
               <h2 className="mt-3 text-4xl font-black uppercase leading-[.94] tracking-[-0.05em] sm:text-6xl xl:text-7xl">{t.shadowTitle}</h2>
-              <p className="mt-5 max-w-2xl text-sm leading-7 text-[#BFBFBF]">{t.shadowBody}</p>
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-[#BFBFBF]">
+                Pick one of your real measured performances and beat that number in another five-minute run.
+              </p>
               <div className="mt-8 inline-flex items-center gap-3 border-t border-[#404040] pt-5 text-[9px] font-black uppercase tracking-[0.2em] text-[#BFBFBF]">
                 <Swords className="h-4 w-4 text-[#00821A]" />
                 {t.noLeaderboard}
               </div>
             </div>
             <div className="relative flex min-h-[320px] items-center justify-center border-t border-[#404040] p-6 lg:border-l lg:border-t-0">
-              <div className="absolute inset-0 bg-[#FFFFFF]/[0.02]" />
               <div className="relative z-[1] w-full max-w-md">
                 <p className="text-center text-[9px] font-black uppercase tracking-[0.24em] text-[#BFBFBF]">{t.shadowPreview}</p>
                 <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-center">
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">YOU</p>
-                    <p className="mt-2 text-6xl font-black tabular-nums text-[#00821A]">{String(dashboard.activeShadow?.currentRun ?? dashboard.stats.totals.currentStreak).padStart(2, "0")}</p>
+                    <p className="mt-2 text-6xl font-black tabular-nums text-[#00821A]">
+                      {activeShadow?.currentBest ?? "—"}
+                    </p>
                   </div>
                   <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#404040] bg-[#FFFFFF]/10 text-xs font-black text-[#FFFFFF]">VS</div>
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">SHADOW</p>
-                    <p className="mt-2 text-6xl font-black tabular-nums text-[#FFFFFF]">{String(dashboard.activeShadow?.baselineLength ?? pastSeries[0]?.length ?? 0).padStart(2, "0")}</p>
+                    <p className="mt-2 text-6xl font-black tabular-nums text-[#FFFFFF]">
+                      {activeShadow ? shadowBaseline : performances[0]?.resultValue ?? "—"}
+                    </p>
                   </div>
                 </div>
-                <div className="mt-6 border-t border-[#404040] pt-4 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">
-                    {dashboard.activeShadow ? `${t.beat} ${dashboard.activeShadow.targetLength}` : t.yourShadowWaiting}
-                  </p>
-                </div>
+                <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A]">
+                  {activeShadow ? `${t.beat} ${shadowTarget} ${shadowUnit}` : t.yourShadowWaiting}
+                </p>
               </div>
             </div>
           </div>
         </Panel>
 
-        {dashboard.activeShadow ? (
+        {activeShadow ? (
           <Panel green className="p-6 sm:p-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.shadowActive}</p>
-                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.04em] text-[#000000]">YOU {dashboard.activeShadow.currentRun} {t.versus} {dashboard.activeShadow.baselineLength} SHADOW</h3>
+                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.04em] text-[#000000]">
+                  BEAT {shadowBaseline} {shadowUnit}
+                </h3>
               </div>
               <GlassOrb className="h-14 w-14"><Swords className="h-6 w-6" /></GlassOrb>
             </div>
             <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <Metric label={t.previousRun} value={dashboard.activeShadow.baselineLength} />
-              <Metric label={t.currentRun} value={dashboard.activeShadow.currentRun} />
-              <Metric label={t.shadowTarget} value={dashboard.activeShadow.targetLength} />
-              <Metric label={`${t.attempts} / ${t.returns}`} value={`${dashboard.activeShadow.attempts} / ${dashboard.activeShadow.returnCount}`} />
+              <Metric label={t.previousRun} value={shadowBaseline} suffix={` ${shadowUnit}`} />
+              <Metric label="CURRENT BEST" value={activeShadow.currentBest ?? 0} suffix={` ${shadowUnit}`} />
+              <Metric label={t.shadowTarget} value={shadowTarget} suffix={` ${shadowUnit}`} />
+              <Metric label={t.attempts} value={activeShadow.attempts} />
             </div>
-            <button type="button" disabled={Boolean(active) || busy} onClick={() => void startChallenge(undefined, dashboard.activeShadow!.id)} className="mt-7 min-h-16 w-full rounded-sm bg-[#00821A] px-6 text-sm font-black uppercase tracking-[0.22em] text-[#FFFFFF] disabled:opacity-45">
+            <button type="button" disabled={Boolean(active) || busy} onClick={() => void startChallenge(undefined, activeShadow.id)} className="mt-7 min-h-16 w-full rounded-sm bg-[#00821A] px-6 text-sm font-black uppercase tracking-[0.22em] text-[#FFFFFF] disabled:opacity-45">
               {t.grind}
             </button>
           </Panel>
-        ) : pastSeries.length ? (
+        ) : performances.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {pastSeries.slice(0, 9).map((series) => (
-              <Panel key={series.id} className="p-6">
-                <div className="flex items-center justify-between gap-3">
+            {performances.slice(0, 12).map((performance) => (
+              <Panel key={performance.attemptId} className="p-6">
+                <div className="flex items-start justify-between gap-3">
                   <GlassOrb className="h-12 w-12"><History className="h-5 w-5" /></GlassOrb>
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.previousRun}</span>
+                  <span className="rounded-sm border border-[#BFBFBF] px-2 py-1 text-[8px] font-black uppercase tracking-[0.15em] text-[#404040]">
+                    {performance.type}
+                  </span>
                 </div>
-                <div className="mt-6 flex items-end justify-between gap-4">
+                <p className="mt-5 text-sm font-black uppercase text-[#000000]">{performance.title}</p>
+                <div className="mt-3 flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-6xl font-black leading-none tabular-nums text-[#000000]">{String(series.length).padStart(2, "0")}</p>
-                    <p className="mt-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#404040]">SHADOW</p>
+                    <p className="text-5xl font-black tabular-nums text-[#000000]">{performance.resultValue}</p>
+                    <p className="mt-1 text-[9px] font-black uppercase tracking-[0.15em] text-[#404040]">{performance.unitLabel}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.shadowTarget}</p>
-                    <p className="mt-1 text-3xl font-black text-[#00821A]">{String(series.length + 1).padStart(2, "0")}</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#404040]">{t.shadowTarget}</p>
+                    <p className="mt-1 text-3xl font-black text-[#00821A]">{Math.round((performance.resultValue + 1) * 100) / 100}</p>
                   </div>
                 </div>
-                <button type="button" disabled={busy} onClick={() => void createShadow(series)} className="mt-6 min-h-12 w-full rounded-sm bg-[#00821A] px-4 text-[10px] font-black uppercase tracking-[0.17em] text-[#FFFFFF]">
+                <button type="button" disabled={busy} onClick={() => void createShadow(performance)} className="mt-6 min-h-12 w-full rounded-sm bg-[#00821A] px-4 text-[10px] font-black uppercase tracking-[0.17em] text-[#FFFFFF]">
                   {t.launchShadow}
                 </button>
               </Panel>
@@ -1111,8 +1398,13 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
               <div>
                 <GlassOrb className="h-16 w-16"><Lock className="h-6 w-6" /></GlassOrb>
                 <p className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.yourShadowWaiting}</p>
-                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.04em] text-[#000000]">BUILD A RUN. THEN BEAT IT.</h3>
-                <p className="mt-4 max-w-xl text-sm leading-7 text-[#404040]">{t.shadowWaitingBody}</p>
+                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.04em] text-[#000000]">SET A SCORE. THEN BEAT IT.</h3>
+                <p className="mt-4 max-w-xl text-sm leading-7 text-[#404040]">
+                  Complete a measurable Admin or Self challenge first. Its result becomes a possible Shadow.
+                </p>
+                <button type="button" onClick={() => setScreen("SELF")} className="mt-6 min-h-12 rounded-sm bg-[#00821A] px-6 text-[10px] font-black uppercase tracking-[0.16em] text-[#FFFFFF]">
+                  CREATE A SELF CHALLENGE
+                </button>
               </div>
               <div className="border border-[#BFBFBF] bg-[#000000] p-6 text-[#FFFFFF]">
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-center">
@@ -1120,7 +1412,6 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                   <Lock className="h-5 w-5 text-[#BFBFBF]" />
                   <div><p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#BFBFBF]">SHADOW</p><p className="mt-2 text-5xl font-black">--</p></div>
                 </div>
-                <p className="mt-6 border-t border-[#404040] pt-4 text-center text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">{t.noSeries}</p>
               </div>
             </div>
           </Panel>
@@ -1128,6 +1419,92 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
       </div>
     );
   };
+
+  const renderSelf = () => (
+    <div className="space-y-6">
+      <Panel green dark className="p-6 sm:p-8 xl:p-10">
+        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#00821A]">SELF CHALLENGE</p>
+        <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.05em] sm:text-6xl">{t.selfTitle}</h2>
+        <p className="mt-4 max-w-2xl text-sm leading-7 text-[#BFBFBF]">{t.selfBody}</p>
+      </Panel>
+
+      <div className="grid gap-6 xl:grid-cols-[.9fr_1.1fr]">
+        <Panel className="p-6">
+          <label className="block">
+            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">{t.selfChallengeName}</span>
+            <input value={selfTitle} onChange={(e) => setSelfTitle(e.target.value)} placeholder="SIT UP BURST" className="mt-2 w-full rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] px-4 py-3 text-sm font-bold outline-none focus:border-[#00821A]" />
+          </label>
+          <label className="mt-4 block">
+            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">DESCRIPTION</span>
+            <textarea value={selfDescription} onChange={(e) => setSelfDescription(e.target.value)} rows={3} className="mt-2 w-full resize-none rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] px-4 py-3 text-sm outline-none focus:border-[#00821A]" placeholder="What exactly are you doing for five minutes?" />
+          </label>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <label>
+              <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">{t.measure}</span>
+              <select value={selfMeasurementType} onChange={(e) => setSelfMeasurementType(e.target.value as GTAMeasurementType)} className="mt-2 w-full rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] px-3 py-3 text-sm outline-none focus:border-[#00821A]">
+                <option value="COUNT">COUNT</option>
+                <option value="DISTANCE">DISTANCE</option>
+                <option value="TIME_HELD">TIME HELD</option>
+                <option value="PAGES">PAGES</option>
+                <option value="WORDS">WORDS</option>
+                <option value="CUSTOM">CUSTOM</option>
+              </select>
+            </label>
+            <label>
+              <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">{t.unit}</span>
+              <input value={selfUnitLabel} onChange={(e) => setSelfUnitLabel(e.target.value)} placeholder="sit ups" className="mt-2 w-full rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] px-3 py-3 text-sm outline-none focus:border-[#00821A]" />
+            </label>
+            <label>
+              <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">{t.target}</span>
+              <input type="number" min="0" step="any" value={selfTargetValue} onChange={(e) => setSelfTargetValue(e.target.value)} placeholder="50" className="mt-2 w-full rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] px-3 py-3 text-sm outline-none focus:border-[#00821A]" />
+            </label>
+          </div>
+          <div className="mt-5 rounded-sm border border-[#BFBFBF] bg-[#BFBFBF]/20 p-4">
+            <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">GAME CLOCK</p>
+            <p className="mt-1 text-4xl font-black tabular-nums text-[#000000]">05:00</p>
+          </div>
+          <button type="button" disabled={busy || Boolean(active) || !selfTitle.trim() || !selfUnitLabel.trim()} onClick={() => void startSelfChallenge()} className="mt-5 min-h-14 w-full rounded-sm bg-[#00821A] px-5 text-xs font-black uppercase tracking-[0.2em] text-[#FFFFFF] disabled:opacity-40">
+            {t.startSelf}
+          </button>
+        </Panel>
+
+        <Panel className="p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#00821A]">YOUR MEASURED HISTORY</p>
+              <h3 className="mt-1 text-2xl font-black uppercase tracking-[-0.04em] text-[#000000]">BUILD THE BASELINE</h3>
+            </div>
+            <GlassOrb className="h-12 w-12"><TrendingUp className="h-5 w-5" /></GlassOrb>
+          </div>
+          <div className="mt-5 space-y-3">
+            {(dashboard.performances ?? []).slice(0, 8).map((performance) => (
+              <button
+                key={performance.attemptId}
+                type="button"
+                onClick={() => {
+                  setSelfTitle(performance.title);
+                  setSelfMeasurementType(performance.measurementType);
+                  setSelfUnitLabel(performance.unitLabel);
+                  setSelfTargetValue(String(Math.max(performance.targetValue ?? 0, performance.resultValue + 1)));
+                }}
+                className="grid w-full grid-cols-[1fr_auto] items-center gap-4 rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] p-4 text-left hover:border-[#00821A]"
+              >
+                <div>
+                  <p className="text-sm font-black uppercase text-[#000000]">{performance.title}</p>
+                  <p className="mt-1 text-[9px] font-black uppercase tracking-[0.15em] text-[#404040]">{performance.type} · {performance.measurementType}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black tabular-nums text-[#00821A]">{performance.resultValue}</p>
+                  <p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#404040]">{performance.unitLabel}</p>
+                </div>
+              </button>
+            ))}
+            {!dashboard.performances?.length ? <p className="text-sm text-[#404040]">Your first result will appear here.</p> : null}
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
 
   const renderStats = () => {
     const s = dashboard.stats;
@@ -1203,7 +1580,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
               <Metric label={t.returnRate} value={s.resilience.returnRate} suffix="%" />
               <Metric label={t.recovery} value={s.resilience.medianRecoveryHours ?? "—"} suffix={s.resilience.medianRecoveryHours !== null ? t.hours : ""} />
               <Metric label={t.shadowWin} value={s.resilience.shadowWinRate} suffix="%" />
-              <Metric label={t.comeback} value={s.resilience.bestComebackStreak} />
+              <Metric label={t.retryImprovement} value={s.resilience.retryImprovementRate} suffix="%" />
             </div>
           </Panel>
           <Panel className="p-6">
@@ -1212,7 +1589,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
               <Metric label={t.sevenDay} value={s.consistency.sevenDayRate} suffix="%" />
               <Metric label={t.twentyEightDay} value={s.consistency.twentyEightDayRate} suffix="%" />
               <Metric label={t.progression} value={`${s.consistency.progressionPoints >= 0 ? "+" : ""}${s.consistency.progressionPoints}`} suffix={` ${t.pts}`} />
-              <Metric label={t.completion} value={s.consistency.completionRate} suffix="%" />
+              <Metric label={t.performanceProgress} value={`${s.consistency.performanceProgressionRate >= 0 ? "+" : ""}${s.consistency.performanceProgressionRate}`} suffix="%" />
             </div>
           </Panel>
           <Panel className="p-6">
@@ -1220,11 +1597,24 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
             <div className="mt-6 grid grid-cols-2 gap-3">
               <Metric label={t.timerCompletion} value={s.focus.timerCompletionRate} suffix="%" />
               <Metric label={t.focusAverage} value={s.focus.focusCheckAverage} suffix="%" />
-              <Metric label={t.cleanSessions} value={s.focus.cleanSessions} />
+              <Metric label={t.resultCapture} value={s.focus.resultCaptureRate} suffix="%" />
               <Metric label={t.repeatFocus} value={s.focus.repeatFocusRate} suffix="%" />
             </div>
           </Panel>
         </div>
+
+        <Panel green className="p-6 sm:p-7">
+          <div className="grid gap-4 md:grid-cols-4">
+            <Metric label="MEASURED SESSIONS" value={s.performance.measuredSessions} />
+            <Metric label={t.targetHit} value={s.performance.targetHitRate} suffix="%" />
+            <Metric label={t.personalBests} value={s.performance.personalBests} />
+            <Metric
+              label="LATEST"
+              value={s.performance.latestResult ?? "—"}
+              suffix={s.performance.latestResult !== null ? ` ${s.performance.latestUnit}` : ""}
+            />
+          </div>
+        </Panel>
 
         <Panel className="p-6 sm:p-7">
           <div className="mb-6 flex items-center justify-between gap-3"><div><p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.trend}</p><h3 className="mt-1 text-2xl font-black uppercase text-[#000000]">R / C / F PERFORMANCE</h3></div><TrendingUp className="h-6 w-6 text-[#00821A]" /></div>
@@ -1264,8 +1654,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {catalog.map((item) => {
             const award = dashboard.badges.find((badge) => badge.code === item.code);
-            const Icon = iconByBadge[award?.iconKey ?? item.iconKey] ?? Medal;
-            const earned = Boolean(award);
+                        const earned = Boolean(award);
             return (
               <article
                 key={item.code}
@@ -1283,11 +1672,10 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                         : "border-[#BFBFBF]/45 bg-[#404040]"
                     }`}
                   >
-                    {earned ? (
-                      <Icon className="h-9 w-9 text-[#000000]" />
-                    ) : (
-                      <Lock className="h-8 w-8 text-[#BFBFBF]" />
-                    )}
+                    <BadgeEmblem
+                      code={item.code}
+                      className={`h-10 w-10 ${earned ? "text-[#000000]" : "text-[#BFBFBF]"}`}
+                    />
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span
@@ -1337,7 +1725,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                       <button
                         type="button"
                         disabled={shareBusy}
-                        onClick={() => void shareEffort({ title: award.name, subtitle: "BADGE EARNED", badge: award.name })}
+                        onClick={() => void shareEffort({ title: award.name, subtitle: "BADGE EARNED", badge: award.name, badgeCode: award.code })}
                         className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-[#FFFFFF]/70 px-5 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A] backdrop-blur-md disabled:opacity-40"
                       >
                         <Share2 className="h-4 w-4" />
@@ -1361,12 +1749,11 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
           })}
 
           {customAwards.map((badge) => {
-            const Icon = iconByBadge[badge.iconKey] ?? Medal;
             return (
               <article key={badge.id} className="gta-collector-card gta-collector-earned rounded-sm border border-[#00821A] p-6 text-[#000000]">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[#FFFFFF]/85 bg-[#FFFFFF]/45 shadow-[0_0_32px_rgba(0,130,26,.24)] backdrop-blur-md">
-                    <Icon className="h-9 w-9 text-[#000000]" />
+                    <BadgeEmblem code={badge.code} className="h-10 w-10 text-[#000000]" />
                   </div>
                   <span className="rounded-sm border border-[#00821A] bg-[#FFFFFF]/65 px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#00821A]">
                     {t.earned}
@@ -1384,7 +1771,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                   <button
                     type="button"
                     disabled={shareBusy}
-                    onClick={() => void shareEffort({ title: badge.name, subtitle: "BADGE EARNED", badge: badge.name })}
+                    onClick={() => void shareEffort({ title: badge.name, subtitle: "BADGE EARNED", badge: badge.name, badgeCode: badge.code })}
                     className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-[#FFFFFF]/70 px-4 text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A] backdrop-blur-md disabled:opacity-40"
                   >
                     <Share2 className="h-4 w-4" />
@@ -1407,8 +1794,8 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
           <h2 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em] text-[#000000] sm:text-6xl">{t.bookTitle}</h2>
           <p className="mt-5 max-w-xl text-sm leading-7 text-[#404040]">{t.bookBody}</p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Link href={bookUrl} className="inline-flex min-h-12 items-center justify-center rounded-sm bg-[#00821A] px-6 text-xs font-black uppercase tracking-[0.16em] text-[#FFFFFF]">{t.physicalBook}</Link>
-            <Link href={ebookUrl} className="inline-flex min-h-12 items-center justify-center rounded-sm border border-[#000000] bg-[#FFFFFF] px-6 text-xs font-black uppercase tracking-[0.16em] text-[#000000]">{t.ebookCta}</Link>
+            <Link href={bookUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-sm bg-[#00821A] px-6 text-xs font-black uppercase tracking-[0.16em] text-[#FFFFFF]">{t.physicalBook}</Link>
+            <Link href={ebookUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-sm border border-[#000000] bg-[#FFFFFF] px-6 text-xs font-black uppercase tracking-[0.16em] text-[#000000]">{t.ebookCta}</Link>
           </div>
         </div>
         <div className="flex min-h-[300px] items-center justify-center border border-[#BFBFBF] bg-[#000000] p-8">
@@ -1433,6 +1820,33 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
               <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">05:00 // {t.final}</p><h3 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em] text-[#000000]">{t.achieve}</h3></div>
               <GlassOrb className="h-14 w-14"><Trophy className="h-6 w-6" /></GlassOrb>
             </div>
+            <div className="mt-6 rounded-sm border border-[#00821A] bg-[#00821A]/[0.05] p-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.resultQuestion}</p>
+              <p className="mt-2 text-sm leading-6 text-[#404040]">{t.resultBody}</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <label className="block">
+                  <span className="text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]">
+                    {t.result} · {active?.unitLabel || "reps"}
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    inputMode="decimal"
+                    value={resultValue}
+                    onChange={(e) => setResultValue(e.target.value)}
+                    className="mt-2 w-full rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] px-4 py-4 text-3xl font-black tabular-nums text-[#000000] outline-none focus:border-[#00821A]"
+                    placeholder="0"
+                  />
+                </label>
+                <div className="rounded-sm border border-[#BFBFBF] bg-[#FFFFFF] px-4 py-3 text-right">
+                  <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#404040]">{t.target}</p>
+                  <p className="mt-1 text-xl font-black text-[#000000]">
+                    {active?.targetValue ?? "—"} {active?.unitLabel || ""}
+                  </p>
+                </div>
+              </div>
+            </div>
             <p className="mt-5 text-sm font-bold uppercase text-[#000000]">{t.focusCheck}</p>
             <p className="mt-2 text-sm leading-6 text-[#404040]">{t.focusBody}</p>
             <div className="mt-5 grid gap-2">
@@ -1449,7 +1863,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
             <label className="mt-5 block"><span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.note}</span><textarea value={postNote} onChange={(e) => setPostNote(e.target.value)} rows={3} placeholder={t.notePlaceholder} className="mt-2 w-full resize-none rounded-sm border border-[#BFBFBF] bg-white px-4 py-3 text-sm text-[#000000] outline-none focus:border-[#00821A]" /></label>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <button type="button" onClick={() => setAchieveOpen(false)} className="min-h-12 rounded-sm border border-[#BFBFBF] bg-white text-xs font-black uppercase tracking-[0.16em] text-[#404040]">BACK</button>
-              <button type="button" disabled={!focusCheck || busy} onClick={() => void achieve()} className="min-h-12 rounded-sm bg-[#00821A] text-xs font-black uppercase tracking-[0.16em] text-[#FFFFFF] disabled:opacity-40">{t.confirmAchieve}</button>
+              <button type="button" disabled={!focusCheck || !resultValue.trim() || busy} onClick={() => void achieve()} className="min-h-12 rounded-sm bg-[#00821A] text-xs font-black uppercase tracking-[0.16em] text-[#FFFFFF] disabled:opacity-40">{t.confirmAchieve}</button>
             </div>
           </div>
         </div>
@@ -1478,7 +1892,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
       <div className="grid gap-6 p-4 sm:p-6 xl:grid-cols-[250px_minmax(0,1fr)] xl:p-8">
         <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
           <Panel className="p-3">
-            <nav className="grid grid-cols-2 gap-2 sm:grid-cols-5 xl:grid-cols-1">
+            <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-1">
               {nav.map(({ id, label, Icon }) => (
                 <button key={id} type="button" onClick={() => setScreen(id)} className={`flex min-h-12 w-full items-center gap-3 rounded-sm px-4 text-left text-[10px] font-black uppercase tracking-[0.16em] transition ${screen === id ? "bg-[#00821A] text-[#FFFFFF] shadow-[0_10px_22px_rgba(0,130,26,.16)]" : "bg-white/50 text-[#404040] hover:bg-white"}`}>
                   <Icon className="h-4 w-4" />{label}
@@ -1517,6 +1931,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
           <div key={screen} className="gta-screen">
             {screen === "COURT" ? renderCourt() : null}
             {screen === "SHADOW" ? renderShadow() : null}
+            {screen === "SELF" ? renderSelf() : null}
             {screen === "STATS" ? renderStats() : null}
             {screen === "BADGES" ? renderBadges() : null}
             {screen === "BOOK" ? renderBook() : null}

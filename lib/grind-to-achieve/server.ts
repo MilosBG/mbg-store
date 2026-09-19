@@ -12,6 +12,8 @@ import type {
   GTAStatsDTO,
   GTAStreakSeriesDTO,
   GTABadgeAwardDTO,
+  GTAMeasurementType,
+  GTAPerformanceDTO,
 } from "@/types/grind-achieve";
 import type { ObjectId, WithId } from "mongodb";
 
@@ -84,6 +86,9 @@ type ChallengeDoc = {
   endsAt?: Date | null;
   priority?: number;
   media?: string | null;
+  measurementType?: GTAMeasurementType;
+  unitLabel?: string;
+  targetValue?: number | null;
   createdBy?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -91,11 +96,17 @@ type ChallengeDoc = {
 
 type AttemptDoc = {
   clerkId: string;
-  type: "ADMIN" | "SHADOW";
+  type: "ADMIN" | "SHADOW" | "SELF";
   challengeId?: ObjectId | null;
   shadowChallengeId?: ObjectId | null;
   title: string;
   description?: string;
+  measurementType?: GTAMeasurementType;
+  unitLabel?: string;
+  targetValue?: number | null;
+  resultValue?: number | null;
+  resultDelta?: number | null;
+  personalBest?: boolean;
   startedAt: Date;
   endsAt: Date;
   timerReachedZero: boolean;
@@ -109,9 +120,15 @@ type AttemptDoc = {
 
 type ShadowDoc = {
   clerkId: string;
-  baselineSeriesId: string;
-  baselineLength: number;
-  targetLength: number;
+  baselineSeriesId?: string;
+  baselineLength?: number;
+  targetLength?: number;
+  baselineAttemptId?: ObjectId | null;
+  baselineValue?: number | null;
+  targetValue?: number | null;
+  unitLabel?: string;
+  measurementType?: GTAMeasurementType;
+  currentBest?: number;
   currentRun: number;
   bestRun: number;
   attempts: number;
@@ -167,6 +184,9 @@ function challengeDTO(doc: WithId<ChallengeDoc>): GTAChallengeDTO {
     category: doc.category ?? "CHALLENGE",
     source: "ADMIN",
     durationSeconds: DURATION_SECONDS,
+    measurementType: doc.measurementType ?? "COUNT",
+    unitLabel: (doc.unitLabel ?? "reps").trim() || "reps",
+    targetValue: doc.targetValue != null && Number.isFinite(Number(doc.targetValue)) ? Number(doc.targetValue) : null,
     media: doc.media ?? null,
     priority: Number(doc.priority ?? 0),
     startsAt: iso(doc.startsAt),
@@ -183,6 +203,12 @@ function attemptDTO(doc: WithId<AttemptDoc>): GTAAttemptDTO {
     shadowChallengeId: doc.shadowChallengeId ? String(doc.shadowChallengeId) : null,
     title: doc.title,
     description: doc.description ?? "",
+    measurementType: doc.measurementType ?? "COUNT",
+    unitLabel: (doc.unitLabel ?? "reps").trim() || "reps",
+    targetValue: doc.targetValue != null && Number.isFinite(Number(doc.targetValue)) ? Number(doc.targetValue) : null,
+    resultValue: doc.resultValue != null && Number.isFinite(Number(doc.resultValue)) ? Number(doc.resultValue) : null,
+    resultDelta: doc.resultDelta != null && Number.isFinite(Number(doc.resultDelta)) ? Number(doc.resultDelta) : null,
+    personalBest: Boolean(doc.personalBest),
     startedAt: doc.startedAt.toISOString(),
     endsAt: doc.endsAt.toISOString(),
     timerReachedZero: Boolean(doc.timerReachedZero),
@@ -200,11 +226,17 @@ function shadowDTO(doc: WithId<ShadowDoc>): GTAShadowDTO {
     baselineSeriesId: doc.baselineSeriesId,
     baselineLength: doc.baselineLength,
     targetLength: doc.targetLength,
-    currentRun: doc.currentRun,
-    bestRun: doc.bestRun,
-    attempts: doc.attempts,
-    breakCount: doc.breakCount,
-    returnCount: doc.returnCount,
+    baselineAttemptId: doc.baselineAttemptId ? String(doc.baselineAttemptId) : null,
+    baselineValue: doc.baselineValue != null && Number.isFinite(Number(doc.baselineValue)) ? Number(doc.baselineValue) : null,
+    targetValue: doc.targetValue != null && Number.isFinite(Number(doc.targetValue)) ? Number(doc.targetValue) : null,
+    unitLabel: doc.unitLabel ?? "",
+    measurementType: doc.measurementType ?? "COUNT",
+    currentBest: Number(doc.currentBest ?? 0),
+    currentRun: Number(doc.currentRun ?? 0),
+    bestRun: Number(doc.bestRun ?? 0),
+    attempts: Number(doc.attempts ?? 0),
+    breakCount: Number(doc.breakCount ?? 0),
+    returnCount: Number(doc.returnCount ?? 0),
     status: doc.status,
     startedAt: doc.startedAt.toISOString(),
     wonAt: iso(doc.wonAt),
@@ -220,6 +252,43 @@ function seriesDTO(doc: WithId<SeriesDoc>): GTAStreakSeriesDTO {
     length: doc.length,
     active: doc.active,
   };
+}
+
+function metricKey(attempt: AttemptDoc) {
+  const title = attempt.title.trim().toLowerCase();
+  const unit = (attempt.unitLabel ?? "").trim().toLowerCase();
+  return `${title}::${unit}`;
+}
+
+async function getPerformanceHistory(clerkId: string, limit = 50): Promise<GTAPerformanceDTO[]> {
+  const db = await getAdminDb();
+  const docs = await db.collection<AttemptDoc>(ATTEMPTS)
+    .find({
+      clerkId,
+      status: "ACHIEVED",
+      achievedAt: { $ne: null },
+      resultValue: { $type: "number" },
+    })
+    .sort({ achievedAt: -1 })
+    .limit(limit)
+    .toArray();
+
+  return docs.flatMap((doc) => {
+    const resultValue = Number(doc.resultValue);
+    if (!Number.isFinite(resultValue)) return [];
+    return [{
+      attemptId: String(doc._id),
+      title: doc.title,
+      type: doc.type,
+      measurementType: doc.measurementType ?? "COUNT",
+      unitLabel: (doc.unitLabel ?? "reps").trim() || "reps",
+      targetValue: doc.targetValue != null && Number.isFinite(Number(doc.targetValue)) ? Number(doc.targetValue) : null,
+      resultValue,
+      resultDelta: doc.resultDelta != null && Number.isFinite(Number(doc.resultDelta)) ? Number(doc.resultDelta) : null,
+      personalBest: Boolean(doc.personalBest),
+      achievedAt: (doc.achievedAt ?? doc.endsAt).toISOString(),
+    }];
+  });
 }
 
 export async function listPublishedChallenges(clerkId: string) {
@@ -363,7 +432,7 @@ export async function calculateStats(clerkId: string): Promise<GTAStatsDTO> {
   const progressionPoints = twentyEightDayRate - previousTwentyEightDayRate;
   const completionRate = pct(achieved.length, attempts.length);
 
-  const breaks = Math.max(0, derived.length - (derived.some((s) => s.active) ? 1 : 0));
+  const breaks = Math.max(0, derived.length - (derived.some((item) => item.active) ? 1 : 0));
   const returns = Math.max(0, derived.length - 1);
   const returnRate = breaks === 0 ? 0 : pct(Math.min(returns, breaks), breaks);
   const recoveryHours: number[] = [];
@@ -388,7 +457,48 @@ export async function calculateStats(clerkId: string): Promise<GTAStatsDTO> {
   const shadowWon = shadows.filter((item) => item.status === "WON").length;
   const shadowWinRate = pct(shadowWon, shadowStarted);
   const bestComebackStreak = derived.slice(1).reduce((best, series) => Math.max(best, series.length), 0);
-  const resilienceSamples = [breaks > 0 ? returnRate : null, shadowStarted > 0 ? shadowWinRate : null, medianRecoveryHours !== null ? recoveryScore : null].filter((v): v is number => v !== null);
+
+  const measured = achieved.filter((item) => Number.isFinite(Number(item.resultValue)));
+  const byMetric = new Map<string, AttemptDoc[]>();
+  for (const item of measured) {
+    const key = metricKey(item);
+    byMetric.set(key, [...(byMetric.get(key) ?? []), item]);
+  }
+
+  let repeatPairs = 0;
+  let improvedPairs = 0;
+  const progressionSamples: number[] = [];
+  for (const group of byMetric.values()) {
+    const ordered = [...group].sort((a, b) => {
+      const aa = (a.achievedAt ?? a.endsAt).getTime();
+      const bb = (b.achievedAt ?? b.endsAt).getTime();
+      return aa - bb;
+    });
+    for (let i = 1; i < ordered.length; i += 1) {
+      const previous = Number(ordered[i - 1].resultValue);
+      const current = Number(ordered[i].resultValue);
+      if (!Number.isFinite(previous) || !Number.isFinite(current)) continue;
+      repeatPairs += 1;
+      if (current > previous) improvedPairs += 1;
+    }
+    const first = Number(ordered[0]?.resultValue);
+    const latest = Number(ordered[ordered.length - 1]?.resultValue);
+    if (ordered.length > 1 && Number.isFinite(first) && first > 0 && Number.isFinite(latest)) {
+      progressionSamples.push(((latest - first) / first) * 100);
+    }
+  }
+
+  const retryImprovementRate = pct(improvedPairs, repeatPairs);
+  const performanceProgressionRate = progressionSamples.length
+    ? Math.round((progressionSamples.reduce((sum, value) => sum + value, 0) / progressionSamples.length) * 10) / 10
+    : 0;
+
+  const resilienceSamples = [
+    breaks > 0 ? returnRate : null,
+    shadowStarted > 0 ? shadowWinRate : null,
+    medianRecoveryHours !== null ? recoveryScore : null,
+    repeatPairs > 0 ? retryImprovementRate : null,
+  ].filter((value): value is number => value !== null);
   const resilienceRating = resilienceSamples.length
     ? Math.round(resilienceSamples.reduce((sum, value) => sum + value, 0) / resilienceSamples.length)
     : 0;
@@ -407,12 +517,25 @@ export async function calculateStats(clerkId: string): Promise<GTAStatsDTO> {
             : 0,
     )
     .filter((value) => value > 0);
-  const focusCheckAverage = focusScores.length ? Math.round(focusScores.reduce((a, b) => a + b, 0) / focusScores.length) : 0;
+  const focusCheckAverage = focusScores.length
+    ? Math.round(focusScores.reduce((a, b) => a + b, 0) / focusScores.length)
+    : 0;
   const cleanSessions = achieved.filter((item) => item.timerReachedZero && item.focusCheck === "LOCKED_IN").length;
   const lastTen = [...achieved].reverse().slice(0, 10);
   const repeatFocusRate = pct(lastTen.filter((item) => item.timerReachedZero && item.focusCheck === "LOCKED_IN").length, lastTen.length);
-  const focusRating = Math.round(timerCompletionRate * 0.7 + focusCheckAverage * 0.3);
-  const consistencyRating = Math.round(twentyEightDayRate * 0.55 + sevenDayRate * 0.25 + completionRate * 0.2);
+  const resultCaptureRate = pct(measured.length, achieved.length);
+  const focusRating = Math.round(timerCompletionRate * 0.55 + focusCheckAverage * 0.3 + resultCaptureRate * 0.15);
+  const consistencyRating = Math.round(
+    twentyEightDayRate * 0.45
+    + sevenDayRate * 0.2
+    + completionRate * 0.2
+    + clamp(50 + performanceProgressionRate, 0, 100) * 0.15,
+  );
+
+  const targetable = measured.filter((item) => Number.isFinite(Number(item.targetValue)) && Number(item.targetValue) > 0);
+  const targetHits = targetable.filter((item) => Number(item.resultValue) >= Number(item.targetValue)).length;
+  const personalBests = measured.filter((item) => item.personalBest).length;
+  const latestMeasured = measured[measured.length - 1];
 
   const weeks = new Map<string, WithId<AttemptDoc>[]>();
   for (const attempt of attempts.slice(-250)) {
@@ -456,6 +579,7 @@ export async function calculateStats(clerkId: string): Promise<GTAStatsDTO> {
       bestComebackStreak,
       returns,
       breaks,
+      retryImprovementRate,
     },
     consistency: {
       rating: clamp(consistencyRating),
@@ -466,6 +590,7 @@ export async function calculateStats(clerkId: string): Promise<GTAStatsDTO> {
       previousTwentyEightDayRate,
       progressionPoints,
       completionRate,
+      performanceProgressionRate,
     },
     focus: {
       rating: clamp(focusRating),
@@ -473,6 +598,14 @@ export async function calculateStats(clerkId: string): Promise<GTAStatsDTO> {
       focusCheckAverage,
       cleanSessions,
       repeatFocusRate,
+      resultCaptureRate,
+    },
+    performance: {
+      measuredSessions: measured.length,
+      targetHitRate: pct(targetHits, targetable.length),
+      personalBests,
+      latestResult: latestMeasured ? Number(latestMeasured.resultValue) : null,
+      latestUnit: latestMeasured?.unitLabel ?? "",
     },
     trend,
   };
@@ -596,26 +729,39 @@ export async function getDashboard(clerkId: string, lang: "en" | "fr" = "en"): P
   const unlocked = await hasAccess(clerkId);
   const emptyStats: GTAStatsDTO = {
     totals: { sessionsStarted: 0, sessionsAchieved: 0, totalMinutes: 0, currentStreak: 0, bestStreak: 0 },
-    resilience: { rating: 0, returnRate: 0, medianRecoveryHours: null, shadowWinRate: 0, bestComebackStreak: 0, returns: 0, breaks: 0 },
-    consistency: { rating: 0, currentStreak: 0, bestStreak: 0, sevenDayRate: 0, twentyEightDayRate: 0, previousTwentyEightDayRate: 0, progressionPoints: 0, completionRate: 0 },
-    focus: { rating: 0, timerCompletionRate: 0, focusCheckAverage: 0, cleanSessions: 0, repeatFocusRate: 0 },
+    resilience: { rating: 0, returnRate: 0, medianRecoveryHours: null, shadowWinRate: 0, bestComebackStreak: 0, returns: 0, breaks: 0, retryImprovementRate: 0 },
+    consistency: { rating: 0, currentStreak: 0, bestStreak: 0, sevenDayRate: 0, twentyEightDayRate: 0, previousTwentyEightDayRate: 0, progressionPoints: 0, completionRate: 0, performanceProgressionRate: 0 },
+    focus: { rating: 0, timerCompletionRate: 0, focusCheckAverage: 0, cleanSessions: 0, repeatFocusRate: 0, resultCaptureRate: 0 },
+    performance: { measuredSessions: 0, targetHitRate: 0, personalBests: 0, latestResult: null, latestUnit: "" },
     trend: [],
   };
-  if (!unlocked) return { unlocked, challenges: [], activeAttempt: null, activeShadow: null, historicalSeries: [], stats: emptyStats, badges: [] };
+  if (!unlocked) return { unlocked, challenges: [], activeAttempt: null, activeShadow: null, historicalSeries: [], performances: [], stats: emptyStats, badges: [] };
 
-  const [challenges, activeAttempt, activeShadow, historicalSeries, stats] = await Promise.all([
+  const [challenges, activeAttempt, activeShadow, historicalSeries, performances, stats] = await Promise.all([
     listPublishedChallenges(clerkId),
     getActiveAttempt(clerkId),
     getActiveShadow(clerkId),
     rebuildStreakSeries(clerkId),
+    getPerformanceHistory(clerkId),
     calculateStats(clerkId),
   ]);
   await applyAutomaticBadges(clerkId, stats);
   const badges = await getBadgeAwards(clerkId, lang);
-  return { unlocked, challenges, activeAttempt, activeShadow, historicalSeries, stats, badges };
+  return { unlocked, challenges, activeAttempt, activeShadow, historicalSeries, performances, stats, badges };
 }
 
-export async function startAttempt(args: { clerkId: string; challengeId?: string; shadowId?: string }) {
+export async function startAttempt(args: {
+  clerkId: string;
+  challengeId?: string;
+  shadowId?: string;
+  self?: {
+    title: string;
+    description?: string;
+    measurementType?: GTAMeasurementType;
+    unitLabel?: string;
+    targetValue?: number | null;
+  };
+}) {
   if (!(await hasAccess(args.clerkId))) throw new Error("LOCKED");
   const db = await getAdminDb();
   const attempts = db.collection<AttemptDoc>(ATTEMPTS);
@@ -623,19 +769,44 @@ export async function startAttempt(args: { clerkId: string; challengeId?: string
   if (existing) return attemptDTO(existing);
 
   const now = new Date();
-  let type: "ADMIN" | "SHADOW" = "ADMIN";
+  let type: "ADMIN" | "SHADOW" | "SELF" = "ADMIN";
   let title = "5 MINUTE CHALLENGE";
   let description = "";
+  let measurementType: GTAMeasurementType = "COUNT";
+  let unitLabel = "reps";
+  let targetValue: number | null = null;
   let challengeId: ObjectId | null = null;
   let shadowChallengeId: ObjectId | null = null;
 
-  if (args.shadowId) {
+  if (args.self) {
+    type = "SELF";
+    title = args.self.title.trim().slice(0, 140);
+    if (!title) throw new Error("TITLE_REQUIRED");
+    description = (args.self.description ?? "").trim().slice(0, 1000);
+    measurementType = args.self.measurementType ?? "COUNT";
+    unitLabel = (args.self.unitLabel ?? "reps").trim().slice(0, 40) || "reps";
+    targetValue = Number.isFinite(Number(args.self.targetValue)) && Number(args.self.targetValue) > 0
+      ? Number(args.self.targetValue)
+      : null;
+  } else if (args.shadowId) {
     type = "SHADOW";
     shadowChallengeId = await objectId(args.shadowId);
-    const shadow = await db.collection<ShadowDoc>(SHADOWS).findOne({ _id: shadowChallengeId, clerkId: args.clerkId, status: { $in: ["READY", "ACTIVE", "BROKEN", "RETURNED"] } });
+    const shadow = await db.collection<ShadowDoc>(SHADOWS).findOne({
+      _id: shadowChallengeId,
+      clerkId: args.clerkId,
+      status: { $in: ["READY", "ACTIVE", "BROKEN", "RETURNED"] },
+    });
     if (!shadow) throw new Error("SHADOW_NOT_FOUND");
-    title = `SHADOW ${shadow.baselineLength}`;
-    description = `Beat your previous run of ${shadow.baselineLength}.`;
+    measurementType = shadow.measurementType ?? "COUNT";
+    unitLabel = shadow.unitLabel ?? "reps";
+    targetValue = shadow.targetValue != null && Number.isFinite(Number(shadow.targetValue))
+      ? Number(shadow.targetValue)
+      : Number(shadow.targetLength ?? 0) || null;
+    const baseline = shadow.baselineValue != null && Number.isFinite(Number(shadow.baselineValue))
+      ? Number(shadow.baselineValue)
+      : Number(shadow.baselineLength ?? 0);
+    title = `SHADOW ${baseline} ${unitLabel}`.trim();
+    description = `Beat your previous result of ${baseline} ${unitLabel}.`;
     await db.collection<ShadowDoc>(SHADOWS).updateOne(
       { _id: shadow._id },
       { $set: { status: "ACTIVE", updatedAt: now }, $inc: { attempts: 1 } },
@@ -649,6 +820,11 @@ export async function startAttempt(args: { clerkId: string; challengeId?: string
     if (audience?.mode === "SELECTED_HUSTLERS" && !audience.clerkIds?.includes(args.clerkId)) throw new Error("FORBIDDEN");
     title = challenge.title;
     description = challenge.description ?? "";
+    measurementType = challenge.measurementType ?? "COUNT";
+    unitLabel = (challenge.unitLabel ?? "reps").trim() || "reps";
+    targetValue = Number.isFinite(Number(challenge.targetValue)) && Number(challenge.targetValue) > 0
+      ? Number(challenge.targetValue)
+      : null;
   }
 
   const endsAt = new Date(now.getTime() + DURATION_SECONDS * 1000);
@@ -659,6 +835,12 @@ export async function startAttempt(args: { clerkId: string; challengeId?: string
     shadowChallengeId,
     title,
     description,
+    measurementType,
+    unitLabel,
+    targetValue,
+    resultValue: null,
+    resultDelta: null,
+    personalBest: false,
     startedAt: now,
     endsAt,
     timerReachedZero: false,
@@ -674,16 +856,38 @@ export async function startAttempt(args: { clerkId: string; challengeId?: string
   return attemptDTO(created);
 }
 
-async function updateShadowAfterAchieve(clerkId: string, shadowId: ObjectId) {
+async function updateShadowAfterAchieve(clerkId: string, shadowId: ObjectId, resultValue: number | null) {
   const db = await getAdminDb();
   const shadows = db.collection<ShadowDoc>(SHADOWS);
   const shadow = await shadows.findOne({ _id: shadowId, clerkId });
   if (!shadow) return;
+
+  if (Number.isFinite(Number(resultValue)) && Number.isFinite(Number(shadow.targetValue ?? shadow.targetLength))) {
+    const result = Number(resultValue);
+    const target = Number(shadow.targetValue ?? shadow.targetLength);
+    const currentBest = Math.max(Number(shadow.currentBest ?? 0), result);
+    const won = result >= target;
+    await shadows.updateOne(
+      { _id: shadow._id },
+      {
+        $set: {
+          currentBest,
+          bestRun: Math.max(Number(shadow.bestRun ?? 0), result),
+          status: won ? "WON" : "ACTIVE",
+          wonAt: won ? new Date() : shadow.wonAt ?? null,
+          updatedAt: new Date(),
+        },
+      },
+    );
+    if (won) await awardBadgeIfMissing(clerkId, "SHADOW_BREAKER");
+    return;
+  }
+
   const series = await rebuildStreakSeries(clerkId);
   const currentRun = series.find((item) => item.active)?.length ?? 0;
-  const bestRun = Math.max(shadow.bestRun, currentRun);
-  const won = currentRun >= shadow.targetLength;
-  const comebackDetected = shadow.currentRun > 1 && currentRun === 1;
+  const bestRun = Math.max(Number(shadow.bestRun ?? 0), currentRun);
+  const won = currentRun >= Number(shadow.targetLength ?? 0);
+  const comebackDetected = Number(shadow.currentRun ?? 0) > 1 && currentRun === 1;
   await shadows.updateOne(
     { _id: shadow._id },
     {
@@ -699,13 +903,44 @@ async function updateShadowAfterAchieve(clerkId: string, shadowId: ObjectId) {
   );
 }
 
-export async function achieveAttempt(args: { clerkId: string; attemptId: string; focusCheck: GTAFocusCheck; note?: string }) {
+export async function achieveAttempt(args: {
+  clerkId: string;
+  attemptId: string;
+  focusCheck: GTAFocusCheck;
+  note?: string;
+  resultValue?: number | null;
+}) {
   const db = await getAdminDb();
   const attempts = db.collection<AttemptDoc>(ATTEMPTS);
   const _id = await objectId(args.attemptId);
   const attempt = await attempts.findOne({ _id, clerkId: args.clerkId, status: "LIVE" });
   if (!attempt) throw new Error("ATTEMPT_NOT_FOUND");
   if (Date.now() < attempt.endsAt.getTime()) throw new Error("TIMER_NOT_FINISHED");
+
+  const resultValue = Number(args.resultValue);
+  if (!Number.isFinite(resultValue) || resultValue < 0) throw new Error("RESULT_REQUIRED");
+
+  const previous = await attempts
+    .find({
+      clerkId: args.clerkId,
+      status: "ACHIEVED",
+      unitLabel: attempt.unitLabel ?? "reps",
+      title: attempt.title,
+      resultValue: { $type: "number" },
+      _id: { $ne: _id },
+    })
+    .sort({ achievedAt: -1 })
+    .limit(200)
+    .toArray();
+
+  const previousBest = previous.reduce((best, item) => {
+    const value = Number(item.resultValue);
+    return Number.isFinite(value) ? Math.max(best, value) : best;
+  }, Number.NEGATIVE_INFINITY);
+  const hasPrevious = Number.isFinite(previousBest);
+  const personalBest = !hasPrevious || resultValue > previousBest;
+  const resultDelta = hasPrevious ? Math.round((resultValue - previousBest) * 100) / 100 : null;
+
   const now = new Date();
   await attempts.updateOne(
     { _id, clerkId: args.clerkId, status: "LIVE" },
@@ -716,11 +951,18 @@ export async function achieveAttempt(args: { clerkId: string; attemptId: string;
         status: "ACHIEVED",
         focusCheck: args.focusCheck,
         note: (args.note ?? "").trim().slice(0, 600),
+        resultValue,
+        resultDelta,
+        personalBest,
         updatedAt: now,
       },
     },
   );
-  if (attempt.shadowChallengeId) await updateShadowAfterAchieve(args.clerkId, attempt.shadowChallengeId);
+
+  if (attempt.shadowChallengeId) {
+    await updateShadowAfterAchieve(args.clerkId, attempt.shadowChallengeId, resultValue);
+  }
+
   await rebuildStreakSeries(args.clerkId);
   const stats = await calculateStats(args.clerkId);
   await applyAutomaticBadges(args.clerkId, stats);
@@ -729,16 +971,57 @@ export async function achieveAttempt(args: { clerkId: string; attemptId: string;
   return attemptDTO(updated);
 }
 
-export async function createShadow(clerkId: string, seriesId: string) {
+export async function createShadow(clerkId: string, sourceId: string) {
   if (!(await hasAccess(clerkId))) throw new Error("LOCKED");
   const db = await getAdminDb();
   const shadows = db.collection<ShadowDoc>(SHADOWS);
   const existing = await shadows.findOne({ clerkId, status: { $in: ["READY", "ACTIVE", "BROKEN", "RETURNED"] } });
   if (existing) return shadowDTO(existing);
 
+  const maybeAttemptId = await objectId(sourceId).catch(() => null);
+  if (maybeAttemptId) {
+    const baselineAttempt = await db.collection<AttemptDoc>(ATTEMPTS).findOne({
+      _id: maybeAttemptId,
+      clerkId,
+      status: "ACHIEVED",
+      resultValue: { $type: "number" },
+    });
+
+    if (baselineAttempt && Number.isFinite(Number(baselineAttempt.resultValue))) {
+      const baselineValue = Number(baselineAttempt.resultValue);
+      const unitLabel = (baselineAttempt.unitLabel ?? "reps").trim() || "reps";
+      const targetValue = Math.round((baselineValue + 1) * 100) / 100;
+      const now = new Date();
+      const result = await shadows.insertOne({
+        clerkId,
+        baselineAttemptId: baselineAttempt._id,
+        baselineValue,
+        targetValue,
+        unitLabel,
+        measurementType: baselineAttempt.measurementType ?? "COUNT",
+        currentBest: 0,
+        currentRun: 0,
+        bestRun: 0,
+        attempts: 0,
+        breakCount: 0,
+        returnCount: 0,
+        status: "READY",
+        startedAt: now,
+        wonAt: null,
+        createdAt: now,
+        updatedAt: now,
+      });
+      await awardBadgeIfMissing(clerkId, "CHALLENGER");
+      const created = await shadows.findOne({ _id: result.insertedId });
+      if (!created) throw new Error("SHADOW_CREATE_FAILED");
+      return shadowDTO(created);
+    }
+  }
+
+  // Backward-compatible streak shadow for older data.
   const series = await rebuildStreakSeries(clerkId);
-  const baseline = series.find((item) => item.id === seriesId && !item.active);
-  if (!baseline) throw new Error("SERIES_NOT_FOUND");
+  const baseline = series.find((item) => item.id === sourceId && !item.active);
+  if (!baseline) throw new Error("PERFORMANCE_NOT_FOUND");
   const now = new Date();
   const result = await shadows.insertOne({
     clerkId,

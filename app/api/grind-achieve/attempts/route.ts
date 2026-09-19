@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { achieveAttempt, startAttempt } from "@/lib/grind-to-achieve/server";
-import type { GTAFocusCheck } from "@/types/grind-achieve";
+import type { GTAFocusCheck, GTAMeasurementType } from "@/types/grind-achieve";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +24,24 @@ export async function POST(request: Request) {
       }));
     }
 
+    if (action === "START_SELF") {
+      const measurementType = String(body?.measurementType ?? "COUNT") as GTAMeasurementType;
+      const validMeasurement = new Set<GTAMeasurementType>(["COUNT", "DISTANCE", "TIME_HELD", "PAGES", "WORDS", "CUSTOM"]);
+      if (!validMeasurement.has(measurementType)) {
+        return NextResponse.json({ error: "INVALID_MEASUREMENT_TYPE" }, { status: 400 });
+      }
+      return NextResponse.json(await startAttempt({
+        clerkId: userId,
+        self: {
+          title: String(body?.title ?? ""),
+          description: String(body?.description ?? ""),
+          measurementType,
+          unitLabel: String(body?.unitLabel ?? "reps"),
+          targetValue: body?.targetValue === "" || body?.targetValue == null ? null : Number(body.targetValue),
+        },
+      }));
+    }
+
     if (action === "ACHIEVE") {
       const focusCheck = String(body?.focusCheck ?? "") as GTAFocusCheck;
       if (!validFocus.has(focusCheck)) {
@@ -34,6 +52,7 @@ export async function POST(request: Request) {
         attemptId: String(body?.attemptId ?? ""),
         focusCheck,
         note: String(body?.note ?? ""),
+        resultValue: body?.resultValue === "" || body?.resultValue == null ? null : Number(body.resultValue),
       }));
     }
 
