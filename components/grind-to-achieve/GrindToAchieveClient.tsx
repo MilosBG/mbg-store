@@ -693,121 +693,184 @@ async function makeStoryBlob(args: {
   await document.fonts?.load?.("700 32px Kanit").catch(() => undefined);
 
   const logo = await loadCanvasImage("/grind/milos-bg-logo.png").catch(() => null);
+  const flower = await loadCanvasImage("/grind/periwinkle-badge-bg.png").catch(() => null);
 
-  ctx.fillStyle = "#000000";
+  ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Trading-card frame
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(58, 70, 964, 1760);
+  // Collector frame
   ctx.strokeStyle = "#00821A";
   ctx.lineWidth = 8;
-  ctx.strokeRect(76, 88, 928, 1724);
-  ctx.strokeStyle = "#000000";
+  ctx.strokeRect(34, 42, 1012, 1836);
   ctx.lineWidth = 3;
-  ctx.strokeRect(94, 106, 892, 1688);
+  ctx.strokeRect(52, 60, 976, 1800);
 
-  // Header
+  // Top brand strip
   ctx.fillStyle = "#000000";
-  ctx.fillRect(94, 106, 892, 190);
+  ctx.fillRect(52, 60, 976, 150);
   if (logo) {
     const maxW = 360;
-    const maxH = 110;
+    const maxH = 86;
     const ratio = Math.min(maxW / logo.width, maxH / logo.height);
     const w = logo.width * ratio;
     const h = logo.height * ratio;
-    ctx.drawImage(logo, 130, 145, w, h);
+    ctx.drawImage(logo, 92, 92, w, h);
   } else {
     ctx.fillStyle = "#FFFFFF";
     ctx.font = "900 58px Kanit, Arial";
-    ctx.fillText("MILOS BG", 130, 220);
+    ctx.fillText("MILOS BG", 92, 155);
   }
 
-  ctx.fillStyle = "#00821A";
-  ctx.fillRect(94, 296, 892, 12);
-
+  // Title block
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(52, 210, 976, 170);
+  ctx.strokeStyle = "#00821A";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(52, 210, 976, 170);
   ctx.fillStyle = "#000000";
-  ctx.font = "900 64px Kanit, Arial";
-  ctx.fillText("GRIND to ACHIEVE", 130, 390);
-
+  ctx.font = "900 66px Kanit, Arial";
+  ctx.fillText("GRIND to ACHIEVE", 92, 292);
   ctx.fillStyle = "#404040";
   ctx.font = "700 28px Kanit, Arial";
-  ctx.fillText("5-MINUTE HUSTLE · COLLECTOR SERIES", 130, 438);
+  ctx.fillText("5-MINUTE HUSTLE · COLLECTOR SERIES", 92, 336);
 
   if (args.badge) {
-    // Holo collector zone
-    const gx = 130;
-    const gy = 510;
-    const gw = 820;
-    const gh = 790;
-    const grad = ctx.createLinearGradient(gx, gy, gx + gw, gy + gh);
-    grad.addColorStop(0, "#FFFFFF");
-    grad.addColorStop(.36, "#BFBFBF");
-    grad.addColorStop(.62, "#FFFFFF");
-    grad.addColorStop(1, "#00821A");
-    ctx.globalAlpha = .22;
-    ctx.fillStyle = grad;
+    const gx = 92;
+    const gy = 430;
+    const gw = 896;
+    const gh = 1010;
+
+    ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(gx, gy, gw, gh);
-    ctx.globalAlpha = 1;
     ctx.strokeStyle = "#00821A";
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     ctx.strokeRect(gx, gy, gw, gh);
 
-    ctx.fillStyle = "#00821A";
-    ctx.font = "900 25px Kanit, Arial";
-    ctx.fillText("BADGE EARNED", gx + 36, gy + 58);
+    if (flower) {
+      const iw = flower.width;
+      const ih = flower.height;
+      const scale = Math.max(gw / iw, gh / ih);
+      const dw = iw * scale;
+      const dh = ih * scale;
+      const dx = gx + (gw - dw) / 2;
+      const dy = gy + (gh - dh) / 2;
+      ctx.drawImage(flower, dx, dy, dw, dh);
+    } else {
+      const bg = ctx.createLinearGradient(gx, gy, gx + gw, gy + gh);
+      bg.addColorStop(0, "#000000");
+      bg.addColorStop(0.75, "#404040");
+      bg.addColorStop(1, "#000000");
+      ctx.fillStyle = bg;
+      ctx.fillRect(gx, gy, gw, gh);
+    }
 
-    ctx.fillStyle = "#000000";
-    ctx.font = "900 62px Kanit, Arial";
-    const badgeTitle = args.badge.toUpperCase().slice(0, 24);
-    ctx.fillText(badgeTitle, gx + 36, gy + 135);
+    // Soft white haze similar to reference
+    const mist = ctx.createRadialGradient(gx + gw * 0.48, gy + gh * 0.22, 40, gx + gw * 0.48, gy + gh * 0.22, 280);
+    mist.addColorStop(0, 'rgba(255,255,255,0.58)');
+    mist.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = mist;
+    ctx.fillRect(gx, gy, gw, gh);
 
-    // Emblem plate
+    // Badge icon disk
     ctx.fillStyle = "#FFFFFF";
     ctx.beginPath();
-    ctx.arc(540, 880, 165, 0, Math.PI * 2);
+    ctx.arc(gx + 105, gy + 105, 74, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = "#00821A";
-    ctx.lineWidth = 7;
+    ctx.lineWidth = 4;
     ctx.stroke();
-    drawCollectorGlyph(ctx, args.badgeCode ?? args.badge, 540, 880, 1.45);
+    drawCollectorGlyph(ctx, args.badgeCode ?? args.badge, gx + 105, gy + 105, 0.62);
 
-    ctx.fillStyle = "#404040";
-    ctx.font = "700 27px Kanit, Arial";
-    ctx.fillText("GRIND to ACHIEVE COLLECTOR BADGE", gx + 36, gy + gh - 70);
+    // Label bar at bottom of image
+    const barY = gy + gh - 220;
+    const barGrad = ctx.createLinearGradient(gx, barY, gx + gw, barY);
+    barGrad.addColorStop(0, 'rgba(0,0,0,0.96)');
+    barGrad.addColorStop(0.78, 'rgba(0,0,0,0.96)');
+    barGrad.addColorStop(1, 'rgba(0,130,26,0.82)');
+    ctx.fillStyle = barGrad;
+    ctx.fillRect(gx, barY, gw, 220);
+
+    ctx.fillStyle = "#00821A";
+    ctx.font = "900 22px Kanit, Arial";
+    ctx.fillText("BADGE EARNED", gx + 34, barY + 52);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 76px Kanit, Arial";
+    const badgeTitle = args.badge.toUpperCase().slice(0, 24);
+    ctx.fillText(badgeTitle, gx + 34, barY + 138);
+
+    ctx.strokeStyle = "#FFFFFF";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(gx + 34, barY + 162);
+    ctx.lineTo(gx + gw - 34, barY + 162);
+    ctx.stroke();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "700 24px Kanit, Arial";
+    ctx.fillText("COLLECTOR BADGE", gx + 34, barY + 214);
+
+    ctx.strokeStyle = "#00821A";
+    ctx.lineWidth = 6;
+    [0, 24, 48].forEach((offset) => {
+      ctx.beginPath();
+      ctx.moveTo(gx + gw - 112 + offset, barY + 196);
+      ctx.lineTo(gx + gw - 92 + offset, barY + 146);
+      ctx.stroke();
+    });
+
+    // Middle descriptor strip
+    ctx.fillStyle = '#DCE9DE';
+    ctx.fillRect(92, 1490, 840, 62);
+    ctx.fillStyle = '#000000';
+    ctx.font = '700 22px Kanit, Arial';
+    ctx.fillText('GRIND to ACHIEVE – 5-MINUTE HUSTLE', 118, 1532);
   } else {
     ctx.fillStyle = "#00821A";
     ctx.font = "900 170px Kanit, Arial";
-    ctx.fillText("05:00", 130, 690);
+    ctx.fillText("05:00", 92, 690);
 
     ctx.fillStyle = "#000000";
     ctx.font = "900 66px Kanit, Arial";
-    ctx.fillText(args.title.toUpperCase().slice(0, 24), 130, 805);
+    ctx.fillText(args.title.toUpperCase().slice(0, 24), 92, 805);
     ctx.fillStyle = "#404040";
     ctx.font = "700 32px Kanit, Arial";
-    ctx.fillText(args.subtitle.toUpperCase().slice(0, 42), 130, 865);
+    ctx.fillText(args.subtitle.toUpperCase().slice(0, 42), 92, 865);
   }
 
   if (args.statLabel && args.statValue) {
     ctx.strokeStyle = "#BFBFBF";
     ctx.lineWidth = 3;
-    ctx.strokeRect(130, 1360, 820, 180);
+    ctx.strokeRect(92, 1586, 896, 130);
     ctx.fillStyle = "#404040";
-    ctx.font = "800 24px Kanit, Arial";
-    ctx.fillText(args.statLabel.toUpperCase(), 168, 1420);
+    ctx.font = "800 22px Kanit, Arial";
+    ctx.fillText(args.statLabel.toUpperCase(), 120, 1632);
     ctx.fillStyle = "#000000";
-    ctx.font = "900 74px Kanit, Arial";
-    ctx.fillText(args.statValue, 168, 1510);
+    ctx.font = "900 68px Kanit, Arial";
+    ctx.fillText(args.statValue, 120, 1700);
   }
 
+  ctx.fillStyle = '#F3F3F3';
+  ctx.fillRect(92, 1618 + (args.statLabel && args.statValue ? 132 : 0), 840, 88);
   ctx.fillStyle = "#000000";
   ctx.font = "900 44px Kanit, Arial";
-  ctx.fillText("@m.i.l.o.s.bg", 130, 1665);
+  ctx.fillText("@m.i.l.o.s.bg", 118, 1675 + (args.statLabel && args.statValue ? 132 : 0));
   ctx.fillStyle = "#404040";
-  ctx.font = "700 26px Kanit, Arial";
-  ctx.fillText("GRIND UNTIL ACHIEVE", 130, 1715);
-  ctx.fillStyle = "#00821A";
-  ctx.fillRect(130, 1762, 260, 11);
+  ctx.font = "700 24px Kanit, Arial";
+  ctx.fillText("GRIND UNTIL ACHIEVE", 118, 1712 + (args.statLabel && args.statValue ? 132 : 0));
+
+  const footerY = 1780;
+  ctx.strokeStyle = '#404040';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(118, footerY);
+  ctx.lineTo(260, footerY);
+  ctx.moveTo(820, footerY);
+  ctx.lineTo(960, footerY);
+  ctx.stroke();
+  ctx.fillStyle = '#404040';
+  ctx.font = '700 18px Kanit, Arial';
+  ctx.fillText('A BETTER YOU. A BRIGHTER TOMORROW.', 305, footerY + 7);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("STORY_RENDER_FAILED"))), "image/png", 1);
