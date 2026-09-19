@@ -267,7 +267,7 @@ async function getPerformanceHistory(clerkId: string, limit = 50): Promise<GTAPe
       clerkId,
       status: "ACHIEVED",
       achievedAt: { $ne: null },
-      resultValue: { $type: "number" },
+      resultValue: { $ne: null },
     })
     .sort({ achievedAt: -1 })
     .limit(limit)
@@ -926,7 +926,7 @@ export async function achieveAttempt(args: {
       status: "ACHIEVED",
       unitLabel: attempt.unitLabel ?? "reps",
       title: attempt.title,
-      resultValue: { $type: "number" },
+      resultValue: { $ne: null },
       _id: { $ne: _id },
     })
     .sort({ achievedAt: -1 })
@@ -984,7 +984,7 @@ export async function createShadow(clerkId: string, sourceId: string) {
       _id: maybeAttemptId,
       clerkId,
       status: "ACHIEVED",
-      resultValue: { $type: "number" },
+      resultValue: { $ne: null },
     });
 
     if (baselineAttempt && Number.isFinite(Number(baselineAttempt.resultValue))) {
