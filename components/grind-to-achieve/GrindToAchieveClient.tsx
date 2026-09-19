@@ -340,8 +340,92 @@ function GameStyles() {
       .gta-pop { animation: gta-score-pop .24s ease-out both; }
       .gta-screen { animation: gta-screen-in .28s ease-out both; }
       .gta-clock-live { animation: gta-clock-live 1.8s ease-in-out infinite; }
+      @keyframes gta-collector-glow {
+        0%, 100% {
+          box-shadow:
+            0 18px 46px rgba(0,0,0,.10),
+            0 0 0 1px rgba(255,255,255,.70),
+            0 0 22px rgba(0,130,26,.14),
+            inset 0 1px 0 rgba(255,255,255,.96);
+        }
+        50% {
+          box-shadow:
+            0 20px 52px rgba(0,0,0,.12),
+            0 0 0 1px rgba(255,255,255,.88),
+            0 0 38px rgba(0,130,26,.28),
+            inset 0 1px 0 rgba(255,255,255,1);
+        }
+      }
+      @keyframes gta-collector-holo {
+        0% { transform: translate3d(-130%, -8%, 0) rotate(12deg); opacity: 0; }
+        14% { opacity: .56; }
+        45% { opacity: .18; }
+        100% { transform: translate3d(175%, 8%, 0) rotate(12deg); opacity: 0; }
+      }
+      .gta-collector-card {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        min-height: 330px;
+        transition: transform .24s ease, box-shadow .24s ease;
+      }
+      .gta-collector-card:hover { transform: translateY(-5px); }
+      .gta-collector-earned {
+        background:
+          radial-gradient(circle at 16% 10%, rgba(255,255,255,.98), transparent 28%),
+          radial-gradient(circle at 84% 16%, rgba(0,130,26,.14), transparent 32%),
+          radial-gradient(circle at 72% 88%, rgba(191,191,191,.42), transparent 38%),
+          linear-gradient(135deg, rgba(255,255,255,.94), rgba(191,191,191,.24) 42%, rgba(255,255,255,.84) 66%, rgba(0,130,26,.08));
+        animation: gta-collector-glow 3.4s ease-in-out infinite;
+      }
+      .gta-collector-earned::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background:
+          repeating-linear-gradient(118deg, transparent 0 19px, rgba(255,255,255,.28) 20px, transparent 21px 42px),
+          radial-gradient(circle at 50% 50%, transparent 0 46%, rgba(0,130,26,.06) 47%, transparent 49%);
+        pointer-events: none;
+        opacity: .55;
+      }
+      .gta-collector-earned::after {
+        content: "";
+        position: absolute;
+        z-index: 0;
+        top: -38%;
+        bottom: -38%;
+        left: -34%;
+        width: 32%;
+        background: linear-gradient(110deg, transparent, rgba(255,255,255,.90), rgba(0,130,26,.12), transparent);
+        animation: gta-collector-holo 5.4s ease-in-out infinite;
+        pointer-events: none;
+      }
+      .gta-collector-locked {
+        background:
+          linear-gradient(145deg, rgba(0,0,0,1), rgba(64,64,64,.98));
+        border-color: #404040;
+        box-shadow:
+          0 16px 36px rgba(0,0,0,.18),
+          inset 0 1px 0 rgba(191,191,191,.12);
+      }
+      .gta-collector-locked::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background:
+          repeating-linear-gradient(135deg, transparent 0 18px, rgba(191,191,191,.035) 18px 19px);
+        pointer-events: none;
+      }
+      .gta-collector-card > * { position: relative; z-index: 1; }
       @media (prefers-reduced-motion: reduce) {
-        .gta-glass-orb, .gta-glass-orb::after, .gta-live, .gta-pop, .gta-screen, .gta-clock-live { animation: none !important; }
+        .gta-glass-orb, .gta-glass-orb::after, .gta-live, .gta-pop, .gta-screen, .gta-clock-live,
+        .gta-collector-earned, .gta-collector-earned::after, .gta-collector-card {
+          animation: none !important;
+          transition: none !important;
+          transform: none !important;
+        }
       }
     `}</style>
   );
@@ -1183,52 +1267,131 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
             const Icon = iconByBadge[award?.iconKey ?? item.iconKey] ?? Medal;
             const earned = Boolean(award);
             return (
-              <Panel key={item.code} green={earned} className={`p-6 transition ${earned ? "bg-white" : "bg-white/45"}`}>
+              <article
+                key={item.code}
+                className={`gta-collector-card rounded-sm border p-6 ${
+                  earned
+                    ? "gta-collector-earned border-[#00821A] text-[#000000]"
+                    : "gta-collector-locked text-[#FFFFFF]"
+                }`}
+              >
                 <div className="flex items-start justify-between gap-4">
-                  <GlassOrb className={`h-16 w-16 ${earned ? "opacity-100" : "opacity-55 grayscale"}`}>
-                    {earned ? <Icon className="h-7 w-7 text-[#000000]" /> : <Lock className="h-6 w-6 text-[#404040]" />}
-                  </GlassOrb>
-                  <span className={`rounded-sm border px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] ${earned ? "border-[#00821A] text-[#00821A]" : "border-[#BFBFBF] text-[#404040]"}`}>
-                    {earned ? t.earned : t.locked}
-                  </span>
+                  <div
+                    className={`flex h-20 w-20 items-center justify-center rounded-full border backdrop-blur-md ${
+                      earned
+                        ? "border-[#FFFFFF]/85 bg-[#FFFFFF]/45 shadow-[0_0_32px_rgba(0,130,26,.24)]"
+                        : "border-[#BFBFBF]/45 bg-[#404040]"
+                    }`}
+                  >
+                    {earned ? (
+                      <Icon className="h-9 w-9 text-[#000000]" />
+                    ) : (
+                      <Lock className="h-8 w-8 text-[#BFBFBF]" />
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={`rounded-sm border px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] ${
+                        earned
+                          ? "border-[#00821A] bg-[#FFFFFF]/65 text-[#00821A]"
+                          : "border-[#BFBFBF]/60 bg-[#000000] text-[#FFFFFF]"
+                      }`}
+                    >
+                      {earned ? t.earned : t.locked}
+                    </span>
+                    <span className={`text-[8px] font-black uppercase tracking-[0.18em] ${earned ? "text-[#404040]" : "text-[#BFBFBF]"}`}>
+                      MILOS BG · BADGE
+                    </span>
+                  </div>
                 </div>
-                <h3 className={`mt-6 text-2xl font-black uppercase tracking-[-0.03em] ${earned ? "text-[#000000]" : "text-[#404040]"}`}>{award?.name ?? item.name}</h3>
-                <p className="mt-3 min-h-[48px] text-sm leading-6 text-[#404040]">{award?.description ?? item.description}</p>
-                {award?.message ? <blockquote className="mt-4 border-l-2 border-[#00821A] pl-3 text-sm font-semibold text-[#404040]">{award.message}</blockquote> : null}
-                <div className="mt-6 border-t border-[#BFBFBF] pt-4">
+
+                <div className="mt-8">
+                  <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${earned ? "text-[#00821A]" : "text-[#BFBFBF]"}`}>
+                    {item.code.replaceAll("_", " ")}
+                  </p>
+                  <h3 className={`mt-2 text-3xl font-black uppercase tracking-[-0.05em] ${earned ? "text-[#000000]" : "text-[#FFFFFF]"}`}>
+                    {award?.name ?? item.name}
+                  </h3>
+                  <p className={`mt-4 min-h-[58px] text-sm leading-6 ${earned ? "text-[#404040]" : "text-[#BFBFBF]"}`}>
+                    {award?.description ?? item.description}
+                  </p>
+                </div>
+
+                {award?.message ? (
+                  <blockquote className="mt-5 border-l-2 border-[#00821A] bg-[#FFFFFF]/45 py-2 pl-3 pr-2 text-sm font-semibold text-[#404040] backdrop-blur-md">
+                    {award.message}
+                  </blockquote>
+                ) : null}
+
+                <div className={`mt-7 border-t pt-4 ${earned ? "border-[#BFBFBF]" : "border-[#404040]"}`}>
                   {earned && award ? (
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                       <div>
-                        <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#404040]">{award.source === "ADMIN" ? t.byAdmin : t.bySystem}</p>
-                        <p className="mt-1 text-[10px] font-bold text-[#000000]">{new Date(award.awardedAt).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US")}</p>
+                        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#404040]">
+                          {award.source === "ADMIN" ? t.byAdmin : t.bySystem}
+                        </p>
+                        <p className="mt-1 text-xs font-black text-[#000000]">
+                          {new Date(award.awardedAt).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US")}
+                        </p>
                       </div>
-                      <button type="button" disabled={shareBusy} onClick={() => void shareEffort({ title: award.name, subtitle: "BADGE EARNED", badge: award.name })} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-white/70 px-4 text-[9px] font-black uppercase tracking-[0.15em] text-[#00821A] disabled:opacity-40">
-                        <Share2 className="h-4 w-4" />{t.shareBadge}
+                      <button
+                        type="button"
+                        disabled={shareBusy}
+                        onClick={() => void shareEffort({ title: award.name, subtitle: "BADGE EARNED", badge: award.name })}
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-[#FFFFFF]/70 px-5 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A] backdrop-blur-md disabled:opacity-40"
+                      >
+                        <Share2 className="h-4 w-4" />
+                        {t.shareBadge}
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.16em] text-[#404040]"><Lock className="h-3.5 w-3.5" />{item.code.replaceAll("_", " ")}</div>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">
+                        <Lock className="h-3.5 w-3.5" />
+                        {t.locked}
+                      </div>
+                      <p className="text-right text-[8px] font-black uppercase tracking-[0.16em] text-[#BFBFBF]">
+                        KEEP GRINDING
+                      </p>
+                    </div>
                   )}
                 </div>
-              </Panel>
+              </article>
             );
           })}
 
           {customAwards.map((badge) => {
             const Icon = iconByBadge[badge.iconKey] ?? Medal;
             return (
-              <Panel key={badge.id} green className="p-6">
+              <article key={badge.id} className="gta-collector-card gta-collector-earned rounded-sm border border-[#00821A] p-6 text-[#000000]">
                 <div className="flex items-start justify-between gap-4">
-                  <GlassOrb className="h-16 w-16"><Icon className="h-7 w-7 text-[#000000]" /></GlassOrb>
-                  <span className="rounded-sm border border-[#00821A] px-3 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A]">{t.earned}</span>
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[#FFFFFF]/85 bg-[#FFFFFF]/45 shadow-[0_0_32px_rgba(0,130,26,.24)] backdrop-blur-md">
+                    <Icon className="h-9 w-9 text-[#000000]" />
+                  </div>
+                  <span className="rounded-sm border border-[#00821A] bg-[#FFFFFF]/65 px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#00821A]">
+                    {t.earned}
+                  </span>
                 </div>
-                <h3 className="mt-6 text-2xl font-black uppercase tracking-[-0.03em] text-[#000000]">{badge.name}</h3>
-                <p className="mt-3 text-sm leading-6 text-[#404040]">{badge.description}</p>
-                {badge.message ? <blockquote className="mt-4 border-l-2 border-[#00821A] pl-3 text-sm font-semibold text-[#404040]">{badge.message}</blockquote> : null}
-                <button type="button" disabled={shareBusy} onClick={() => void shareEffort({ title: badge.name, subtitle: "BADGE EARNED", badge: badge.name })} className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-white/70 px-4 text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A] disabled:opacity-40">
-                  <Share2 className="h-4 w-4" />{t.shareBadge}
-                </button>
-              </Panel>
+                <p className="mt-8 text-[9px] font-black uppercase tracking-[0.2em] text-[#00821A]">MILOS BG · SPECIAL BADGE</p>
+                <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.05em] text-[#000000]">{badge.name}</h3>
+                <p className="mt-4 text-sm leading-6 text-[#404040]">{badge.description}</p>
+                {badge.message ? (
+                  <blockquote className="mt-5 border-l-2 border-[#00821A] bg-[#FFFFFF]/45 py-2 pl-3 pr-2 text-sm font-semibold text-[#404040] backdrop-blur-md">
+                    {badge.message}
+                  </blockquote>
+                ) : null}
+                <div className="mt-7 border-t border-[#BFBFBF] pt-4">
+                  <button
+                    type="button"
+                    disabled={shareBusy}
+                    onClick={() => void shareEffort({ title: badge.name, subtitle: "BADGE EARNED", badge: badge.name })}
+                    className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-[#FFFFFF]/70 px-4 text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A] backdrop-blur-md disabled:opacity-40"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    {t.shareBadge}
+                  </button>
+                </div>
+              </article>
             );
           })}
         </div>
