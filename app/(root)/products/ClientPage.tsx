@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  ArrowUpRight,
   ChevronDown,
   SlidersHorizontal,
   X,
@@ -13,43 +14,29 @@ import type { StoreLanguage } from "@/lib/store-language";
 
 type ProductVariant = {
   _id?: string;
-
   size?: string;
-
   stock?: number;
   quantity?: number;
-
   price?: number | string;
-
   media?: string[];
 };
 
 export type MBGProduct = {
   _id: string;
-
   slug?: string;
-
   title: string;
   titleFr?: string;
-
   description?: string;
   descriptionFr?: string;
-
   media?: string[];
-
   category?: string;
   categoryFr?: string;
-
   price?: number | string;
-
   discountedPrice?: number | string;
   salePrice?: number | string;
-
   stock?: number;
   quantity?: number;
-
   sizes?: string[];
-
   variants?: ProductVariant[];
 };
 
@@ -65,126 +52,102 @@ type SortValue =
   | "price-desc"
   | "name-asc";
 
-type PriceRange =
-  | "all"
-  | "under-50"
-  | "50-100"
-  | "over-100";
-
+type PriceRange = "all" | "under-50" | "50-100" | "over-100";
 type Availability = "all" | "available";
+
+type CategoryOption = {
+  key: string;
+  label: string;
+  count: number;
+};
 
 const COPY = {
   en: {
+    eyebrow: "MILOS BG / COLLECTION",
     pageTitle: "All Products",
     mantra: "GRIND UNTIL ACHIEVE",
-
+    intro:
+      "Artisan pieces shaped by basketball, progression and the discipline of moving from step 1 to step 5.",
+    productSingular: "piece",
+    productPlural: "pieces",
+    results: "results",
     hideFilters: "Hide filters",
     showFilters: "Show filters",
     filters: "Filters",
-
     sortBy: "Sort by",
     featured: "Featured",
     newest: "Newest",
     priceLowHigh: "Price: Low to High",
     priceHighLow: "Price: High to Low",
     nameAZ: "Name: A → Z",
-
     categories: "Categories",
-
     availability: "Availability",
     allProducts: "All products",
     inStock: "In stock",
-
     price: "Shop by price",
     allPrices: "All prices",
     under50: "Under €50",
     between50And100: "€50 – €100",
     over100: "Over €100",
-
     size: "Size",
-
+    activeFilters: "Active filters",
     clearFilters: "Clear filters",
-
     showProducts: "Show products",
-
-    noProducts: "No products",
+    noProducts: "No products found",
     noProductsDescription:
-      "No products currently match your selection.",
-
+      "No piece currently matches this selection. Change or clear a filter to continue exploring.",
     soldOut: "Sold out",
-
+    viewProduct: "View product",
     other: "Other",
   },
-
   fr: {
+    eyebrow: "MILOS BG / COLLECTION",
     pageTitle: "Tous les produits",
     mantra: "GRIND UNTIL ACHIEVE",
-
+    intro:
+      "Des pièces artisanales nourries par le basketball, la progression et la discipline d'avancer de l'étape 1 à l'étape 5.",
+    productSingular: "pièce",
+    productPlural: "pièces",
+    results: "résultats",
     hideFilters: "Masquer les filtres",
     showFilters: "Afficher les filtres",
     filters: "Filtres",
-
     sortBy: "Trier par",
     featured: "Sélection",
     newest: "Nouveautés",
     priceLowHigh: "Prix : croissant",
     priceHighLow: "Prix : décroissant",
     nameAZ: "Nom : A → Z",
-
     categories: "Catégories",
-
     availability: "Disponibilité",
     allProducts: "Tous les produits",
     inStock: "En stock",
-
     price: "Rechercher par prix",
     allPrices: "Tous les prix",
     under50: "Moins de 50 €",
     between50And100: "50 € – 100 €",
     over100: "Plus de 100 €",
-
     size: "Taille",
-
+    activeFilters: "Filtres actifs",
     clearFilters: "Effacer les filtres",
-
     showProducts: "Afficher les produits",
-
-    noProducts: "Aucun produit",
+    noProducts: "Aucun produit trouvé",
     noProductsDescription:
-      "Aucun produit ne correspond actuellement à votre sélection.",
-
+      "Aucune pièce ne correspond à cette sélection. Modifie ou efface un filtre pour poursuivre l'exploration.",
     soldOut: "Épuisé",
-
+    viewProduct: "Voir le produit",
     other: "Autres",
   },
 } satisfies Record<StoreLanguage, Record<string, string>>;
 
-const SIZE_ORDER = [
-  "XS",
-  "S",
-  "M",
-  "L",
-  "XL",
-  "XXL",
-];
+const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"];
 
 const normalize = (value?: string | null) =>
   (value ?? "").trim().toUpperCase();
 
-const getNumber = (
-  value?: number | string | null,
-): number | null => {
-  if (
-    value === null ||
-    value === undefined ||
-    value === ""
-  ) {
-    return null;
-  }
-
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : null;
-  }
+const getNumber = (value?: number | string | null): number | null => {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
 
   const parsed = Number(
     String(value)
@@ -193,50 +156,34 @@ const getNumber = (
       .replace(/[^\d.-]/g, ""),
   );
 
-  return Number.isFinite(parsed)
-    ? parsed
-    : null;
+  return Number.isFinite(parsed) ? parsed : null;
 };
 
-const getProductPrice = (
-  product: MBGProduct,
-) => {
-  return (
-    getNumber(product.discountedPrice) ??
-    getNumber(product.salePrice) ??
-    getNumber(product.price) ??
-    0
-  );
+const getProductPrice = (product: MBGProduct) =>
+  getNumber(product.discountedPrice) ??
+  getNumber(product.salePrice) ??
+  getNumber(product.price) ??
+  0;
+
+const getOriginalPrice = (product: MBGProduct) => {
+  const current = getProductPrice(product);
+  const base = getNumber(product.price);
+  return base !== null && base > current ? base : null;
 };
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("fr-FR", {
+const formatPrice = (price: number, lang: StoreLanguage) =>
+  new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "en-IE", {
     style: "currency",
     currency: "EUR",
   }).format(price);
-};
 
-const getLocalizedTitle = (
-  product: MBGProduct,
-  lang: StoreLanguage,
-) => {
-  if (lang === "fr") {
-    return product.titleFr?.trim() || product.title;
-  }
+const getLocalizedTitle = (product: MBGProduct, lang: StoreLanguage) =>
+  lang === "fr" ? product.titleFr?.trim() || product.title : product.title;
 
-  return product.title;
-};
+const getCategoryKey = (product: MBGProduct) =>
+  normalize(product.category || "OTHER");
 
-const getCategoryKey = (
-  product: MBGProduct,
-) => {
-  return normalize(product.category || "OTHER");
-};
-
-const getLocalizedCategory = (
-  product: MBGProduct,
-  lang: StoreLanguage,
-) => {
+const getLocalizedCategory = (product: MBGProduct, lang: StoreLanguage) => {
   if (lang === "fr") {
     return (
       product.categoryFr?.trim() ||
@@ -245,53 +192,30 @@ const getLocalizedCategory = (
     );
   }
 
-  return (
-    product.category?.trim() ||
-    COPY.en.other
-  );
+  return product.category?.trim() || COPY.en.other;
 };
 
-const getProductSizes = (
-  product: MBGProduct,
-) => {
+const getProductSizes = (product: MBGProduct) => {
   const sizes = new Set<string>();
 
   product.sizes?.forEach((size) => {
-    if (size) {
-      sizes.add(normalize(size));
-    }
+    if (size) sizes.add(normalize(size));
   });
 
   product.variants?.forEach((variant) => {
-    if (variant.size) {
-      sizes.add(normalize(variant.size));
-    }
+    if (variant.size) sizes.add(normalize(variant.size));
   });
 
   return Array.from(sizes);
 };
 
-const getStock = (
-  product: MBGProduct,
-) => {
-  if (typeof product.stock === "number") {
-    return product.stock;
-  }
-
-  if (typeof product.quantity === "number") {
-    return product.quantity;
-  }
+const getStock = (product: MBGProduct) => {
+  if (typeof product.stock === "number") return product.stock;
+  if (typeof product.quantity === "number") return product.quantity;
 
   if (product.variants?.length) {
     return product.variants.reduce(
-      (total, variant) => {
-        return (
-          total +
-          (variant.stock ??
-            variant.quantity ??
-            0)
-        );
-      },
+      (total, variant) => total + (variant.stock ?? variant.quantity ?? 0),
       0,
     );
   }
@@ -299,261 +223,146 @@ const getStock = (
   return null;
 };
 
-const getMainImage = (
-  product: MBGProduct,
-) => {
-  const mainMedia =
-    product.media?.find(Boolean);
-
-  if (mainMedia) {
-    return mainMedia;
-  }
+const getMainImage = (product: MBGProduct) => {
+  const mainMedia = product.media?.find(Boolean);
+  if (mainMedia) return mainMedia;
 
   const variantMedia = product.variants
-    ?.flatMap(
-      (variant) => variant.media || [],
-    )
+    ?.flatMap((variant) => variant.media || [])
     .find(Boolean);
 
-  return (
-    variantMedia ||
-    "/placeholder-product.png"
-  );
+  return variantMedia || "/placeholder-product.png";
 };
 
-const getProductUrl = (
-  product: MBGProduct,
-  lang: StoreLanguage,
-) => {
-  const identifier =
-    product.slug || product._id;
-
-  return `/products/${encodeURIComponent(
-    identifier,
-  )}?lang=${lang}`;
+const getProductUrl = (product: MBGProduct, lang: StoreLanguage) => {
+  const identifier = product.slug || product._id;
+  return `/products/${encodeURIComponent(identifier)}?lang=${lang}`;
 };
 
-const ClientPage = ({
-  products,
-  lang,
-}: Props) => {
+const ClientPage = ({ products, lang }: Props) => {
   const copy = COPY[lang];
 
-  const [showFilters, setShowFilters] =
-    useState(true);
+  const [showFilters, setShowFilters] = useState(true);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [sort, setSort] = useState<SortValue>("featured");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [availability, setAvailability] = useState<Availability>("all");
+  const [priceRange, setPriceRange] = useState<PriceRange>("all");
 
-  const [
-    mobileFiltersOpen,
-    setMobileFiltersOpen,
-  ] = useState(false);
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
 
-  const [sort, setSort] =
-    useState<SortValue>("featured");
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-  const [
-    selectedCategories,
-    setSelectedCategories,
-  ] = useState<string[]>([]);
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileFiltersOpen(false);
+    };
 
-  const [selectedSizes, setSelectedSizes] =
-    useState<string[]>([]);
+    window.addEventListener("keydown", handleEscape);
 
-  const [availability, setAvailability] =
-    useState<Availability>("all");
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [mobileFiltersOpen]);
 
-  const [priceRange, setPriceRange] =
-    useState<PriceRange>("all");
-
-  /*
-   * Les catégories gardent une clé stable
-   * provenant de category, tandis que leur
-   * label est traduit.
-   */
   const categories = useMemo(() => {
-    const map = new Map<
-      string,
-      string
-    >();
+    const map = new Map<string, CategoryOption>();
 
     products.forEach((product) => {
-      const key =
-        getCategoryKey(product);
+      const key = getCategoryKey(product);
+      const label = getLocalizedCategory(product, lang);
+      const current = map.get(key);
 
-      const label =
-        getLocalizedCategory(
-          product,
-          lang,
-        );
-
-      if (!map.has(key)) {
-        map.set(key, label);
-      }
+      map.set(key, {
+        key,
+        label: current?.label || label,
+        count: (current?.count || 0) + 1,
+      });
     });
 
-    return Array.from(
-      map.entries(),
-    )
-      .map(([key, label]) => ({
-        key,
-        label,
-      }))
-      .sort((a, b) =>
-        a.label.localeCompare(b.label),
-      );
+    return Array.from(map.values()).sort((a, b) =>
+      a.label.localeCompare(b.label),
+    );
   }, [products, lang]);
 
   const sizes = useMemo(() => {
-    const allSizes =
-      new Set<string>();
+    const allSizes = new Set<string>();
 
     products.forEach((product) => {
-      getProductSizes(product).forEach(
-        (size) => allSizes.add(size),
-      );
+      getProductSizes(product).forEach((size) => allSizes.add(size));
     });
 
-    const ordered =
-      SIZE_ORDER.filter((size) =>
-        allSizes.has(size),
-      );
-
-    const extras = Array.from(
-      allSizes,
-    )
-      .filter(
-        (size) =>
-          !SIZE_ORDER.includes(size),
-      )
+    const ordered = SIZE_ORDER.filter((size) => allSizes.has(size));
+    const extras = Array.from(allSizes)
+      .filter((size) => !SIZE_ORDER.includes(size))
       .sort();
 
     return [...ordered, ...extras];
   }, [products]);
 
-  const filteredProducts =
-    useMemo(() => {
-      const filtered =
-        products.filter((product) => {
-          const categoryKey =
-            getCategoryKey(product);
+  const filteredProducts = useMemo(() => {
+    const filtered = products.filter((product) => {
+      const categoryKey = getCategoryKey(product);
 
-          if (
-            selectedCategories.length &&
-            !selectedCategories.includes(
-              categoryKey,
-            )
-          ) {
-            return false;
-          }
+      if (
+        selectedCategories.length &&
+        !selectedCategories.includes(categoryKey)
+      ) {
+        return false;
+      }
 
-          if (selectedSizes.length) {
-            const productSizes =
-              getProductSizes(product);
+      if (selectedSizes.length) {
+        const productSizes = getProductSizes(product);
+        const hasSelectedSize = selectedSizes.some((size) =>
+          productSizes.includes(size),
+        );
 
-            const hasSelectedSize =
-              selectedSizes.some(
-                (size) =>
-                  productSizes.includes(
-                    size,
-                  ),
-              );
+        if (!hasSelectedSize) return false;
+      }
 
-            if (!hasSelectedSize) {
-              return false;
-            }
-          }
+      if (availability === "available") {
+        const stock = getStock(product);
+        if (stock !== null && stock <= 0) return false;
+      }
 
-          if (
-            availability ===
-            "available"
-          ) {
-            const stock =
-              getStock(product);
+      const price = getProductPrice(product);
 
-            if (
-              stock !== null &&
-              stock <= 0
-            ) {
-              return false;
-            }
-          }
+      if (priceRange === "under-50" && price >= 50) return false;
+      if (priceRange === "50-100" && (price < 50 || price > 100)) return false;
+      if (priceRange === "over-100" && price <= 100) return false;
 
-          const price =
-            getProductPrice(product);
+      return true;
+    });
 
-          if (
-            priceRange ===
-              "under-50" &&
-            price >= 50
-          ) {
-            return false;
-          }
-
-          if (
-            priceRange ===
-              "50-100" &&
-            (price < 50 ||
-              price > 100)
-          ) {
-            return false;
-          }
-
-          if (
-            priceRange ===
-              "over-100" &&
-            price <= 100
-          ) {
-            return false;
-          }
-
-          return true;
-        });
-
-      return [...filtered].sort(
-        (a, b) => {
-          switch (sort) {
-            case "price-asc":
-              return (
-                getProductPrice(a) -
-                getProductPrice(b)
-              );
-
-            case "price-desc":
-              return (
-                getProductPrice(b) -
-                getProductPrice(a)
-              );
-
-            case "name-asc":
-              return getLocalizedTitle(
-                a,
-                lang,
-              ).localeCompare(
-                getLocalizedTitle(
-                  b,
-                  lang,
-                ),
-              );
-
-            case "newest":
-              return b._id.localeCompare(
-                a._id,
-              );
-
-            case "featured":
-            default:
-              return 0;
-          }
-        },
-      );
-    }, [
-      products,
-      selectedCategories,
-      selectedSizes,
-      availability,
-      priceRange,
-      sort,
-      lang,
-    ]);
+    return [...filtered].sort((a, b) => {
+      switch (sort) {
+        case "price-asc":
+          return getProductPrice(a) - getProductPrice(b);
+        case "price-desc":
+          return getProductPrice(b) - getProductPrice(a);
+        case "name-asc":
+          return getLocalizedTitle(a, lang).localeCompare(
+            getLocalizedTitle(b, lang),
+          );
+        case "newest":
+          return b._id.localeCompare(a._id);
+        case "featured":
+        default:
+          return 0;
+      }
+    });
+  }, [
+    products,
+    selectedCategories,
+    selectedSizes,
+    availability,
+    priceRange,
+    sort,
+    lang,
+  ]);
 
   const hasFilters =
     selectedCategories.length > 0 ||
@@ -571,363 +380,263 @@ const ClientPage = ({
   const toggleValue = (
     value: string,
     values: string[],
-    setValues: React.Dispatch<
-      React.SetStateAction<string[]>
-    >,
+    setValues: React.Dispatch<React.SetStateAction<string[]>>,
   ) => {
     setValues((current) =>
       current.includes(value)
-        ? current.filter(
-            (item) => item !== value,
-          )
+        ? current.filter((item) => item !== value)
         : [...current, value],
     );
   };
 
+  const resultLabel =
+    filteredProducts.length === 1 ? copy.productSingular : copy.productPlural;
+
+  const activeFilterCount =
+    selectedCategories.length +
+    selectedSizes.length +
+    (availability !== "all" ? 1 : 0) +
+    (priceRange !== "all" ? 1 : 0);
+
   return (
-    <main className="min-h-screen bg-mbg-white/46 text-mbg-black">
-      {/* PAGE HEADER */}
-      <section className="px-5 pb-7 pt-8 md:px-8 lg:px-12">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-[24px] font-semibold tracking-[-0.03em] md:text-[28px]">
-              {copy.pageTitle}
+    <main className="min-h-screen bg-mbg-white text-mbg-black">
+      {/* EDITORIAL HERO */}
+      <section className="border-b border-mbg-black bg-mbg-black text-mbg-white">
+        <div className="grid min-h-[250px] grid-cols-1 gap-10 px-5 py-9 md:px-8 md:py-11 lg:grid-cols-[1.1fr_0.9fr] lg:px-12 lg:py-14">
+          <div className="flex flex-col justify-between gap-10">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.34em] text-mbg-white/55">
+                {copy.eyebrow}
+              </p>
 
-              <span className="ml-2 text-mbg-darkgrey">
-                (
-                {
-                  filteredProducts.length
-                }
-                )
-              </span>
-            </h1>
-
-            <p className="mt-1 text-sm text-mbg-darkgrey">
-              {copy.mantra}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-5">
-            {/* LANGUAGE */}
-            <div className="flex items-center gap-2 text-xs font-semibold">
-              <Link
-                href="/products?lang=en"
-                aria-current={
-                  lang === "en"
-                    ? "page"
-                    : undefined
-                }
-                className={
-                  lang === "en"
-                    ? "text-mbg-black"
-                    : "text-mbg-darkgrey"
-                }
-              >
-                EN
-              </Link>
-
-              <span className="text-mbg-black/20">
-                /
-              </span>
-
-              <Link
-                href="/products?lang=fr"
-                aria-current={
-                  lang === "fr"
-                    ? "page"
-                    : undefined
-                }
-                className={
-                  lang === "fr"
-                    ? "text-mbg-black"
-                    : "text-mbg-darkgrey"
-                }
-              >
-                FR
-              </Link>
+              <h1 className="mt-4 max-w-[800px] text-[clamp(2.4rem,6vw,6rem)] font-black uppercase leading-[0.88] tracking-[-0.055em]">
+                {copy.pageTitle}
+              </h1>
             </div>
 
-            {/* DESKTOP FILTERS */}
-            <button
-              type="button"
-              onClick={() =>
-                setShowFilters(
-                  (current) =>
-                    !current,
-                )
-              }
-              className="hidden items-center gap-2 text-sm font-medium transition-opacity hover:opacity-60 lg:flex"
-            >
-              {showFilters
-                ? copy.hideFilters
-                : copy.showFilters}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-mbg-white/65">
+              <span className="text-mbg-green">01</span>
+              <span>{copy.mantra}</span>
+              <span className="h-px w-8 bg-mbg-white/30" />
+              <span>
+                {products.length} {products.length === 1 ? copy.productSingular : copy.productPlural}
+              </span>
+            </div>
+          </div>
 
-              <SlidersHorizontal
-                size={18}
-              />
-            </button>
+          <div className="flex flex-col justify-between gap-8 lg:border-l lg:border-mbg-white/15 lg:pl-10">
+            <p className="max-w-xl text-base font-medium leading-7 text-mbg-white/75 md:text-lg md:leading-8">
+              {copy.intro}
+            </p>
 
-            {/* MOBILE FILTERS */}
-            <button
-              type="button"
-              onClick={() =>
-                setMobileFiltersOpen(
-                  true,
-                )
-              }
-              className="flex flex-1 items-center justify-center gap-2 border border-mbg-black px-4 py-3 text-sm font-medium lg:hidden"
-            >
-              {copy.filters}
+            <div className="flex items-center justify-between gap-6 border-t border-mbg-white/15 pt-5">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.26em] text-mbg-white/45">
+                {String(filteredProducts.length).padStart(2, "0")} / {String(products.length).padStart(2, "0")}
+              </span>
 
-              <SlidersHorizontal
-                size={17}
-              />
-            </button>
-
-            {/* SORT */}
-            <div className="relative flex flex-1 items-center lg:flex-none">
-              <select
-                aria-label={
-                  copy.sortBy
-                }
-                value={sort}
-                onChange={(event) =>
-                  setSort(
-                    event.target
-                      .value as SortValue,
-                  )
-                }
-                className="w-full cursor-pointer appearance-none border border-mbg-black bg-mbg-white py-3 pl-4 pr-10 text-sm font-medium outline-none lg:border-0 lg:py-1"
-              >
-                <option value="featured">
-                  {copy.sortBy}
-                </option>
-
-                <option value="newest">
-                  {copy.newest}
-                </option>
-
-                <option value="price-asc">
-                  {
-                    copy.priceLowHigh
-                  }
-                </option>
-
-                <option value="price-desc">
-                  {
-                    copy.priceHighLow
-                  }
-                </option>
-
-                <option value="name-asc">
-                  {copy.nameAZ}
-                </option>
-              </select>
-
-              <ChevronDown
-                size={18}
-                className="pointer-events-none absolute right-3"
-              />
+              <LanguageSwitch lang={lang} inverted />
             </div>
           </div>
         </div>
       </section>
 
-      {/* PRODUCTS */}
-      <section className="px-5 pb-24 md:px-8 lg:px-12">
-        <div className="flex items-start gap-8">
-          {showFilters && (
-            <aside className="sticky top-5 hidden h-[calc(100vh-40px)] w-[220px] flex-none overflow-y-auto pr-4 lg:block [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <Filters
-                lang={lang}
-                categories={
-                  categories
-                }
-                sizes={sizes}
-                selectedCategories={
-                  selectedCategories
-                }
-                setSelectedCategories={
-                  setSelectedCategories
-                }
-                selectedSizes={
-                  selectedSizes
-                }
-                setSelectedSizes={
-                  setSelectedSizes
-                }
-                availability={
-                  availability
-                }
-                setAvailability={
-                  setAvailability
-                }
-                priceRange={
-                  priceRange
-                }
-                setPriceRange={
-                  setPriceRange
-                }
-                toggleValue={
-                  toggleValue
-                }
-                hasFilters={
-                  hasFilters
-                }
-                clearFilters={
-                  clearFilters
-                }
+      {/* CONTROLS */}
+      <section className="border-b border-mbg-black/10 bg-mbg-white">
+        <div className="flex flex-col gap-4 px-5 py-4 md:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-12">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-mbg-darkgrey">
+              <span className="text-mbg-black">{filteredProducts.length}</span>{" "}
+              {resultLabel}
+            </p>
+
+            <div className="lg:hidden">
+              <LanguageSwitch lang={lang} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 lg:flex lg:items-center lg:gap-3">
+            <button
+              type="button"
+              onClick={() => setShowFilters((current) => !current)}
+              className="hidden min-h-11 items-center justify-center gap-2 border border-mbg-black px-4 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-mbg-black hover:text-mbg-white lg:flex"
+            >
+              <SlidersHorizontal size={15} strokeWidth={1.8} />
+              {showFilters ? copy.hideFilters : copy.showFilters}
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center bg-mbg-green px-1 text-[10px] text-mbg-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen(true)}
+              className="flex min-h-11 items-center justify-center gap-2 border border-mbg-black px-4 text-xs font-semibold uppercase tracking-[0.1em] lg:hidden"
+            >
+              <SlidersHorizontal size={15} strokeWidth={1.8} />
+              {copy.filters}
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center bg-mbg-green px-1 text-[10px] text-mbg-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+
+            <div className="relative">
+              <select
+                aria-label={copy.sortBy}
+                value={sort}
+                onChange={(event) => setSort(event.target.value as SortValue)}
+                className="min-h-11 w-full cursor-pointer appearance-none border border-mbg-black bg-mbg-white py-2 pl-4 pr-10 text-xs font-semibold uppercase tracking-[0.08em] outline-none transition-colors hover:bg-mbg-black hover:text-mbg-white lg:min-w-[190px]"
+              >
+                <option value="featured">{copy.featured}</option>
+                <option value="newest">{copy.newest}</option>
+                <option value="price-asc">{copy.priceLowHigh}</option>
+                <option value="price-desc">{copy.priceHighLow}</option>
+                <option value="name-asc">{copy.nameAZ}</option>
+              </select>
+              <ChevronDown
+                size={15}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
               />
+            </div>
+
+            <div className="hidden lg:block">
+              <LanguageSwitch lang={lang} />
+            </div>
+          </div>
+        </div>
+
+        {hasFilters && (
+          <ActiveFilters
+            lang={lang}
+            categories={categories}
+            selectedCategories={selectedCategories}
+            setSelectedCategories={setSelectedCategories}
+            selectedSizes={selectedSizes}
+            setSelectedSizes={setSelectedSizes}
+            availability={availability}
+            setAvailability={setAvailability}
+            priceRange={priceRange}
+            setPriceRange={setPriceRange}
+            clearFilters={clearFilters}
+          />
+        )}
+      </section>
+
+      {/* CATALOGUE */}
+      <section className="px-5 pb-24 pt-6 md:px-8 md:pt-8 lg:px-12 lg:pb-32">
+        <div className="flex items-start gap-8 xl:gap-12">
+          {showFilters && (
+            <aside className="sticky top-5 hidden w-[220px] flex-none lg:block xl:w-[250px]">
+              <div className="border-y border-mbg-black/10 py-1">
+                <Filters
+                  lang={lang}
+                  categories={categories}
+                  sizes={sizes}
+                  selectedCategories={selectedCategories}
+                  setSelectedCategories={setSelectedCategories}
+                  selectedSizes={selectedSizes}
+                  setSelectedSizes={setSelectedSizes}
+                  availability={availability}
+                  setAvailability={setAvailability}
+                  priceRange={priceRange}
+                  setPriceRange={setPriceRange}
+                  toggleValue={toggleValue}
+                  hasFilters={hasFilters}
+                  clearFilters={clearFilters}
+                />
+              </div>
             </aside>
           )}
 
           <div className="min-w-0 flex-1">
-            {filteredProducts.length >
-            0 ? (
+            {filteredProducts.length > 0 ? (
               <div
-                className={`
-                  grid
-                  grid-cols-2
-                  gap-x-3
-                  gap-y-10
-                  md:gap-x-4
-                  md:gap-y-14
-                  ${
-                    showFilters
-                      ? "md:grid-cols-2 lg:grid-cols-3"
-                      : "md:grid-cols-3 lg:grid-cols-4"
-                  }
-                `}
+                className={`grid grid-cols-2 gap-x-3 gap-y-10 md:gap-x-5 md:gap-y-14 ${
+                  showFilters
+                    ? "md:grid-cols-2 xl:grid-cols-3"
+                    : "md:grid-cols-3 xl:grid-cols-4"
+                }`}
               >
-                {filteredProducts.map(
-                  (product) => (
-                    <ProductCard
-                      key={
-                        product._id
-                      }
-                      product={
-                        product
-                      }
-                      lang={lang}
-                    />
-                  ),
-                )}
+                {filteredProducts.map((product, index) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    lang={lang}
+                    index={index}
+                  />
+                ))}
               </div>
             ) : (
-              <EmptyState
-                lang={lang}
-                onClear={
-                  clearFilters
-                }
-                hasFilters={
-                  hasFilters
-                }
-              />
+              <EmptyState lang={lang} onClear={clearFilters} hasFilters={hasFilters} />
             )}
           </div>
         </div>
       </section>
 
-      {/* MOBILE DRAWER */}
+      {/* MOBILE FILTER DRAWER */}
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-[100] lg:hidden">
           <button
             type="button"
-            aria-label="Close"
-            onClick={() =>
-              setMobileFiltersOpen(
-                false,
-              )
-            }
-            className="absolute inset-0 bg-mbg-black/40"
+            aria-label="Close filters"
+            onClick={() => setMobileFiltersOpen(false)}
+            className="absolute inset-0 bg-mbg-black/55 backdrop-blur-[2px]"
           />
 
-          <div className="absolute bottom-0 right-0 top-0 w-[90%] max-w-[420px] overflow-y-auto bg-mbg-white px-6 pb-32 pt-6">
-            <div className="mb-7 flex items-center justify-between">
+          <div className="absolute bottom-0 right-0 top-0 flex w-[92%] max-w-[430px] flex-col bg-mbg-white shadow-[-24px_0_60px_rgba(0,0,0,0.18)]">
+            <div className="flex items-start justify-between border-b border-mbg-black/10 px-6 py-6">
               <div>
-                <p className="text-xl font-semibold">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-mbg-green">
+                  {copy.mantra}
+                </p>
+                <p className="mt-1 text-2xl font-bold uppercase tracking-[-0.03em]">
                   {copy.filters}
                 </p>
-
-                <p className="text-sm text-mbg-darkgrey">
-                  {
-                    filteredProducts.length
-                  }{" "}
-                  {copy.pageTitle.toLowerCase()}
+                <p className="mt-1 text-sm text-mbg-darkgrey">
+                  {filteredProducts.length} {copy.results}
                 </p>
               </div>
 
               <button
                 type="button"
-                aria-label="Close"
-                onClick={() =>
-                  setMobileFiltersOpen(
-                    false,
-                  )
-                }
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-mbg-black text-mbg-white"
+                aria-label="Close filters"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="flex h-11 w-11 items-center justify-center border border-mbg-black bg-mbg-black text-mbg-white"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
-            <Filters
-              lang={lang}
-              categories={
-                categories
-              }
-              sizes={sizes}
-              selectedCategories={
-                selectedCategories
-              }
-              setSelectedCategories={
-                setSelectedCategories
-              }
-              selectedSizes={
-                selectedSizes
-              }
-              setSelectedSizes={
-                setSelectedSizes
-              }
-              availability={
-                availability
-              }
-              setAvailability={
-                setAvailability
-              }
-              priceRange={
-                priceRange
-              }
-              setPriceRange={
-                setPriceRange
-              }
-              toggleValue={
-                toggleValue
-              }
-              hasFilters={
-                hasFilters
-              }
-              clearFilters={
-                clearFilters
-              }
-            />
+            <div className="flex-1 overflow-y-auto px-6 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <Filters
+                lang={lang}
+                categories={categories}
+                sizes={sizes}
+                selectedCategories={selectedCategories}
+                setSelectedCategories={setSelectedCategories}
+                selectedSizes={selectedSizes}
+                setSelectedSizes={setSelectedSizes}
+                availability={availability}
+                setAvailability={setAvailability}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                toggleValue={toggleValue}
+                hasFilters={hasFilters}
+                clearFilters={clearFilters}
+              />
+            </div>
 
-            <div className="fixed bottom-0 right-0 w-[90%] max-w-[420px] border-t border-mbg-black/10 bg-mbg-white p-5">
+            <div className="border-t border-mbg-black/10 bg-mbg-white p-5">
               <button
                 type="button"
-                onClick={() =>
-                  setMobileFiltersOpen(
-                    false,
-                  )
-                }
-                className="w-full bg-mbg-black px-6 py-4 text-sm font-semibold uppercase tracking-wide text-mbg-white"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="flex w-full items-center justify-between bg-mbg-black px-5 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-mbg-white transition-colors active:bg-mbg-green"
               >
-                {copy.showProducts}{" "}
-                (
-                {
-                  filteredProducts.length
-                }
-                )
+                <span>{copy.showProducts}</span>
+                <span>{String(filteredProducts.length).padStart(2, "0")}</span>
               </button>
             </div>
           </div>
@@ -939,75 +648,40 @@ const ClientPage = ({
 
 export default ClientPage;
 
-type CategoryOption = {
-  key: string;
-  label: string;
-};
-
 type FiltersProps = {
   lang: StoreLanguage;
-
   categories: CategoryOption[];
-
   sizes: string[];
-
   selectedCategories: string[];
-
-  setSelectedCategories: React.Dispatch<
-    React.SetStateAction<string[]>
-  >;
-
+  setSelectedCategories: React.Dispatch<React.SetStateAction<string[]>>;
   selectedSizes: string[];
-
-  setSelectedSizes: React.Dispatch<
-    React.SetStateAction<string[]>
-  >;
-
+  setSelectedSizes: React.Dispatch<React.SetStateAction<string[]>>;
   availability: Availability;
-
-  setAvailability: React.Dispatch<
-    React.SetStateAction<Availability>
-  >;
-
+  setAvailability: React.Dispatch<React.SetStateAction<Availability>>;
   priceRange: PriceRange;
-
-  setPriceRange: React.Dispatch<
-    React.SetStateAction<PriceRange>
-  >;
-
+  setPriceRange: React.Dispatch<React.SetStateAction<PriceRange>>;
   toggleValue: (
     value: string,
     values: string[],
-    setValues: React.Dispatch<
-      React.SetStateAction<string[]>
-    >,
+    setValues: React.Dispatch<React.SetStateAction<string[]>>,
   ) => void;
-
   hasFilters: boolean;
-
   clearFilters: () => void;
 };
 
 const Filters = ({
   lang,
-
   categories,
   sizes,
-
   selectedCategories,
   setSelectedCategories,
-
   selectedSizes,
   setSelectedSizes,
-
   availability,
   setAvailability,
-
   priceRange,
   setPriceRange,
-
   toggleValue,
-
   hasFilters,
   clearFilters,
 }: FiltersProps) => {
@@ -1015,178 +689,104 @@ const Filters = ({
 
   return (
     <div>
-      {/* CATEGORIES */}
       {!!categories.length && (
-        <div className="pb-8">
-          <p className="mb-4 text-[13px] font-semibold uppercase tracking-[0.12em] text-mbg-darkgrey">
-            {copy.categories}
-          </p>
+        <FilterAccordion label={copy.categories} defaultOpen>
+          <div className="space-y-1">
+            {categories.map((category) => {
+              const active = selectedCategories.includes(category.key);
 
-          <div className="space-y-3">
-            {categories.map(
-              (category) => {
-                const active =
-                  selectedCategories.includes(
-                    category.key,
-                  );
-
-                return (
-                  <button
-                    type="button"
-                    key={
-                      category.key
-                    }
-                    onClick={() =>
-                      toggleValue(
-                        category.key,
-                        selectedCategories,
-                        setSelectedCategories,
-                      )
-                    }
-                    className={`
-                      block
-                      text-left
-                      text-[15px]
-                      font-semibold
-                      transition-opacity
-                      hover:opacity-50
-                      ${
+              return (
+                <button
+                  type="button"
+                  key={category.key}
+                  aria-pressed={active}
+                  onClick={() =>
+                    toggleValue(
+                      category.key,
+                      selectedCategories,
+                      setSelectedCategories,
+                    )
+                  }
+                  className={`group flex w-full items-center justify-between py-2.5 text-left text-[13px] font-semibold uppercase tracking-[0.08em] transition-colors ${
+                    active ? "text-mbg-green" : "text-mbg-black hover:text-mbg-green"
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <span
+                      className={`h-1.5 w-1.5 transition-transform ${
                         active
-                          ? "text-mbg-green"
-                          : "text-mbg-black"
-                      }
-                    `}
-                  >
-                    {
-                      category.label
-                    }
-                  </button>
-                );
-              },
-            )}
+                          ? "scale-100 bg-mbg-green"
+                          : "scale-0 bg-mbg-black group-hover:scale-100"
+                      }`}
+                    />
+                    {category.label}
+                  </span>
+
+                  <span className="text-[10px] font-medium text-mbg-darkgrey">
+                    {String(category.count).padStart(2, "0")}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        </div>
+        </FilterAccordion>
       )}
 
-      {/* AVAILABILITY */}
-      <FilterAccordion
-        label={copy.availability}
-        defaultOpen
-      >
+      <FilterAccordion label={copy.availability} defaultOpen>
         <RadioOption
-          active={
-            availability === "all"
-          }
+          active={availability === "all"}
           label={copy.allProducts}
-          onClick={() =>
-            setAvailability("all")
-          }
+          onClick={() => setAvailability("all")}
         />
-
         <RadioOption
-          active={
-            availability ===
-            "available"
-          }
+          active={availability === "available"}
           label={copy.inStock}
-          onClick={() =>
-            setAvailability(
-              "available",
-            )
-          }
+          onClick={() => setAvailability("available")}
         />
       </FilterAccordion>
 
-      {/* PRICE */}
-      <FilterAccordion
-        label={copy.price}
-      >
+      <FilterAccordion label={copy.price}>
         <RadioOption
-          active={
-            priceRange === "all"
-          }
+          active={priceRange === "all"}
           label={copy.allPrices}
-          onClick={() =>
-            setPriceRange("all")
-          }
+          onClick={() => setPriceRange("all")}
         />
-
         <RadioOption
-          active={
-            priceRange ===
-            "under-50"
-          }
+          active={priceRange === "under-50"}
           label={copy.under50}
-          onClick={() =>
-            setPriceRange(
-              "under-50",
-            )
-          }
+          onClick={() => setPriceRange("under-50")}
         />
-
         <RadioOption
-          active={
-            priceRange ===
-            "50-100"
-          }
-          label={
-            copy.between50And100
-          }
-          onClick={() =>
-            setPriceRange("50-100")
-          }
+          active={priceRange === "50-100"}
+          label={copy.between50And100}
+          onClick={() => setPriceRange("50-100")}
         />
-
         <RadioOption
-          active={
-            priceRange ===
-            "over-100"
-          }
+          active={priceRange === "over-100"}
           label={copy.over100}
-          onClick={() =>
-            setPriceRange(
-              "over-100",
-            )
-          }
+          onClick={() => setPriceRange("over-100")}
         />
       </FilterAccordion>
 
-      {/* SIZE */}
       {!!sizes.length && (
-        <FilterAccordion
-          label={copy.size}
-        >
+        <FilterAccordion label={copy.size}>
           <div className="grid grid-cols-3 gap-2">
             {sizes.map((size) => {
-              const active =
-                selectedSizes.includes(
-                  size,
-                );
+              const active = selectedSizes.includes(size);
 
               return (
                 <button
                   key={size}
                   type="button"
+                  aria-pressed={active}
                   onClick={() =>
-                    toggleValue(
-                      size,
-                      selectedSizes,
-                      setSelectedSizes,
-                    )
+                    toggleValue(size, selectedSizes, setSelectedSizes)
                   }
-                  className={`
-                    min-h-[44px]
-                    border
-                    px-2
-                    text-sm
-                    font-semibold
-                    transition-colors
-                    ${
-                      active
-                        ? "border-mbg-black bg-mbg-black text-mbg-white"
-                        : "border-mbg-black/15 bg-mbg-white text-mbg-black hover:border-mbg-black"
-                    }
-                  `}
+                  className={`min-h-[44px] border px-2 text-xs font-semibold uppercase tracking-[0.08em] transition-colors ${
+                    active
+                      ? "border-mbg-black bg-mbg-black text-mbg-white"
+                      : "border-mbg-black/15 bg-mbg-white text-mbg-black hover:border-mbg-black hover:bg-mbg-black/[0.03]"
+                  }`}
                 >
                   {size}
                 </button>
@@ -1196,17 +796,14 @@ const Filters = ({
         </FilterAccordion>
       )}
 
-      {/* NO COLOR FILTER */}
-
       {hasFilters && (
         <button
           type="button"
           onClick={clearFilters}
-          className="mt-6 flex items-center gap-2 text-sm font-semibold text-mbg-green"
+          className="mb-3 mt-6 flex w-full items-center justify-between border border-mbg-green px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-mbg-green transition-colors hover:bg-mbg-green hover:text-mbg-white"
         >
-          <X size={15} />
-
           {copy.clearFilters}
+          <X size={14} />
         </button>
       )}
     </div>
@@ -1222,41 +819,26 @@ const FilterAccordion = ({
   children: React.ReactNode;
   defaultOpen?: boolean;
 }) => {
-  const [open, setOpen] =
-    useState(defaultOpen);
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-t border-mbg-black/10">
+    <div className="border-b border-mbg-black/10">
       <button
         type="button"
-        onClick={() =>
-          setOpen(
-            (current) => !current,
-          )
-        }
-        className="flex w-full items-center justify-between py-5 text-left text-[15px] font-semibold"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center justify-between py-5 text-left text-[11px] font-bold uppercase tracking-[0.16em]"
       >
         {label}
-
         <ChevronDown
-          size={18}
-          className={`
-            transition-transform
-            duration-200
-            ${
-              open
-                ? "rotate-180"
-                : ""
-            }
-          `}
+          size={15}
+          className={`transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
         />
       </button>
 
-      {open && (
-        <div className="space-y-3 pb-6">
-          {children}
-        </div>
-      )}
+      {open && <div className="space-y-2 pb-6">{children}</div>}
     </div>
   );
 };
@@ -1269,125 +851,250 @@ const RadioOption = ({
   active: boolean;
   label: string;
   onClick: () => void;
-}) => {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 text-left text-sm font-medium"
-    >
+}) => (
+  <button
+    type="button"
+    aria-pressed={active}
+    onClick={onClick}
+    className="group flex w-full items-center justify-between py-2 text-left text-sm font-medium"
+  >
+    <span className="flex items-center gap-3">
       <span
-        className={`
-          flex
-          h-[18px]
-          w-[18px]
-          items-center
-          justify-center
-          rounded-full
-          border
-          ${
-            active
-              ? "border-mbg-black"
-              : "border-mbg-black/30"
-          }
-        `}
+        className={`flex h-[18px] w-[18px] items-center justify-center border transition-colors ${
+          active
+            ? "border-mbg-black bg-mbg-black"
+            : "border-mbg-black/25 group-hover:border-mbg-black"
+        }`}
       >
-        {active && (
-          <span className="h-2 w-2 rounded-full bg-mbg-black" />
-        )}
+        {active && <span className="h-1.5 w-1.5 bg-mbg-green" />}
       </span>
-
       {label}
-    </button>
-  );
-};
+    </span>
+  </button>
+);
+
+const LanguageSwitch = ({
+  lang,
+  inverted = false,
+}: {
+  lang: StoreLanguage;
+  inverted?: boolean;
+}) => (
+  <div
+    className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] ${
+      inverted ? "text-mbg-white/45" : "text-mbg-darkgrey"
+    }`}
+  >
+    <Link
+      href="/products?lang=en"
+      aria-current={lang === "en" ? "page" : undefined}
+      className={
+        lang === "en"
+          ? inverted
+            ? "text-mbg-white"
+            : "text-mbg-black"
+          : "transition-opacity hover:opacity-60"
+      }
+    >
+      EN
+    </Link>
+    <span className={inverted ? "text-mbg-white/20" : "text-mbg-black/20"}>
+      /
+    </span>
+    <Link
+      href="/products?lang=fr"
+      aria-current={lang === "fr" ? "page" : undefined}
+      className={
+        lang === "fr"
+          ? inverted
+            ? "text-mbg-white"
+            : "text-mbg-black"
+          : "transition-opacity hover:opacity-60"
+      }
+    >
+      FR
+    </Link>
+  </div>
+);
 
 const ProductCard = ({
   product,
   lang,
+  index,
 }: {
   product: MBGProduct;
   lang: StoreLanguage;
+  index: number;
 }) => {
   const copy = COPY[lang];
-
-  const image =
-    getMainImage(product);
-
-  const title =
-    getLocalizedTitle(
-      product,
-      lang,
-    );
-
-  const category =
-    getLocalizedCategory(
-      product,
-      lang,
-    );
-
-  const price =
-    getProductPrice(product);
-
-  const stock =
-    getStock(product);
+  const image = getMainImage(product);
+  const title = getLocalizedTitle(product, lang);
+  const category = getLocalizedCategory(product, lang);
+  const price = getProductPrice(product);
+  const originalPrice = getOriginalPrice(product);
+  const stock = getStock(product);
 
   return (
     <article className="group min-w-0">
-      <Link
-        href={getProductUrl(
-          product,
-          lang,
-        )}
-        className="block"
-      >
-        {/* IMAGE */}
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F5F5F5]">
+      <Link href={getProductUrl(product, lang)} className="block outline-none">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F2F2F0]">
           <Image
             src={image}
             alt={title}
             fill
-            sizes="
-              (max-width: 768px) 50vw,
-              (max-width: 1280px) 33vw,
-              25vw
-            "
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
           />
 
+          <div className="absolute left-0 top-0 flex items-center">
+            <span className="bg-mbg-black px-2.5 py-2 text-[9px] font-bold uppercase tracking-[0.16em] text-mbg-white md:px-3">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="bg-mbg-white/95 px-2.5 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-mbg-black backdrop-blur-sm md:px-3">
+              {category}
+            </span>
+          </div>
+
           {stock === 0 && (
-            <div className="absolute left-3 top-3 bg-mbg-white px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em]">
+            <div className="absolute right-0 top-0 bg-mbg-green px-3 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-mbg-white">
               {copy.soldOut}
             </div>
           )}
+
+          <div className="absolute inset-x-0 bottom-0 translate-y-full bg-mbg-black px-4 py-3 text-mbg-white transition-transform duration-300 group-hover:translate-y-0 max-md:hidden">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">
+                {copy.viewProduct}
+              </span>
+              <ArrowUpRight size={15} />
+            </div>
+          </div>
         </div>
 
-        {/* INFORMATIONS */}
-        <div className="pt-4">
-          {/*
-            Plus de :
-            - pastilles de couleur
-            - color ID
-            - chapter ID
-            - MongoDB ObjectId
-          */}
+        <div className="border-b border-mbg-black/10 pb-5 pt-3.5 md:pt-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="truncate text-[13px] font-bold uppercase tracking-[0.04em] text-mbg-black md:text-[15px]">
+                {title}
+              </h2>
+              <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.14em] text-mbg-darkgrey">
+                {copy.mantra}
+              </p>
+            </div>
 
-          <h2 className="text-[15px] font-semibold text-mbg-black md:text-base">
-            {title}
-          </h2>
-
-          <p className="mt-1 text-[13px] text-mbg-darkgrey md:text-sm">
-            {category}
-          </p>
-
-          <p className="mt-3 text-[14px] font-semibold text-mbg-black md:text-[15px]">
-            {formatPrice(price)}
-          </p>
+            <div className="shrink-0 text-right">
+              <p className="text-[12px] font-bold text-mbg-black md:text-sm">
+                {formatPrice(price, lang)}
+              </p>
+              {originalPrice !== null && (
+                <p className="mt-0.5 text-[10px] text-mbg-darkgrey line-through">
+                  {formatPrice(originalPrice, lang)}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </Link>
     </article>
   );
 };
+
+const ActiveFilters = ({
+  lang,
+  categories,
+  selectedCategories,
+  setSelectedCategories,
+  selectedSizes,
+  setSelectedSizes,
+  availability,
+  setAvailability,
+  priceRange,
+  setPriceRange,
+  clearFilters,
+}: {
+  lang: StoreLanguage;
+  categories: CategoryOption[];
+  selectedCategories: string[];
+  setSelectedCategories: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedSizes: string[];
+  setSelectedSizes: React.Dispatch<React.SetStateAction<string[]>>;
+  availability: Availability;
+  setAvailability: React.Dispatch<React.SetStateAction<Availability>>;
+  priceRange: PriceRange;
+  setPriceRange: React.Dispatch<React.SetStateAction<PriceRange>>;
+  clearFilters: () => void;
+}) => {
+  const copy = COPY[lang];
+
+  const removeCategory = (key: string) =>
+    setSelectedCategories((current) => current.filter((item) => item !== key));
+
+  const removeSize = (size: string) =>
+    setSelectedSizes((current) => current.filter((item) => item !== size));
+
+  const priceLabel =
+    priceRange === "under-50"
+      ? copy.under50
+      : priceRange === "50-100"
+        ? copy.between50And100
+        : priceRange === "over-100"
+          ? copy.over100
+          : "";
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-mbg-black/10 px-5 py-3 md:px-8 lg:px-12">
+      <span className="mr-1 text-[9px] font-bold uppercase tracking-[0.18em] text-mbg-darkgrey">
+        {copy.activeFilters}
+      </span>
+
+      {selectedCategories.map((key) => {
+        const category = categories.find((item) => item.key === key);
+        if (!category) return null;
+
+        return (
+          <FilterChip key={key} label={category.label} onRemove={() => removeCategory(key)} />
+        );
+      })}
+
+      {selectedSizes.map((size) => (
+        <FilterChip key={size} label={size} onRemove={() => removeSize(size)} />
+      ))}
+
+      {availability === "available" && (
+        <FilterChip label={copy.inStock} onRemove={() => setAvailability("all")} />
+      )}
+
+      {priceRange !== "all" && (
+        <FilterChip label={priceLabel} onRemove={() => setPriceRange("all")} />
+      )}
+
+      <button
+        type="button"
+        onClick={clearFilters}
+        className="ml-auto text-[9px] font-bold uppercase tracking-[0.14em] text-mbg-green underline decoration-mbg-green/35 underline-offset-4"
+      >
+        {copy.clearFilters}
+      </button>
+    </div>
+  );
+};
+
+const FilterChip = ({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onRemove}
+    className="flex items-center gap-2 border border-mbg-black/15 bg-mbg-white px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] transition-colors hover:border-mbg-black"
+  >
+    {label}
+    <X size={11} />
+  </button>
+);
 
 const EmptyState = ({
   lang,
@@ -1401,12 +1108,12 @@ const EmptyState = ({
   const copy = COPY[lang];
 
   return (
-    <div className="flex min-h-[420px] flex-col items-center justify-center border-t border-mbg-black/10 text-center">
-      <p className="text-2xl font-semibold">
+    <div className="flex min-h-[440px] flex-col items-start justify-center border-y border-mbg-black/10 px-1 py-16 md:px-10">
+      <span className="mb-6 h-1.5 w-12 bg-mbg-green" />
+      <p className="text-[clamp(2rem,5vw,4.5rem)] font-black uppercase leading-[0.9] tracking-[-0.045em]">
         {copy.noProducts}
       </p>
-
-      <p className="mt-2 max-w-md text-sm leading-6 text-mbg-darkgrey">
+      <p className="mt-5 max-w-xl text-sm leading-7 text-mbg-darkgrey md:text-base">
         {copy.noProductsDescription}
       </p>
 
@@ -1414,7 +1121,7 @@ const EmptyState = ({
         <button
           type="button"
           onClick={onClear}
-          className="mt-6 bg-mbg-black px-6 py-3 text-sm font-semibold text-mbg-white"
+          className="mt-7 border border-mbg-black bg-mbg-black px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-mbg-white transition-colors hover:bg-mbg-green hover:border-mbg-green"
         >
           {copy.clearFilters}
         </button>
