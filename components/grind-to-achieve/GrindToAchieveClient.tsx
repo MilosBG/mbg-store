@@ -800,16 +800,38 @@ async function makeStoryBlob(args: {
     ctx.lineWidth = 3;
     ctx.strokeRect(artX, artY, artW, artH);
 
-    // Badge emblem: subtle, top-left — secondary to the flower
-    ctx.fillStyle = "#000000";
-    ctx.globalAlpha = 0.78;
+    // Badge emblem: visible premium medallion, top-left — secondary to the flower
+    ctx.save();
+    ctx.shadowColor = "rgba(0,130,26,0.28)";
+    ctx.shadowBlur = 28;
+    const emblemFill = ctx.createRadialGradient(144, 384, 8, 168, 408, 84);
+    emblemFill.addColorStop(0, "rgba(255,255,255,0.98)");
+    emblemFill.addColorStop(0.72, "rgba(244,244,244,0.96)");
+    emblemFill.addColorStop(1, "rgba(223,223,223,0.92)");
+    ctx.fillStyle = emblemFill;
     ctx.beginPath();
     ctx.arc(168, 408, 72, 0, Math.PI * 2);
     ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.restore();
+
     ctx.strokeStyle = "#00821A";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(168, 408, 72, 0, Math.PI * 2);
     ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255,255,255,0.6)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(168, 408, 63, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // subtle highlight for a more premium collectible feel
+    ctx.fillStyle = "rgba(255,255,255,0.22)";
+    ctx.beginPath();
+    ctx.ellipse(146, 382, 22, 13, -0.6, 0, Math.PI * 2);
+    ctx.fill();
+
     drawCollectorGlyph(ctx, args.badgeCode ?? args.badge, 168, 408, 0.52);
 
     // Badge identity — smaller than previous version
