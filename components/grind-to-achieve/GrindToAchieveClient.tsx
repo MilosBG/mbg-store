@@ -569,6 +569,22 @@ async function loadCanvasImage(src: string) {
   });
 }
 
+const BADGE_ASSET_MAP: Record<string, string> = {
+  ENCOURAGEMENT: "/grind/badges/milos-bg-badge-encouragement.svg",
+  DONT_GIVE_UP: "/grind/badges/milos-bg-badge-dont-give-up.svg",
+  EFFORT: "/grind/badges/milos-bg-badge-effort.svg",
+  CHALLENGER: "/grind/badges/milos-bg-badge-challenger.svg",
+  SHADOW_BREAKER: "/grind/badges/milos-bg-badge-shadow-breaker.svg",
+  CONSISTENT: "/grind/badges/milos-bg-badge-consistent.svg",
+  LOCKED_IN: "/grind/badges/milos-bg-badge-locked-in.svg",
+};
+
+function badgeAssetPath(code?: string) {
+  if (!code) return null;
+  return BADGE_ASSET_MAP[code.toUpperCase()] ?? null;
+}
+
+
 function drawCollectorGlyph(
   ctx: CanvasRenderingContext2D,
   code: string,
@@ -695,6 +711,9 @@ async function makeStoryBlob(args: {
 
   const logo = await loadCanvasImage("/grind/milos-bg-logo.png").catch(() => null);
   const flower = await loadCanvasImage("/grind/periwinkle-badge-bg.png").catch(() => null);
+  const badgeIcon = args.badgeCode
+    ? await loadCanvasImage(badgeAssetPath(args.badgeCode) ?? "").catch(() => null)
+    : null;
 
   const toBlob = () => new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("STORY_RENDER_FAILED"))), "image/png", 1);
@@ -800,7 +819,7 @@ async function makeStoryBlob(args: {
     ctx.lineWidth = 3;
     ctx.strokeRect(artX, artY, artW, artH);
 
-    // Badge emblem: visible premium medallion, top-left — secondary to the flower
+    // Badge emblem: premium medallion using the real badge artwork
     ctx.save();
     ctx.shadowColor = "rgba(0,130,26,0.28)";
     ctx.shadowBlur = 28;
@@ -826,13 +845,17 @@ async function makeStoryBlob(args: {
     ctx.arc(168, 408, 63, 0, Math.PI * 2);
     ctx.stroke();
 
-    // subtle highlight for a more premium collectible feel
     ctx.fillStyle = "rgba(255,255,255,0.22)";
     ctx.beginPath();
     ctx.ellipse(146, 382, 22, 13, -0.6, 0, Math.PI * 2);
     ctx.fill();
 
-    drawCollectorGlyph(ctx, args.badgeCode ?? args.badge, 168, 408, 0.52);
+    if (badgeIcon) {
+      const iconSize = 82;
+      ctx.drawImage(badgeIcon, 168 - iconSize / 2, 408 - iconSize / 2, iconSize, iconSize);
+    } else {
+      drawCollectorGlyph(ctx, args.badgeCode ?? args.badge, 168, 408, 0.52);
+    }
 
     // Badge identity — smaller than previous version
     drawCentered("BADGE EARNED", 1382, "700 24px Kanit, Arial", "#00821A");
