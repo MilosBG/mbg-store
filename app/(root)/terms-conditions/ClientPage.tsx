@@ -270,26 +270,26 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <ul className="list-disc space-y-2 pl-6">
         <li>
           <strong>Client</strong> : désigne toute personne physique inscrite sur
-          le Site
+          le Site.
         </li>
         <li>
           <strong>Commande</strong> : désigne la commande d’un Produit effectuée
-          par le Client sur le Site
+          par le Client sur le Site.
         </li>
         <li>
           <strong>Conditions Générales</strong> : désigne les présentes
-          conditions générales de vente et d’utilisation du Site
+          conditions générales de vente et d’utilisation du Site.
         </li>
         <li>
           <strong>Espace Personnel</strong> : désigne l’espace personnel du
-          Client auquel celui-ci accède après s’être identifié
+          Client auquel celui-ci accède après s’être identifié.
         </li>
         <li>
           <strong>Internaute</strong> : désigne toute personne se connectant au
-          Site
+          Site.
         </li>
         <li>
-          <strong>Outfit</strong> : désigne tout bien vendu sur le site.
+          <strong>Outfit</strong> : désigne tout bien vendu sur le Site.
         </li>
         <li>
           <strong>Chapter</strong> : désigne la collection à laquelle appartient
@@ -299,10 +299,18 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           <strong>Top</strong> : désigne tous les hauts.
         </li>
         <li>
+          <strong>Upcycling</strong> : désigne tout outfit créé ou transformé à
+          partir de matières, vêtements ou composants textiles existants.
+        </li>
+        <li>
           <strong>Bottom</strong> : désigne tous les bas.
         </li>
         <li>
           <strong>Backup</strong> : désigne tous les accessoires.
+        </li>
+        <li>
+          <strong>CGS</strong> : désigne tout outfit ou article catégorisé comme
+          CGS sur le Site.
         </li>
         <li>
           <strong>Wishlist</strong> : désigne la liste des outfits favoris.
@@ -795,51 +803,67 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     <Section
       id="litiges-et-mediateur"
       forceOpen={allOpen ?? undefined}
-      title="19. Litiges et Médiateur de la consommation"
+      title="19. Médiation de la consommation"
     >
-      <H3 className="text-mbg-black/96">19.1. Contacter le Service Client</H3>
-      <ul className="list-disc space-y-1 pl-6">
-        <li>
-          {" "}
-          Téléphone (non surtaxé) du lundi au vendredi, 9h–12h et 14h–17h&nbsp;:{" "}
-          <a className="mbg-link" href="tel:+33783150791">
-            07 83 15 07 91
-          </a>
-        </li>
-        <li>
-          {" "}
-          Par e-mail&nbsp;:{" "}
-          <Link className="mbg-link" href={"mailto:contact@milos-bg.com"}>
-            contact@milos-bg.com
-          </Link>
-        </li>
-      </ul>
-      <H3 className="mt-2 text-mbg-black/96">
-        19.2. Médiateur de la consommation
-      </H3>
-      <p>
-        Milos BG adhère au Service du Médiateur de la FEVAD. Après démarche
-        préalable écrite auprès de Milos BG, le Médiateur peut être saisi pour
-        tout litige de consommation non résolu. Modalités&nbsp;:{" "}
-        <a
-          className="mbg-link"
-          href="https://www.fevad.com"
-          target="_blank"
-          rel="noreferrer"
-        >
-          fevad.com
-        </a>
-        . Plateforme européenne de règlement en ligne des litiges&nbsp;:{" "}
-        <a
-          className="mbg-link"
-          href="https://ec.europa.eu/consumers/odr/main/index.cfm?event=main.complaints.screeningphase"
-          target="_blank"
-          rel="noreferrer"
-        >
-          ec.europa.eu/consumers/odr
-        </a>
-        .
-      </p>
+      <H3 className="text-mbg-black/96">19.1. Médiation de la consommation</H3>
+
+      <div className="space-y-4">
+        <p>
+          Conformément aux articles L.611-1 et suivants du Code de la
+          consommation, le Client consommateur a le droit, en cas de litige avec
+          MILOS BG, de recourir gratuitement à un médiateur de la consommation
+          en vue de parvenir à une résolution amiable du litige.
+        </p>
+
+        <p>
+          En cas de litige, le Client doit dans un premier temps adresser une
+          réclamation écrite à MILOS BG afin de rechercher une solution amiable.
+        </p>
+
+        <p>
+          À défaut de résolution amiable ou en l&apos;absence de réponse à sa
+          réclamation, le Client consommateur peut saisir le médiateur de la
+          consommation dont relève MILOS BG :
+        </p>
+
+        <div className="border-l-2 border-mbg-green pl-4">
+          <p className="font-semibold text-mbg-black">
+            Centre de la Médiation de la Consommation des Conciliateurs de
+            Justice (CM2C)
+          </p>
+
+          <address className="mt-2 not-italic">
+            49 rue de Ponthieu
+            <br />
+            75008 Paris
+            <br />
+            France
+          </address>
+
+          <p className="mt-2">
+            Site internet :{" "}
+            <a
+              className="mbg-link"
+              href="https://www.cm2c.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              cm2c.net
+            </a>
+          </p>
+        </div>
+
+        <p>
+          La saisine du médiateur est effectuée conformément aux conditions et
+          modalités indiquées sur le site internet du médiateur.
+        </p>
+
+        <p>
+          La médiation de la consommation est gratuite pour le consommateur. Les
+          frais du dispositif de médiation sont pris en charge par le
+          professionnel, conformément à la réglementation applicable.
+        </p>
+      </div>
     </Section>
 
     {/* 20 */}
@@ -959,22 +983,30 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           <strong>Outfit</strong>: any good sold on the Website.
         </li>
         <li>
-          <strong>Chapter</strong> : any collection.
+          <strong>Chapter</strong>: any collection.
         </li>
         <li>
-          <strong>Top</strong> : any top wear.
+          <strong>Top</strong>: any top wear.
         </li>
         <li>
-          <strong>Bottom</strong> : any bottom wear.
+          <strong>Upcycling</strong>: any outfit created or transformed using
+          existing materials, garments or textile components.
         </li>
         <li>
-          <strong>Backup</strong> : any accessory.
+          <strong>Bottom</strong>: any bottom wear.
         </li>
         <li>
-          <strong>Wishlist</strong> : favorite outfit list.
+          <strong>Backup</strong>: any accessory.
         </li>
         <li>
-          <strong>The Hoop</strong> : it is the shopping cart.
+          <strong>CGS</strong>: any outfit or item categorized as CGS on the
+          Website.
+        </li>
+        <li>
+          <strong>Wishlist</strong>: favorite outfit list.
+        </li>
+        <li>
+          <strong>The Hoop</strong>: it is the shopping cart.
         </li>
         <li>
           <strong>Website</strong>: the website at{" "}
@@ -1418,49 +1450,67 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     <Section
       id="litiges-et-mediateur"
       forceOpen={allOpen ?? undefined}
-      title="19. Disputes & consumer mediator"
+      title="19. Consumer mediation"
     >
-      <H3 className="text-mbg-black/96">19.1. Contact Customer Service</H3>
-      <ul className="list-disc space-y-1 pl-6">
-        <li>
-          {" "}
-          Phone (standard rate) Monday–Friday, 9am–12pm and 2pm–5pm :{" "}
-          <a className="mbg-link" href="tel:+33783150791">
-            07 83 15 07 91
-          </a>
-        </li>
-        <li>
-          {" "}
-          Email :{" "}
-          <Link className="mbg-link" href={"mailto:contact@milos-bg.com"}>
-            contact@milos-bg.com
-          </Link>
-        </li>
-      </ul>
-      <H3 className="mt-2 text-mbg-black/96">19.2. Consumer mediator</H3>
-      <p>
-        Milos BG is a member of the FEVAD Consumer Mediator Service. After prior
-        written contact with Milos BG, the Mediator may be referred any
-        unresolved consumer dispute. Details :{" "}
-        <a
-          className="mbg-link"
-          href="https://www.fevad.com"
-          target="_blank"
-          rel="noreferrer"
-        >
-          fevad.com
-        </a>
-        . EU online dispute resolution platform:{" "}
-        <a
-          className="mbg-link"
-          href="https://ec.europa.eu/consumers/odr/main/index.cfm?event=main.complaints.screeningphase"
-          target="_blank"
-          rel="noreferrer"
-        >
-          ec.europa.eu/consumers/odr
-        </a>
-        .
-      </p>
+      <H3 className="text-mbg-black/96">19.1. Consumer mediation</H3>
+
+      <div className="space-y-4">
+        <p>
+          In accordance with Articles L.611-1 et seq. of the French Consumer
+          Code, consumer Clients have the right, in the event of a dispute with
+          MILOS BG, to use a consumer mediator free of charge in order to seek
+          an amicable resolution of the dispute.
+        </p>
+
+        <p>
+          In the event of a dispute, the Client must first submit a written
+          complaint to MILOS BG in order to seek an amicable solution.
+        </p>
+
+        <p>
+          If no amicable solution is reached, or if no response is received to
+          the complaint, the consumer Client may refer the dispute to the
+          consumer mediator responsible for MILOS BG:
+        </p>
+
+        <div className="border-l-2 border-mbg-green pl-4">
+          <p className="font-semibold text-mbg-black">
+            Centre de la Médiation de la Consommation des Conciliateurs de
+            Justice (CM2C)
+          </p>
+
+          <address className="mt-2 not-italic">
+            49 rue de Ponthieu
+            <br />
+            75008 Paris
+            <br />
+            France
+          </address>
+
+          <p className="mt-2">
+            Website:{" "}
+            <a
+              className="mbg-link"
+              href="https://www.cm2c.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              cm2c.net
+            </a>
+          </p>
+        </div>
+
+        <p>
+          The mediator may be contacted in accordance with the conditions and
+          procedures specified on the mediator&apos;s website.
+        </p>
+
+        <p>
+          Consumer mediation is free of charge for the consumer. The costs of
+          the mediation scheme are borne by the professional, in accordance with
+          the applicable regulations.
+        </p>
+      </div>
     </Section>
 
     {/* 20 */}
