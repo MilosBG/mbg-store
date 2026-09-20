@@ -21,12 +21,12 @@ type ProductsPageProps = {
 
 const META = {
   en: {
-    title: "All Products | Milos BG",
+    title: "All Outfits | Milos BG",
     description:
       "Discover all Milos BG artisan creations inspired by basketball, progression and GRIND UNTIL ACHIEVE.",
   },
   fr: {
-    title: "Tous les produits | Milos BG",
+    title: "Toutes les tenues | Milos BG",
     description:
       "Découvrez toutes les créations artisanales Milos BG, inspirées par le basketball, la progression et GRIND UNTIL ACHIEVE.",
   },

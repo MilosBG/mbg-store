@@ -64,7 +64,7 @@ type CategoryOption = {
 const COPY = {
   en: {
     eyebrow: "MILOS BG / COLLECTION",
-    pageTitle: "All Products",
+    pageTitle: "All Outfits",
     mantra: "GRIND UNTIL ACHIEVE",
     intro:
       "Artisan pieces shaped by basketball, progression and the discipline of moving from step 1 to step 5.",
@@ -102,7 +102,7 @@ const COPY = {
   },
   fr: {
     eyebrow: "MILOS BG / COLLECTION",
-    pageTitle: "Tous les produits",
+    pageTitle: "Toutes les tenues",
     mantra: "GRIND UNTIL ACHIEVE",
     intro:
       "Des pièces artisanales nourries par le basketball, la progression et la discipline d'avancer de l'étape 1 à l'étape 5.",
@@ -409,7 +409,7 @@ const ClientPage = ({ products, lang }: Props) => {
                 {copy.eyebrow}
               </p>
 
-              <h1 className="mt-4 max-w-[800px] text-[clamp(2.4rem,6vw,6rem)] font-black uppercase leading-[0.88] tracking-[-0.055em]">
+              <h1 className="mt-4 max-w-[800px] text-[clamp(2.1rem,5vw,4.8rem)] font-black uppercase leading-[0.88] tracking-[-0.055em]">
                 {copy.pageTitle}
               </h1>
             </div>
