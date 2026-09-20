@@ -820,7 +820,7 @@ async function makeStoryBlob(args: {
     });
 
     // Middle descriptor strip
-    ctx.fillStyle = '#DCE9DE';
+    ctx.fillStyle = '#BFBFBF';
     ctx.fillRect(92, 1490, 840, 62);
     ctx.fillStyle = '#000000';
     ctx.font = '700 22px Kanit, Arial';
@@ -850,7 +850,7 @@ async function makeStoryBlob(args: {
     ctx.fillText(args.statValue, 120, 1700);
   }
 
-  ctx.fillStyle = '#F3F3F3';
+  ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(92, 1618 + (args.statLabel && args.statValue ? 132 : 0), 840, 88);
   ctx.fillStyle = "#000000";
   ctx.font = "900 44px Kanit, Arial";
