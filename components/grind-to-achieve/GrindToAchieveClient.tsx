@@ -455,7 +455,7 @@ function GameStyles() {
 
 function GlassOrb({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`gta-glass-orb relative flex items-center justify-center overflow-hidden rounded-full border border-white/70 bg-white/25 text-[#000000] backdrop-blur-md ${className}`}>
+    <div className={`gta-glass-orb relative flex aspect-square shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-white/25 text-[#000000] backdrop-blur-md ${className}`}>
       <span className="relative z-[1] flex items-center justify-center">{children}</span>
     </div>
   );
@@ -505,7 +505,7 @@ function RadarChart({ stats, labels }: { stats: GTAStatsDTO; labels: [string, st
   const polygon = values.map((value, index) => point(index, value / 100).join(",")).join(" ");
   const ring = (scale: number) => [0, 1, 2].map((index) => point(index, scale).join(",")).join(" ");
   return (
-    <div className="relative mx-auto h-[420px] w-full max-w-[580px] xl:h-[500px] xl:max-w-[680px]">
+    <div className="relative mx-auto h-[340px] w-full max-w-[580px] sm:h-[420px] 2xl:h-[500px] 2xl:max-w-[680px]">
       <div className="absolute inset-[12%] rounded-full bg-[#00821A]/[0.035] blur-3xl" />
       <svg viewBox="0 0 300 300" className="relative z-[1] h-full w-full overflow-visible" role="img" aria-label="Resilience, consistency and focus radar">
         {[1, .8, .6, .4, .2].map((scale) => (
@@ -549,7 +549,7 @@ function TrendGraph({ stats }: { stats: GTAStatsDTO }) {
     return `${x},${y}`;
   }).join(" ");
   return (
-    <div className="overflow-x-auto rounded-sm border border-[#BFBFBF] bg-white/50 p-4">
+    <div className="overflow-x-auto overscroll-x-contain rounded-sm border border-[#BFBFBF] bg-white/50 p-3 sm:p-4">
       <svg viewBox={`0 0 ${width} ${height}`} className="h-56 min-w-[720px] w-full" aria-label="Recent stats trend">
         {[25, 50, 75].map((v) => <line key={v} x1="0" y1={height - (v / 100) * height} x2={width} y2={height - (v / 100) * height} stroke="#BFBFBF" strokeWidth="1" />)}
         <polyline points={coords("resilience")} fill="none" stroke="#000000" strokeWidth="4" />
@@ -1210,7 +1210,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   const renderCourt = () => (
     <div className="space-y-6">
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.8fr)_340px]">
-        <Panel green dark className="p-6 sm:p-8 xl:p-10">
+        <Panel green dark className="p-4 sm:p-6 lg:p-8 xl:p-9">
           <div className="flex flex-col gap-5 border-b border-[#404040] pb-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-4xl">
               <div className="flex flex-wrap items-center gap-3">
@@ -1220,7 +1220,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                 <span className="h-1 w-1 rounded-full bg-[#BFBFBF]" />
                 <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#BFBFBF]">Q1 // 05:00</span>
               </div>
-              <h2 className="mt-3 max-w-4xl text-4xl font-black uppercase leading-[.94] tracking-[-0.055em] sm:text-6xl xl:text-7xl">
+              <h2 className="mt-3 max-w-4xl text-[clamp(2rem,8vw,4.5rem)] font-black uppercase leading-[.94] tracking-[-0.055em]">
                 {active?.title ?? selectedChallenge?.title ?? t.noChallenge}
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#BFBFBF]">
@@ -1243,22 +1243,22 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
             </span>
           </div>
 
-          <div className="py-8 sm:py-10 xl:py-12">
+          <div className="py-7 sm:py-9 lg:py-10">
             <div className="mx-auto max-w-5xl text-center">
               <div className="flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#BFBFBF]">
                 <span>{t.gameClock}</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-[#00821A]" />
                 <span>{active ? t.live : t.ready}</span>
               </div>
-              <p className={`mt-4 font-mono text-[clamp(5rem,12vw,11rem)] font-black leading-[.78] tabular-nums tracking-[-0.085em] ${active && remaining <= 30 ? "gta-clock-live text-[#00821A]" : "text-[#FFFFFF]"}`}>
+              <p className={`mt-4 font-mono text-[clamp(4.25rem,13vw,9.5rem)] font-black leading-[.78] tabular-nums tracking-[-0.085em] ${active && remaining <= 30 ? "gta-clock-live text-[#00821A]" : "text-[#FFFFFF]"}`}>
                 {active ? formatClock(remaining) : "05:00"}
               </p>
-              <div className="mx-auto mt-7 grid max-w-3xl grid-cols-[1fr_auto_1fr] items-center gap-4 border-y border-[#404040] py-5">
+              <div className="mx-auto mt-6 grid max-w-3xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-y border-[#404040] py-4 sm:mt-7 sm:gap-4 sm:py-5">
                 <div className="text-right">
                   <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">HUSTLER</p>
                   <p className="mt-1 text-xl font-black uppercase sm:text-2xl">{hustler}</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#404040] bg-[#FFFFFF]/10 text-sm font-black text-[#00821A]">
+                <div className="flex h-10 w-10 aspect-square shrink-0 items-center justify-center rounded-full border border-[#404040] bg-[#FFFFFF]/10 text-xs font-black text-[#00821A] sm:h-12 sm:w-12 sm:text-sm">
                   VS
                 </div>
                 <div className="text-left">
@@ -1432,7 +1432,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                       {activeShadow?.currentBest ?? "—"}
                     </p>
                   </div>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#404040] bg-[#FFFFFF]/10 text-xs font-black text-[#FFFFFF]">VS</div>
+                  <div className="flex h-14 w-14 aspect-square shrink-0 items-center justify-center rounded-full border border-[#404040] bg-[#FFFFFF]/10 text-xs font-black text-[#FFFFFF]">VS</div>
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#BFBFBF]">SHADOW</p>
                     <p className="mt-2 text-6xl font-black tabular-nums text-[#FFFFFF]">
@@ -1615,7 +1615,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
     return (
       <div className="space-y-6">
         <Panel green className="overflow-hidden">
-          <div className="grid xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+          <div className="grid 2xl:grid-cols-[250px_minmax(0,1fr)_290px]">
             <div className="bg-[#000000] p-6 text-[#FFFFFF] sm:p-8">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -1770,7 +1770,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
               >
                 <div className="flex items-start justify-between gap-4">
                   <div
-                    className={`flex h-20 w-20 items-center justify-center rounded-full border backdrop-blur-md ${
+                    className={`flex h-20 w-20 aspect-square shrink-0 items-center justify-center rounded-full border backdrop-blur-md ${
                       earned
                         ? "border-[#FFFFFF]/85 bg-[#FFFFFF]/45 shadow-[0_0_32px_rgba(0,130,26,.24)]"
                         : "border-[#BFBFBF]/45 bg-[#404040]"
@@ -1856,7 +1856,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
             return (
               <article key={badge.id} className="gta-collector-card gta-collector-earned rounded-sm border border-[#00821A] p-6 text-[#000000]">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[#FFFFFF]/85 bg-[#FFFFFF]/45 shadow-[0_0_32px_rgba(0,130,26,.24)] backdrop-blur-md">
+                  <div className="flex h-20 w-20 aspect-square shrink-0 items-center justify-center rounded-full border border-[#FFFFFF]/85 bg-[#FFFFFF]/45 shadow-[0_0_32px_rgba(0,130,26,.24)] backdrop-blur-md">
                     <BadgeEmblem code={badge.code} className="h-10 w-10 text-[#000000]" />
                   </div>
                   <span className="rounded-sm border border-[#00821A] bg-[#FFFFFF]/65 px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#00821A]">
@@ -1914,7 +1914,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
   );
 
   return (
-    <div className="relative my-8 overflow-hidden rounded-sm border border-[#BFBFBF] bg-[#BFBFBF]/35 text-[#000000] shadow-[0_20px_55px_rgba(0,0,0,.12)]">
+    <div className="relative my-4 w-full min-w-0 overflow-hidden rounded-sm border border-[#BFBFBF] bg-[#BFBFBF]/35 text-[#000000] shadow-[0_16px_42px_rgba(0,0,0,.10)] sm:my-6 lg:my-8">
       <GameStyles />
 
       {achieveOpen ? (
@@ -1960,7 +1960,7 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
                 ["LOST_FOCUS", t.lostFocus, CircleDot],
               ] as Array<[GTAFocusCheck, string, ComponentType<{ className?: string }>]>).map(([value, label, Icon]) => (
                 <button key={value} type="button" onClick={() => setFocusCheck(value)} className={`flex min-h-12 items-center gap-3 rounded-sm border px-4 text-left text-xs font-black uppercase tracking-[0.14em] ${focusCheck === value ? "border-[#00821A] bg-[#00821A] text-[#FFFFFF]" : "border-[#BFBFBF] bg-white text-[#000000]"}`}>
-                  <Icon className="h-4 w-4" />{label}
+                  <Icon className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{label}</span>
                 </button>
               ))}
             </div>
@@ -1973,39 +1973,39 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
         </div>
       ) : null}
 
-      <header className="border-b border-[#BFBFBF] bg-[#FFFFFF]/85 px-5 py-5 backdrop-blur-md sm:px-7 xl:px-9">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <GlassOrb className="h-14 w-14"><Mark className="h-7 w-7" /></GlassOrb>
-            <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-3xl font-black tracking-[-0.05em] text-[#000000] sm:text-4xl">{t.title}</h1>
-                <span className="rounded-sm border border-[#00821A] px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#00821A]">{t.member}</span>
+      <header className="border-b border-[#BFBFBF] bg-[#FFFFFF]/85 px-4 py-4 backdrop-blur-md sm:px-6 sm:py-5 lg:px-7">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+            <GlassOrb className="h-12 w-12 sm:h-14 sm:w-14"><Mark className="h-6 w-6 sm:h-7 sm:w-7" /></GlassOrb>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="min-w-0 text-2xl font-black leading-none tracking-[-0.05em] text-[#000000] sm:text-3xl lg:text-4xl">{t.title}</h1>
+                <span className="shrink-0 rounded-sm border border-[#00821A] px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-[#00821A] sm:text-[9px] sm:tracking-[0.16em]">{t.member}</span>
               </div>
-              <p className="mt-1 text-sm text-[#404040]">{t.subtitle}</p>
+              <p className="mt-2 text-xs leading-5 text-[#404040] sm:text-sm">{t.subtitle}</p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-sm border border-[#BFBFBF] bg-white/70 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#404040]">{hustler}</span>
-            <Link href="/grind-mode?lang=en" className={`rounded-sm px-3 py-2 text-[10px] font-black uppercase ${lang === "en" ? "bg-[#00821A] text-[#FFFFFF]" : "border border-[#BFBFBF] bg-white text-[#404040]"}`}>EN</Link>
-            <Link href="/grind-mode?lang=fr" className={`rounded-sm px-3 py-2 text-[10px] font-black uppercase ${lang === "fr" ? "bg-[#00821A] text-[#FFFFFF]" : "border border-[#BFBFBF] bg-white text-[#404040]"}`}>FR</Link>
+          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
+            <span className="min-w-[88px] rounded-sm border border-[#BFBFBF] bg-white/70 px-3 py-2 text-center text-[9px] font-black uppercase tracking-[0.14em] text-[#404040] sm:px-4 sm:text-[10px] sm:tracking-[0.16em]">{hustler}</span>
+            <Link href="/grind-mode?lang=en" className={`rounded-sm px-3 py-2 text-[9px] font-black uppercase sm:text-[10px] ${lang === "en" ? "bg-[#00821A] text-[#FFFFFF]" : "border border-[#BFBFBF] bg-white text-[#404040]"}`}>EN</Link>
+            <Link href="/grind-mode?lang=fr" className={`rounded-sm px-3 py-2 text-[9px] font-black uppercase sm:text-[10px] ${lang === "fr" ? "bg-[#00821A] text-[#FFFFFF]" : "border border-[#BFBFBF] bg-white text-[#404040]"}`}>FR</Link>
           </div>
         </div>
       </header>
 
-      <div className="grid gap-6 p-4 sm:p-6 xl:grid-cols-[250px_minmax(0,1fr)] xl:p-8">
-        <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
+      <div className="grid min-w-0 gap-4 p-3 sm:gap-5 sm:p-5 lg:p-6 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-6 xl:p-7">
+        <aside className="min-w-0 space-y-4 xl:sticky xl:top-5 xl:self-start">
           <Panel className="p-3">
-            <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-1">
+            <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6 xl:grid-cols-1">
               {nav.map(({ id, label, Icon }) => (
-                <button key={id} type="button" onClick={() => setScreen(id)} className={`flex min-h-12 w-full items-center gap-3 rounded-sm px-4 text-left text-[10px] font-black uppercase tracking-[0.16em] transition ${screen === id ? "bg-[#00821A] text-[#FFFFFF] shadow-[0_10px_22px_rgba(0,130,26,.16)]" : "bg-white/50 text-[#404040] hover:bg-white"}`}>
-                  <Icon className="h-4 w-4" />{label}
+                <button key={id} type="button" onClick={() => setScreen(id)} className={`flex min-h-12 w-full min-w-0 items-center gap-2.5 rounded-sm px-3 text-left text-[9px] font-black uppercase tracking-[0.13em] transition sm:px-4 sm:text-[10px] sm:tracking-[0.16em] ${screen === id ? "bg-[#00821A] text-[#FFFFFF] shadow-[0_10px_22px_rgba(0,130,26,.16)]" : "bg-white/50 text-[#404040] hover:bg-white"}`}>
+                  <Icon className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{label}</span>
                 </button>
               ))}
             </nav>
           </Panel>
 
-          <Panel green className="hidden p-5 xl:block">
+          <Panel green className="hidden p-5 2xl:block">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.hustlerCard}</p>
@@ -2025,13 +2025,13 @@ export default function GrindToAchieveClient({ lang, bookUrl, ebookUrl, hustlerN
             </div>
           </Panel>
 
-          <Panel className="hidden p-5 xl:block">
+          <Panel className="hidden p-5 2xl:block">
             <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#404040]">{t.noLeaderboard}</p>
             <div className="mt-4 h-1 w-full bg-[#BFBFBF]/40"><div className="h-full w-3/5 bg-[#00821A]" /></div>
           </Panel>
         </aside>
 
-        <main className="min-w-0">
+        <main className="min-w-0 overflow-hidden">
           <div key={screen} className="gta-screen">
             {screen === "COURT" ? renderCourt() : null}
             {screen === "SHADOW" ? renderShadow() : null}
