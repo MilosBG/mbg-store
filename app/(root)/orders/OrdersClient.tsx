@@ -37,23 +37,23 @@ export type OrdersClientError = {
 };
 
 type OrdersClientProps = {
-  orders: StorefrontOrder[];
+  orders?: StorefrontOrder[] | null;
   error: OrdersClientError | null;
 };
 
 type OrdersTab = "tracking" | "history";
 
-type OrderWithDates = StorefrontOrder & {
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
+type ExtendedStorefrontOrder = StorefrontOrder & {
+  createdAt?: string | Date | null;
+  updatedAt?: string | Date | null;
 
-  orderDate?: string | Date;
+  orderDate?: string | Date | null;
 
-  estimatedDeliveryDate?: string | Date;
-  deliveryDate?: string | Date;
+  estimatedDeliveryDate?: string | Date | null;
+  deliveryDate?: string | Date | null;
 
-  shippedAt?: string | Date;
-  deliveredAt?: string | Date;
+  shippedAt?: string | Date | null;
+  deliveredAt?: string | Date | null;
 };
 
 /* =========================================================
@@ -74,9 +74,14 @@ const PENDING_STATUSES = new Set([
   "VALIDATION",
   "VALIDATING",
   "ORDER_PLACED",
+  "PLACED",
 ]);
 
-const PREPARING_STATUSES = new Set(["PROCESSING", "PREPARING", "PREPARED"]);
+const PREPARING_STATUSES = new Set([
+  "PROCESSING",
+  "PREPARING",
+  "PREPARED",
+]);
 
 const SHIPPING_STATUSES = new Set([
   "SHIPPED",
@@ -84,20 +89,42 @@ const SHIPPING_STATUSES = new Set([
   "OUT_FOR_DELIVERY",
 ]);
 
-const PROGRESS_STEPS = ["Confirmed", "Preparing", "Shipped", "Delivered"];
+const PROGRESS_STEPS = [
+  "Confirmed",
+  "Preparing",
+  "Shipped",
+  "Delivered",
+] as const;
 
 /* =========================================================
    COMPONENT
 ========================================================= */
 
-export default function OrdersClient({ orders, error }: OrdersClientProps) {
+export default function OrdersClient({
+  orders = [],
+  error,
+}: OrdersClientProps) {
   const router = useRouter();
 
-  const lastRefreshRef = useRef(0);
+  const lastRefreshRef = useRef<number>(0);
 
-  const [activeTab, setActiveTab] = useState<OrdersTab>("tracking");
+  const [activeTab, setActiveTab] =
+    useState<OrdersTab>("tracking");
 
-  const [isRefreshing, startTransition] = useTransition();
+  const [isRefreshing, startTransition] =
+    useTransition();
+
+  /* =======================================================
+     SAFE ORDERS
+  ======================================================= */
+
+  const safeOrders = useMemo<StorefrontOrder[]>(() => {
+    if (!Array.isArray(orders)) {
+      return [];
+    }
+
+    return orders.filter(Boolean);
+  }, [orders]);
 
   /* =======================================================
      REFRESH
@@ -107,7 +134,11 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
     (force = false) => {
       const now = Date.now();
 
-      if (!force && now - lastRefreshRef.current < FOCUS_REFRESH_THROTTLE_MS) {
+      if (
+        !force &&
+        now - lastRefreshRef.current <
+          FOCUS_REFRESH_THROTTLE_MS
+      ) {
         return;
       }
 
@@ -119,6 +150,10 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
     },
     [router],
   );
+
+  /* =======================================================
+     REFRESH WHEN PAGE BECOMES ACTIVE
+  ======================================================= */
 
   useEffect(() => {
     const handleFocus = () => {
@@ -133,17 +168,26 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
 
     window.addEventListener("focus", handleFocus);
 
-    document.addEventListener("visibilitychange", handleVisibility);
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibility,
+    );
 
     return () => {
-      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener(
+        "focus",
+        handleFocus,
+      );
 
-      document.removeEventListener("visibilitychange", handleVisibility);
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibility,
+      );
     };
   }, [triggerRefresh]);
 
   /* =======================================================
-     ORDER FILTERS
+     STATS
   ======================================================= */
 
   const stats = useMemo(() => {
@@ -151,34 +195,42 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
     let preparing = 0;
     let shipping = 0;
 
-    orders.forEach((order) => {
-      const status = normalizeStatus(order.fulfillmentStatus);
+    for (const order of safeOrders) {
+      const status = normalizeStatus(
+        order?.fulfillmentStatus,
+      );
 
       if (PENDING_STATUSES.has(status)) {
         pending += 1;
-        return;
+        continue;
       }
 
       if (PREPARING_STATUSES.has(status)) {
         preparing += 1;
-        return;
+        continue;
       }
 
       if (SHIPPING_STATUSES.has(status)) {
         shipping += 1;
       }
-    });
+    }
 
     return {
       pending,
       preparing,
       shipping,
     };
-  }, [orders]);
+  }, [safeOrders]);
+
+  /* =======================================================
+     FILTERED ORDERS
+  ======================================================= */
 
   const visibleOrders = useMemo(() => {
-    return orders.filter((order) => {
-      const status = normalizeStatus(order.fulfillmentStatus);
+    return safeOrders.filter((order) => {
+      const status = normalizeStatus(
+        order?.fulfillmentStatus,
+      );
 
       if (activeTab === "history") {
         return FINAL_STATUSES.has(status);
@@ -186,10 +238,10 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
 
       return !FINAL_STATUSES.has(status);
     });
-  }, [orders, activeTab]);
+  }, [safeOrders, activeTab]);
 
   /* =======================================================
-     ERROR
+     ERROR STATE
   ======================================================= */
 
   if (error) {
@@ -272,6 +324,7 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
                 tracking-[0.18em]
                 text-white
                 transition-colors
+                duration-300
                 hover:bg-mbg-green
               "
             >
@@ -287,6 +340,7 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
               inline-flex
               min-h-11
               items-center
+              justify-center
               gap-2
               border
               border-mbg-black
@@ -297,6 +351,7 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
               tracking-[0.18em]
               text-mbg-black
               transition-all
+              duration-300
               hover:border-mbg-green
               hover:bg-mbg-green
               hover:text-white
@@ -305,10 +360,16 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
             "
           >
             <RefreshCw
-              className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+              className={`
+                h-3.5
+                w-3.5
+                ${isRefreshing ? "animate-spin" : ""}
+              `}
             />
 
-            {isRefreshing ? "Refreshing" : "Try Again"}
+            {isRefreshing
+              ? "Refreshing"
+              : "Try Again"}
           </button>
         </div>
       </section>
@@ -316,10 +377,10 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
   }
 
   /* =======================================================
-     EMPTY
+     EMPTY STATE
   ======================================================= */
 
-  if (!orders.length) {
+  if (!safeOrders.length) {
     return (
       <section
         className="
@@ -386,7 +447,8 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
             text-mbg-black/50
           "
         >
-          Your first Milos BG order will appear here.
+          Your first Milos BG order will appear
+          here once your purchase is confirmed.
         </p>
 
         <Link
@@ -405,6 +467,7 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
             tracking-[0.18em]
             text-white
             transition-colors
+            duration-300
             hover:bg-mbg-black
           "
         >
@@ -415,13 +478,13 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
   }
 
   /* =======================================================
-     PAGE
+     MAIN
   ======================================================= */
 
   return (
-    <div>
+    <div className="w-full">
       {/* ===================================================
-          TABS
+          NAVIGATION
       ==================================================== */}
 
       <nav
@@ -436,16 +499,24 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
         <div className="grid grid-cols-3">
           <button
             type="button"
-            onClick={() => setActiveTab("tracking")}
-            className={tabClass(activeTab === "tracking")}
+            onClick={() =>
+              setActiveTab("tracking")
+            }
+            className={tabClass(
+              activeTab === "tracking",
+            )}
           >
             Tracking
           </button>
 
           <button
             type="button"
-            onClick={() => setActiveTab("history")}
-            className={tabClass(activeTab === "history")}
+            onClick={() =>
+              setActiveTab("history")
+            }
+            className={tabClass(
+              activeTab === "history",
+            )}
           >
             History
           </button>
@@ -454,7 +525,7 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
             href="/cart"
             className="
               flex
-              min-h-10
+              min-h-11
               items-center
               justify-center
               px-4
@@ -463,7 +534,8 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
               uppercase
               tracking-[0.2em]
               text-mbg-black/50
-              transition-colors
+              transition-all
+              duration-300
               hover:bg-white
               hover:text-mbg-green
             "
@@ -487,11 +559,23 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
           xl:grid-cols-4
         "
       >
-        <SummaryCard label="Pending" value={stats.pending} icon={Clock3} />
+        <SummaryCard
+          label="Pending"
+          value={stats.pending}
+          icon={Clock3}
+        />
 
-        <SummaryCard label="Preparing" value={stats.preparing} icon={Package} />
+        <SummaryCard
+          label="Preparing"
+          value={stats.preparing}
+          icon={Package}
+        />
 
-        <SummaryCard label="In delivery" value={stats.shipping} icon={Truck} />
+        <SummaryCard
+          label="In delivery"
+          value={stats.shipping}
+          icon={Truck}
+        />
 
         <Link
           href="/products"
@@ -539,7 +623,7 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
       </div>
 
       {/* ===================================================
-          SECTION TITLE
+          SECTION HEADER
       ==================================================== */}
 
       <div
@@ -561,7 +645,9 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
               text-mbg-green
             "
           >
-            {activeTab === "tracking" ? "Current activity" : "Archive"}
+            {activeTab === "tracking"
+              ? "Current activity"
+              : "Archive"}
           </p>
 
           <h3
@@ -574,7 +660,9 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
               text-mbg-black
             "
           >
-            {activeTab === "tracking" ? "Order tracking" : "Order history"}
+            {activeTab === "tracking"
+              ? "Order tracking"
+              : "Order history"}
           </h3>
         </div>
 
@@ -583,30 +671,38 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
           onClick={() => triggerRefresh(true)}
           disabled={isRefreshing}
           aria-label="Refresh orders"
+          title="Refresh orders"
           className="
             flex
             h-10
             w-10
+            shrink-0
             items-center
             justify-center
             border
             border-mbg-black/10
             text-mbg-black
-            transition-colors
+            transition-all
+            duration-300
             hover:border-mbg-green
             hover:bg-mbg-green
             hover:text-white
+            disabled:cursor-wait
             disabled:opacity-40
           "
         >
           <RefreshCw
-            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            className={`
+              h-4
+              w-4
+              ${isRefreshing ? "animate-spin" : ""}
+            `}
           />
         </button>
       </div>
 
       {/* ===================================================
-          DESKTOP COLUMN LABELS
+          DESKTOP COLUMN HEADERS
       ==================================================== */}
 
       {visibleOrders.length > 0 && (
@@ -628,7 +724,7 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
 
           <ColumnLabel>Total</ColumnLabel>
 
-          <div className="w-[118px]" />
+          <div className="w-[125px]" />
         </div>
       )}
 
@@ -638,9 +734,17 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
 
       {visibleOrders.length > 0 ? (
         <div className="space-y-4">
-          {visibleOrders.map((order) => (
-            <OrderRow key={order._id} order={order} />
-          ))}
+          {visibleOrders.map(
+            (order, index) => (
+              <OrderRow
+                key={
+                  String(order?._id ?? "") ||
+                  `order-${index}`
+                }
+                order={order}
+              />
+            ),
+          )}
         </div>
       ) : (
         <EmptyTab tab={activeTab} />
@@ -653,26 +757,58 @@ export default function OrdersClient({ orders, error }: OrdersClientProps) {
    ORDER ROW
 ========================================================= */
 
-function OrderRow({ order }: { order: StorefrontOrder }) {
-  const orderId = String(order?._id ?? "");
-  const typedOrder = order as OrderWithDates;
+function OrderRow({
+  order,
+}: {
+  order: StorefrontOrder;
+}) {
+  const typedOrder =
+    order as ExtendedStorefrontOrder;
 
-  const status = normalizeStatus(order.fulfillmentStatus);
+  const orderId = String(
+    order?._id ?? "",
+  );
 
-  const products = Array.isArray(order?.products) ? order.products : [];
+  const status = normalizeStatus(
+    order?.fulfillmentStatus,
+  );
 
-  const totalItems = products.reduce((sum, product) => {
-    const quantity = Number(product?.quantity ?? 1);
+  const products = Array.isArray(
+    order?.products,
+  )
+    ? order.products
+    : [];
 
-    return sum + (Number.isFinite(quantity) ? quantity : 1);
-  }, 0);
+  const totalItems = products.reduce(
+    (sum, product) => {
+      const quantity = Number(
+        product?.quantity ?? 1,
+      );
 
-  const createdDate = typedOrder.createdAt ?? typedOrder.orderDate;
+      return (
+        sum +
+        (Number.isFinite(quantity)
+          ? quantity
+          : 1)
+      );
+    },
+    0,
+  );
+
+  const createdDate =
+    typedOrder.createdAt ??
+    typedOrder.orderDate ??
+    null;
 
   const deliveryDate =
     typedOrder.deliveredAt ??
     typedOrder.deliveryDate ??
-    typedOrder.estimatedDeliveryDate;
+    typedOrder.estimatedDeliveryDate ??
+    null;
+
+  const href = orderId
+    ? `/orders/${orderId}`
+    : "/orders";
 
   return (
     <article
@@ -688,7 +824,7 @@ function OrderRow({ order }: { order: StorefrontOrder }) {
       "
     >
       {/* ===================================================
-          ORDER MAIN ROW
+          MAIN INFORMATION
       ==================================================== */}
 
       <div
@@ -704,23 +840,26 @@ function OrderRow({ order }: { order: StorefrontOrder }) {
       >
         {/* ORDER */}
 
-        <div>
-          <p className="lg:hidden">
+        <div className="min-w-0">
+          <div className="lg:hidden">
             <ColumnLabel>Order</ColumnLabel>
-          </p>
+          </div>
 
           <Link
-            href={orderId ? `/orders/${orderId}` : "/orders"}
+            href={href}
             className="
               mt-1
               block
               w-fit
+              max-w-full
+              truncate
               text-[11px]
               font-extrabold
               uppercase
               tracking-[0.08em]
               text-mbg-black
               transition-colors
+              duration-200
               hover:text-mbg-green
             "
           >
@@ -737,36 +876,47 @@ function OrderRow({ order }: { order: StorefrontOrder }) {
               text-mbg-black/35
             "
           >
-            {totalItems} {totalItems === 1 ? "item" : "items"}
+            {totalItems}{" "}
+            {totalItems === 1
+              ? "item"
+              : "items"}
           </p>
         </div>
 
         {/* CREATED */}
 
-        <OrderMeta label="Created" value={formatDate(createdDate)} />
+        <OrderMeta
+          label="Created"
+          value={formatDate(createdDate)}
+        />
 
         {/* DELIVERY */}
 
-        <OrderMeta label="Delivery" value={formatDate(deliveryDate)} />
+        <OrderMeta
+          label="Delivery"
+          value={formatDate(deliveryDate)}
+        />
 
         {/* TOTAL */}
 
         <OrderMeta
           label="Total"
-          value={formatCurrency(order.totalAmount)}
+          value={formatCurrency(
+            order?.totalAmount,
+          )}
           strong
         />
 
-        {/* CTA */}
+        {/* ACTION */}
 
         <Link
-          href={`/orders/${order._id}`}
+          href={href}
           className="
             group
             inline-flex
             min-h-10
             w-fit
-            min-w-[118px]
+            min-w-[125px]
             items-center
             justify-center
             gap-2
@@ -779,17 +929,20 @@ function OrderRow({ order }: { order: StorefrontOrder }) {
             tracking-[0.14em]
             text-mbg-black
             transition-all
+            duration-300
             hover:border-mbg-green
             hover:bg-mbg-green
             hover:text-white
           "
         >
           View details
+
           <ChevronRight
             className="
               h-3.5
               w-3.5
               transition-transform
+              duration-300
               group-hover:translate-x-0.5
             "
           />
@@ -818,18 +971,27 @@ function OrderRow({ order }: { order: StorefrontOrder }) {
 }
 
 /* =========================================================
-   PROGRESS
+   ORDER PROGRESS
 ========================================================= */
 
-function OrderProgress({ status }: { status: string }) {
-  if (status === "CANCELLED") {
+function OrderProgress({
+  status,
+}: {
+  status: string;
+}) {
+  if (
+    status === "CANCELLED" ||
+    status === "REFUNDED"
+  ) {
     return (
       <div
         className="
           flex
-          items-center
-          justify-between
-          gap-4
+          flex-col
+          gap-3
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
         "
       >
         <span
@@ -841,11 +1003,14 @@ function OrderProgress({ status }: { status: string }) {
             text-mbg-black
           "
         >
-          Order cancelled
+          {status === "REFUNDED"
+            ? "Order refunded"
+            : "Order cancelled"}
         </span>
 
         <span
           className="
+            w-fit
             border
             border-mbg-black/10
             px-3
@@ -857,7 +1022,9 @@ function OrderProgress({ status }: { status: string }) {
             text-mbg-black/45
           "
         >
-          Cancelled
+          {status === "REFUNDED"
+            ? "Refunded"
+            : "Cancelled"}
         </span>
       </div>
     );
@@ -865,10 +1032,20 @@ function OrderProgress({ status }: { status: string }) {
 
   const stage = getProgressStage(status);
 
-  const progress = stage <= 0 ? 0 : Math.min((stage / 3) * 100, 100);
+  const progressPercentage =
+    stage <= 0
+      ? 0
+      : Math.min(
+          (stage /
+            (PROGRESS_STEPS.length - 1)) *
+            100,
+          100,
+        );
 
   return (
-    <div>
+    <div className="w-full">
+      {/* HEADER */}
+
       <div
         className="
           mb-5
@@ -892,6 +1069,7 @@ function OrderProgress({ status }: { status: string }) {
 
         <span
           className="
+            text-right
             text-[8px]
             font-extrabold
             uppercase
@@ -903,8 +1081,10 @@ function OrderProgress({ status }: { status: string }) {
         </span>
       </div>
 
+      {/* TIMELINE */}
+
       <div className="relative">
-        {/* BACKGROUND LINE */}
+        {/* BASE LINE */}
 
         <div
           className="
@@ -913,6 +1093,7 @@ function OrderProgress({ status }: { status: string }) {
             right-[12.5%]
             top-[32px]
             h-[3px]
+            overflow-hidden
             bg-mbg-black/10
           "
         >
@@ -922,9 +1103,10 @@ function OrderProgress({ status }: { status: string }) {
               bg-mbg-green
               transition-all
               duration-700
+              ease-out
             "
             style={{
-              width: `${progress}%`,
+              width: `${progressPercentage}%`,
             }}
           />
         </div>
@@ -938,48 +1120,58 @@ function OrderProgress({ status }: { status: string }) {
             grid-cols-4
           "
         >
-          {PROGRESS_STEPS.map((label, index) => {
-            const completed = index < stage;
+          {PROGRESS_STEPS.map(
+            (label, index) => {
+              const completed =
+                index < stage;
 
-            const current = index === stage;
+              const current =
+                index === stage;
 
-            return (
-              <div
-                key={label}
-                className="
+              return (
+                <div
+                  key={label}
+                  className="
                     flex
                     min-w-0
                     flex-col
                     items-center
                     text-center
                   "
-              >
-                <span
-                  className={`
+                >
+                  <span
+                    className={`
                       mb-3
+                      flex
                       min-h-[18px]
-                      text-[7px]
+                      items-end
+                      justify-center
+                      text-[6px]
                       font-bold
                       uppercase
-                      tracking-[0.1em]
+                      leading-tight
+                      tracking-[0.08em]
                       sm:text-[8px]
+                      sm:tracking-[0.1em]
                       ${
-                        completed || current
+                        completed ||
+                        current
                           ? "text-mbg-black"
                           : "text-mbg-black/35"
                       }
                     `}
-                >
-                  {label}
-                </span>
+                  >
+                    {label}
+                  </span>
 
-                <span
-                  className={`
+                  <span
+                    className={`
                       relative
                       z-10
                       flex
                       h-5
                       w-5
+                      shrink-0
                       items-center
                       justify-center
                       border-2
@@ -994,22 +1186,29 @@ function OrderProgress({ status }: { status: string }) {
                             : "border-mbg-black/15 text-transparent"
                       }
                     `}
-                >
-                  {completed && <Check className="h-3 w-3" strokeWidth={3} />}
+                  >
+                    {completed && (
+                      <Check
+                        className="h-3 w-3"
+                        strokeWidth={3}
+                      />
+                    )}
 
-                  {current && !completed && (
-                    <span
-                      className="
+                    {current &&
+                      !completed && (
+                        <span
+                          className="
                             h-1.5
                             w-1.5
                             bg-mbg-green
                           "
-                    />
-                  )}
-                </span>
-              </div>
-            );
-          })}
+                        />
+                      )}
+                  </span>
+                </div>
+              );
+            },
+          )}
         </div>
       </div>
     </div>
@@ -1041,6 +1240,9 @@ function SummaryCard({
         px-5
         pb-5
         pt-8
+        transition-all
+        duration-300
+        hover:border-mbg-black/20
       "
     >
       <div
@@ -1088,7 +1290,7 @@ function SummaryCard({
 }
 
 /* =========================================================
-   SMALL COMPONENTS
+   ORDER META
 ========================================================= */
 
 function OrderMeta({
@@ -1101,7 +1303,7 @@ function OrderMeta({
   strong?: boolean;
 }) {
   return (
-    <div>
+    <div className="min-w-0">
       <div className="lg:hidden">
         <ColumnLabel>{label}</ColumnLabel>
       </div>
@@ -1109,6 +1311,7 @@ function OrderMeta({
       <p
         className={`
           mt-1
+          truncate
           text-[10px]
           uppercase
           tracking-[0.06em]
@@ -1125,7 +1328,15 @@ function OrderMeta({
   );
 }
 
-function ColumnLabel({ children }: { children: ReactNode }) {
+/* =========================================================
+   COLUMN LABEL
+========================================================= */
+
+function ColumnLabel({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <span
       className="
@@ -1141,7 +1352,15 @@ function ColumnLabel({ children }: { children: ReactNode }) {
   );
 }
 
-function EmptyTab({ tab }: { tab: OrdersTab }) {
+/* =========================================================
+   EMPTY TAB
+========================================================= */
+
+function EmptyTab({
+  tab,
+}: {
+  tab: OrdersTab;
+}) {
   return (
     <div
       className="
@@ -1166,7 +1385,9 @@ function EmptyTab({ tab }: { tab: OrdersTab }) {
           text-mbg-green
         "
       >
-        {tab === "tracking" ? "All clear" : "History"}
+        {tab === "tracking"
+          ? "All clear"
+          : "History"}
       </span>
 
       <p
@@ -1183,39 +1404,88 @@ function EmptyTab({ tab }: { tab: OrdersTab }) {
           ? "You don't have any active orders right now."
           : "No completed orders are available yet."}
       </p>
+
+      {tab === "tracking" && (
+        <Link
+          href="/products"
+          className="
+            mt-6
+            inline-flex
+            min-h-10
+            items-center
+            justify-center
+            bg-mbg-black
+            px-6
+            text-[8px]
+            font-extrabold
+            uppercase
+            tracking-[0.18em]
+            text-white
+            transition-colors
+            duration-300
+            hover:bg-mbg-green
+          "
+        >
+          Explore products
+        </Link>
+      )}
     </div>
   );
 }
 
 /* =========================================================
-   HELPERS
+   TAB CLASS
 ========================================================= */
 
 function tabClass(active: boolean) {
   return `
-    min-h-10
+    min-h-11
     px-4
     text-[9px]
     font-extrabold
     uppercase
     tracking-[0.2em]
     transition-all
+    duration-300
     ${
       active
-        ? "bg-white text-mbg-green shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
-        : "text-mbg-black/50 hover:bg-white/60 hover:text-mbg-black"
+        ? `
+          bg-white
+          text-mbg-green
+          shadow-[0_2px_10px_rgba(0,0,0,0.04)]
+        `
+        : `
+          text-mbg-black/50
+          hover:bg-white/60
+          hover:text-mbg-black
+        `
     }
   `;
 }
 
-function normalizeStatus(value: string | null | undefined) {
-  return String(value || "PENDING")
+/* =========================================================
+   NORMALIZE STATUS
+========================================================= */
+
+function normalizeStatus(
+  value: unknown,
+): string {
+  return String(value ?? "PENDING")
     .trim()
     .toUpperCase();
 }
 
-function getProgressStage(status: string) {
-  if (status === "DELIVERED" || status === "COMPLETED") {
+/* =========================================================
+   PROGRESS STAGE
+========================================================= */
+
+function getProgressStage(
+  status: string,
+): number {
+  if (
+    status === "DELIVERED" ||
+    status === "COMPLETED"
+  ) {
     return 3;
   }
 
@@ -1230,32 +1500,58 @@ function getProgressStage(status: string) {
   return 0;
 }
 
-function getStatusLabel(status: string) {
+/* =========================================================
+   STATUS LABEL
+========================================================= */
+
+function getStatusLabel(
+  status: string,
+): string {
   const labels: Record<string, string> = {
     PENDING: "Pending confirmation",
+
     VALIDATION: "Pending confirmation",
+
     VALIDATING: "Pending confirmation",
+
     ORDER_PLACED: "Order confirmed",
 
+    PLACED: "Order confirmed",
+
     PROCESSING: "Preparing",
+
     PREPARING: "Preparing",
+
     PREPARED: "Prepared",
 
     SHIPPED: "Shipped",
+
     IN_TRANSIT: "In transit",
+
     OUT_FOR_DELIVERY: "Out for delivery",
 
     DELIVERED: "Delivered",
+
     COMPLETED: "Completed",
 
     REFUNDED: "Refunded",
+
     CANCELLED: "Cancelled",
   };
 
-  return labels[status] || status.replaceAll("_", " ");
+  return (
+    labels[status] ??
+    status.replaceAll("_", " ")
+  );
 }
 
-function shortOrderId(value: unknown) {
+/* =========================================================
+   SHORT ORDER ID
+========================================================= */
+
+function shortOrderId(
+  value: unknown,
+): string {
   const id = String(value ?? "");
 
   if (!id) {
@@ -1266,36 +1562,70 @@ function shortOrderId(value: unknown) {
     return id.toUpperCase();
   }
 
-  return id.slice(-10).toUpperCase();
+  return id
+    .slice(-10)
+    .toUpperCase();
 }
 
-function formatCurrency(value: unknown) {
-  const numeric = typeof value === "number" ? value : Number(value ?? 0);
+/* =========================================================
+   CURRENCY
+========================================================= */
+
+function formatCurrency(
+  value: unknown,
+): string {
+  const numeric =
+    typeof value === "number"
+      ? value
+      : Number(value ?? 0);
 
   if (!Number.isFinite(numeric)) {
     return "€0.00";
   }
 
-  return new Intl.NumberFormat("en-IE", {
-    style: "currency",
-    currency: "EUR",
-  }).format(numeric);
+  return new Intl.NumberFormat(
+    "en-IE",
+    {
+      style: "currency",
+      currency: "EUR",
+    },
+  ).format(numeric);
 }
 
-function formatDate(value: string | Date | null | undefined) {
+/* =========================================================
+   DATE
+========================================================= */
+
+function formatDate(
+  value:
+    | string
+    | Date
+    | null
+    | undefined,
+): string {
   if (!value) {
     return "—";
   }
 
-  const date = new Date(value);
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    },
+  ).format(date);
 }
