@@ -269,7 +269,7 @@ export default function OrdersClient({
               </button>
             </div>
             <Link
-              href="/cart"
+              href="/the-hoop"
               className="flex min-h-10 items-center rounded-sm bg-white/15 px-4 text-[10px] font-bold uppercase tracking-[0.16em] text-white transition-colors hover:bg-white/25 sm:px-7"
             >
               {t.cart}
