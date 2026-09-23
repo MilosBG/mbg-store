@@ -3,32 +3,20 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   useTransition,
   type ReactNode,
 } from "react";
-
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import {
-  Check,
-  ChevronRight,
-  Clock3,
-  Package,
-  RefreshCw,
-  ShoppingBag,
-  Truck,
-  type LucideIcon,
-} from "lucide-react";
-
-import type { StorefrontOrder } from "@/lib/actions/actions";
-
-/* =========================================================
-   TYPES
-========================================================= */
+import Container from "@/components/mbg-components/Container";
+import type {
+  StorefrontOrder,
+  StorefrontOrderProduct,
+} from "@/lib/actions/actions";
 
 export type OrdersClientError = {
   type: "unauthorized" | "network" | "unknown";
@@ -36,1596 +24,655 @@ export type OrdersClientError = {
   status?: number;
 };
 
-type OrdersClientProps = {
-  orders?: StorefrontOrder[] | null;
+type Props = {
+  orders: StorefrontOrder[];
   error: OrdersClientError | null;
+  requiresSignIn?: boolean;
 };
 
-type OrdersTab = "tracking" | "history";
+type Language = "en" | "fr";
+type View = "tracking" | "history";
+type Stage = 0 | 1 | 2 | 3;
 
-type ExtendedStorefrontOrder = StorefrontOrder & {
-  createdAt?: string | Date | null;
-  updatedAt?: string | Date | null;
-
-  orderDate?: string | Date | null;
-
-  estimatedDeliveryDate?: string | Date | null;
-  deliveryDate?: string | Date | null;
-
-  shippedAt?: string | Date | null;
-  deliveredAt?: string | Date | null;
-};
-
-/* =========================================================
-   CONSTANTS
-========================================================= */
-
-const FOCUS_REFRESH_THROTTLE_MS = 5000;
-
-const FINAL_STATUSES = new Set([
+const EMPTY_IMAGE =
+  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+const REFRESH_THROTTLE_MS = 5000;
+const HISTORY_STATUSES = new Set([
   "DELIVERED",
   "COMPLETED",
   "CANCELLED",
+  "CANCELED",
   "REFUNDED",
+  "RETURNED",
 ]);
 
-const PENDING_STATUSES = new Set([
-  "PENDING",
-  "VALIDATION",
-  "VALIDATING",
-  "ORDER_PLACED",
-  "PLACED",
-]);
+const translations = {
+  en: {
+    tracking: "Tracking",
+    history: "History",
+    cart: "Cart",
+    title: "Order tracking",
+    subtitle: "Follow each step of your Milos BG orders.",
+    awaiting: "Awaiting confirmation",
+    preparing: "In preparation",
+    shipping: "On the way",
+    newOrder: "New order",
+    order: "Order",
+    items: "Items",
+    placedOn: "Placed on",
+    delivery: "Delivery",
+    total: "Total",
+    details: "View details",
+    hideDetails: "Hide details",
+    orderDetails: "Full order details",
+    products: "Items in this order",
+    confirmed: "Confirmed",
+    prepared: "Prepared",
+    shipped: "Shipped",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+    refunded: "Refunded",
+    returned: "Returned",
+    pending: "Awaiting confirmation",
+    processing: "In preparation",
+    completed: "Completed",
+    outForDelivery: "Out for delivery",
+    timeline: "Order progress",
+    quantity: "Qty",
+    color: "Color",
+    size: "Size",
+    standard: "Standard delivery",
+    express: "Express delivery",
+    free: "Free delivery",
+    signInTitle: "Sign in to view your orders",
+    signInText: "Your orders and their delivery progress will appear here.",
+    signIn: "Sign in",
+    loadError: "Unable to load orders",
+    loadErrorText: "We couldn't load your orders right now.",
+    sessionErrorText: "We couldn't verify your session. Please sign in again.",
+    retry: "Try again",
+    refreshing: "Refreshing…",
+    emptyTracking: "No orders in progress",
+    emptyHistory: "No past orders yet",
+    emptyTrackingText: "Active orders will appear here as soon as you place one.",
+    emptyHistoryText: "Completed and cancelled orders will appear here.",
+    shop: "Explore outfits",
+    backToTracking: "Back to tracking",
+    language: "Language",
+    breadcrumb: "Orders",
+  },
+  fr: {
+    tracking: "Suivi",
+    history: "Historique",
+    cart: "Panier",
+    title: "Suivi des commandes",
+    subtitle: "Suivez chaque étape de vos commandes Milos BG.",
+    awaiting: "En attente de validation",
+    preparing: "En préparation",
+    shipping: "En livraison",
+    newOrder: "Nouvelle commande",
+    order: "Commande",
+    items: "Articles",
+    placedOn: "Créée le",
+    delivery: "Livraison",
+    total: "Total",
+    details: "Voir les détails",
+    hideDetails: "Masquer les détails",
+    orderDetails: "Détails complets",
+    products: "Articles de cette commande",
+    confirmed: "Validée",
+    prepared: "Préparée",
+    shipped: "Expédiée",
+    delivered: "Livrée",
+    cancelled: "Annulée",
+    refunded: "Remboursée",
+    returned: "Retournée",
+    pending: "En attente de validation",
+    processing: "En préparation",
+    completed: "Terminée",
+    outForDelivery: "En cours de livraison",
+    timeline: "Progression de la commande",
+    quantity: "Qté",
+    color: "Couleur",
+    size: "Taille",
+    standard: "Livraison standard",
+    express: "Livraison express",
+    free: "Livraison gratuite",
+    signInTitle: "Connectez-vous pour voir vos commandes",
+    signInText: "Vos commandes et leur progression apparaîtront ici.",
+    signIn: "Se connecter",
+    loadError: "Commandes indisponibles",
+    loadErrorText: "Nous ne pouvons pas charger vos commandes pour le moment.",
+    sessionErrorText: "Votre session n'a pas pu être vérifiée. Reconnectez-vous.",
+    retry: "Réessayer",
+    refreshing: "Actualisation…",
+    emptyTracking: "Aucune commande en cours",
+    emptyHistory: "Aucune ancienne commande",
+    emptyTrackingText: "Vos commandes actives apparaîtront ici dès votre achat.",
+    emptyHistoryText: "Les commandes terminées ou annulées apparaîtront ici.",
+    shop: "Découvrir les outfits",
+    backToTracking: "Revenir au suivi",
+    language: "Langue",
+    breadcrumb: "Commandes",
+  },
+} as const;
 
-const PREPARING_STATUSES = new Set([
-  "PROCESSING",
-  "PREPARING",
-  "PREPARED",
-]);
-
-const SHIPPING_STATUSES = new Set([
-  "SHIPPED",
-  "IN_TRANSIT",
-  "OUT_FOR_DELIVERY",
-]);
-
-const PROGRESS_STEPS = [
-  "Confirmed",
-  "Preparing",
-  "Shipped",
-  "Delivered",
-] as const;
-
-/* =========================================================
-   COMPONENT
-========================================================= */
+type Texts = (typeof translations)[Language];
 
 export default function OrdersClient({
-  orders = [],
+  orders,
   error,
-}: OrdersClientProps) {
+  requiresSignIn = false,
+}: Props) {
   const router = useRouter();
+  const [language, setLanguage] = useState<Language>("en");
+  const [view, setView] = useState<View>("tracking");
+  const [isRefreshing, startTransition] = useTransition();
+  const lastRefreshRef = useRef(0);
+  const t = translations[language];
 
-  const lastRefreshRef = useRef<number>(0);
-
-  const [activeTab, setActiveTab] =
-    useState<OrdersTab>("tracking");
-
-  const [isRefreshing, startTransition] =
-    useTransition();
-
-  /* =======================================================
-     SAFE ORDERS
-  ======================================================= */
-
-  const safeOrders = useMemo<StorefrontOrder[]>(() => {
-    if (!Array.isArray(orders)) {
-      return [];
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem("mbg-orders-language") === "fr") {
+        setLanguage("fr");
+      }
+    } catch {
+      // The language switch still works when storage is unavailable.
     }
+  }, []);
 
-    return orders.filter(Boolean);
-  }, [orders]);
+  const changeLanguage = (next: Language) => {
+    setLanguage(next);
+    try {
+      window.localStorage.setItem("mbg-orders-language", next);
+    } catch {
+      // Storage is optional.
+    }
+  };
 
-  /* =======================================================
-     REFRESH
-  ======================================================= */
-
-  const triggerRefresh = useCallback(
+  const refresh = useCallback(
     (force = false) => {
       const now = Date.now();
-
-      if (
-        !force &&
-        now - lastRefreshRef.current <
-          FOCUS_REFRESH_THROTTLE_MS
-      ) {
-        return;
-      }
-
+      if (!force && now - lastRefreshRef.current < REFRESH_THROTTLE_MS) return;
       lastRefreshRef.current = now;
-
-      startTransition(() => {
-        router.refresh();
-      });
+      startTransition(() => router.refresh());
     },
     [router],
   );
 
-  /* =======================================================
-     REFRESH WHEN PAGE BECOMES ACTIVE
-  ======================================================= */
-
   useEffect(() => {
-    const handleFocus = () => {
-      triggerRefresh(false);
+    if (requiresSignIn) return;
+    const onFocus = () => refresh();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
     };
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        triggerRefresh(false);
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibility,
-    );
-
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      window.removeEventListener(
-        "focus",
-        handleFocus,
-      );
-
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibility,
-      );
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [triggerRefresh]);
+  }, [refresh, requiresSignIn]);
 
-  /* =======================================================
-     STATS
-  ======================================================= */
-
-  const stats = useMemo(() => {
-    let pending = 0;
-    let preparing = 0;
-    let shipping = 0;
-
-    for (const order of safeOrders) {
-      const status = normalizeStatus(
-        order?.fulfillmentStatus,
-      );
-
-      if (PENDING_STATUSES.has(status)) {
-        pending += 1;
-        continue;
-      }
-
-      if (PREPARING_STATUSES.has(status)) {
-        preparing += 1;
-        continue;
-      }
-
-      if (SHIPPING_STATUSES.has(status)) {
-        shipping += 1;
-      }
-    }
-
-    return {
-      pending,
-      preparing,
-      shipping,
-    };
-  }, [safeOrders]);
-
-  /* =======================================================
-     FILTERED ORDERS
-  ======================================================= */
-
-  const visibleOrders = useMemo(() => {
-    return safeOrders.filter((order) => {
-      const status = normalizeStatus(
-        order?.fulfillmentStatus,
-      );
-
-      if (activeTab === "history") {
-        return FINAL_STATUSES.has(status);
-      }
-
-      return !FINAL_STATUSES.has(status);
-    });
-  }, [safeOrders, activeTab]);
-
-  /* =======================================================
-     ERROR STATE
-  ======================================================= */
-
-  if (error) {
-    return (
-      <section
-        className="
-          flex
-          min-h-[300px]
-          flex-col
-          items-center
-          justify-center
-          border
-          border-mbg-black/10
-          bg-mbg-black/[0.025]
-          px-6
-          py-14
-          text-center
-        "
-      >
-        <span
-          className="
-            mb-3
-            text-[9px]
-            font-extrabold
-            uppercase
-            tracking-[0.25em]
-            text-mbg-green
-          "
-        >
-          Unable to load orders
-        </span>
-
-        <h3
-          className="
-            text-xl
-            font-extrabold
-            uppercase
-            tracking-tight
-            text-mbg-black
-          "
-        >
-          Something went wrong
-        </h3>
-
-        <p
-          className="
-            mt-3
-            max-w-md
-            text-[11px]
-            leading-relaxed
-            text-mbg-black/50
-          "
-        >
-          {error.message}
-        </p>
-
-        <div
-          className="
-            mt-7
-            flex
-            flex-wrap
-            items-center
-            justify-center
-            gap-3
-          "
-        >
-          {error.type === "unauthorized" && (
-            <Link
-              href="/sign-in"
-              className="
-                inline-flex
-                min-h-11
-                items-center
-                justify-center
-                bg-mbg-black
-                px-6
-                text-[9px]
-                font-extrabold
-                uppercase
-                tracking-[0.18em]
-                text-white
-                transition-colors
-                duration-300
-                hover:bg-mbg-green
-              "
-            >
-              Sign In
-            </Link>
-          )}
-
-          <button
-            type="button"
-            disabled={isRefreshing}
-            onClick={() => triggerRefresh(true)}
-            className="
-              inline-flex
-              min-h-11
-              items-center
-              justify-center
-              gap-2
-              border
-              border-mbg-black
-              px-6
-              text-[9px]
-              font-extrabold
-              uppercase
-              tracking-[0.18em]
-              text-mbg-black
-              transition-all
-              duration-300
-              hover:border-mbg-green
-              hover:bg-mbg-green
-              hover:text-white
-              disabled:cursor-wait
-              disabled:opacity-50
-            "
-          >
-            <RefreshCw
-              className={`
-                h-3.5
-                w-3.5
-                ${isRefreshing ? "animate-spin" : ""}
-              `}
-            />
-
-            {isRefreshing
-              ? "Refreshing"
-              : "Try Again"}
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  /* =======================================================
-     EMPTY STATE
-  ======================================================= */
-
-  if (!safeOrders.length) {
-    return (
-      <section
-        className="
-          flex
-          min-h-[360px]
-          flex-col
-          items-center
-          justify-center
-          border
-          border-mbg-black/10
-          bg-mbg-black/[0.025]
-          px-6
-          py-14
-          text-center
-        "
-      >
-        <div
-          className="
-            mb-6
-            flex
-            h-14
-            w-14
-            items-center
-            justify-center
-            bg-mbg-black
-            text-white
-          "
-        >
-          <ShoppingBag className="h-5 w-5" />
-        </div>
-
-        <span
-          className="
-            mb-3
-            text-[9px]
-            font-extrabold
-            uppercase
-            tracking-[0.25em]
-            text-mbg-green
-          "
-        >
-          Order history
-        </span>
-
-        <h3
-          className="
-            text-xl
-            font-extrabold
-            uppercase
-            tracking-tight
-            text-mbg-black
-            md:text-2xl
-          "
-        >
-          No orders yet
-        </h3>
-
-        <p
-          className="
-            mt-3
-            max-w-sm
-            text-[11px]
-            leading-relaxed
-            text-mbg-black/50
-          "
-        >
-          Your first Milos BG order will appear
-          here once your purchase is confirmed.
-        </p>
-
-        <Link
-          href="/products"
-          className="
-            mt-7
-            inline-flex
-            min-h-11
-            items-center
-            justify-center
-            bg-mbg-green
-            px-8
-            text-[9px]
-            font-extrabold
-            uppercase
-            tracking-[0.18em]
-            text-white
-            transition-colors
-            duration-300
-            hover:bg-mbg-black
-          "
-        >
-          Explore Milos BG
-        </Link>
-      </section>
-    );
-  }
-
-  /* =======================================================
-     MAIN
-  ======================================================= */
+  const trackingOrders = orders.filter(
+    (order) => !HISTORY_STATUSES.has(normalizeStatus(order.fulfillmentStatus)),
+  );
+  const historyOrders = orders.filter((order) =>
+    HISTORY_STATUSES.has(normalizeStatus(order.fulfillmentStatus)),
+  );
+  const visibleOrders = view === "tracking" ? trackingOrders : historyOrders;
+  const counts = {
+    awaiting: trackingOrders.filter(
+      (order) => getStage(normalizeStatus(order.fulfillmentStatus)) === 0,
+    ).length,
+    preparing: trackingOrders.filter(
+      (order) => getStage(normalizeStatus(order.fulfillmentStatus)) === 1,
+    ).length,
+    shipping: trackingOrders.filter(
+      (order) => getStage(normalizeStatus(order.fulfillmentStatus)) === 2,
+    ).length,
+  };
 
   return (
-    <div className="w-full">
-      {/* ===================================================
-          NAVIGATION
-      ==================================================== */}
-
-      <nav
-        className="
-          mb-8
-          border
-          border-mbg-black/10
-          bg-mbg-black/[0.025]
-          p-1
-        "
-      >
-        <div className="grid grid-cols-3">
-          <button
-            type="button"
-            onClick={() =>
-              setActiveTab("tracking")
-            }
-            className={tabClass(
-              activeTab === "tracking",
-            )}
-          >
-            Tracking
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              setActiveTab("history")
-            }
-            className={tabClass(
-              activeTab === "history",
-            )}
-          >
-            History
-          </button>
-
-          <Link
-            href="/cart"
-            className="
-              flex
-              min-h-11
-              items-center
-              justify-center
-              px-4
-              text-[9px]
-              font-extrabold
-              uppercase
-              tracking-[0.2em]
-              text-mbg-black/50
-              transition-all
-              duration-300
-              hover:bg-white
-              hover:text-mbg-green
-            "
-          >
-            Cart
-          </Link>
-        </div>
-      </nav>
-
-      {/* ===================================================
-          SUMMARY
-      ==================================================== */}
-
-      <div
-        className="
-          mb-10
-          grid
-          grid-cols-1
-          gap-3
-          sm:grid-cols-2
-          xl:grid-cols-4
-        "
-      >
-        <SummaryCard
-          label="Pending"
-          value={stats.pending}
-          icon={Clock3}
-        />
-
-        <SummaryCard
-          label="Preparing"
-          value={stats.preparing}
-          icon={Package}
-        />
-
-        <SummaryCard
-          label="In delivery"
-          value={stats.shipping}
-          icon={Truck}
-        />
-
-        <Link
-          href="/products"
-          className="
-            group
-            flex
-            min-h-[118px]
-            flex-col
-            items-center
-            justify-center
-            bg-mbg-green
-            px-5
-            text-center
-            text-white
-            transition-all
-            duration-300
-            hover:bg-mbg-black
-          "
-        >
-          <span
-            className="
-              text-3xl
-              font-light
-              leading-none
-              transition-transform
-              duration-300
-              group-hover:rotate-90
-            "
-          >
-            +
-          </span>
-
-          <span
-            className="
-              mt-3
-              text-[9px]
-              font-extrabold
-              uppercase
-              tracking-[0.18em]
-            "
-          >
-            Continue shopping
-          </span>
-        </Link>
+    <main className="min-h-[60vh] bg-[#f7f8fa] pb-16 font-[Kanit] text-mbg-black">
+      <div className="bg-mbg-green">
+        <Container className="flex min-h-12 items-center justify-between gap-3 py-1">
+          <nav aria-label={language === "fr" ? "Commandes" : "Orders"} className="flex min-w-0 items-center">
+            <div role="group" aria-label={language === "fr" ? "Afficher les commandes" : "Show orders"} className="flex items-center">
+              <button
+                type="button"
+                id="tab-tracking"
+                aria-controls="orders-panel"
+                aria-pressed={view === "tracking"}
+                onClick={() => setView("tracking")}
+                className={"min-h-10 rounded-sm px-4 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors sm:px-7 " +
+                  (view === "tracking"
+                    ? "bg-white text-mbg-green"
+                    : "bg-white/15 text-white hover:bg-white/25")}
+              >
+                {t.tracking}
+                <span className="ml-1.5 opacity-70">{trackingOrders.length}</span>
+              </button>
+              <button
+                type="button"
+                id="tab-history"
+                aria-controls="orders-panel"
+                aria-pressed={view === "history"}
+                onClick={() => setView("history")}
+                className={"min-h-10 rounded-sm px-4 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors sm:px-7 " +
+                  (view === "history"
+                    ? "bg-white text-mbg-green"
+                    : "bg-white/15 text-white hover:bg-white/25")}
+              >
+                {t.history}
+                <span className="ml-1.5 opacity-70">{historyOrders.length}</span>
+              </button>
+            </div>
+            <Link
+              href="/cart"
+              className="flex min-h-10 items-center rounded-sm bg-white/15 px-4 text-[10px] font-bold uppercase tracking-[0.16em] text-white transition-colors hover:bg-white/25 sm:px-7"
+            >
+              {t.cart}
+            </Link>
+          </nav>
+          <div role="group" aria-label={t.language} className="flex shrink-0 items-center gap-1 text-[10px] font-bold">
+            <button type="button" lang="en" aria-pressed={language === "en"} onClick={() => changeLanguage("en")} className={"rounded-sm px-2 py-2 " + (language === "en" ? "bg-white text-mbg-green" : "text-white")}>EN</button>
+            <button type="button" lang="fr" aria-pressed={language === "fr"} onClick={() => changeLanguage("fr")} className={"rounded-sm px-2 py-2 " + (language === "fr" ? "bg-white text-mbg-green" : "text-white")}>FR</button>
+          </div>
+        </Container>
       </div>
 
-      {/* ===================================================
-          SECTION HEADER
-      ==================================================== */}
+      <Container className="pt-8 md:pt-10">
+        <header className="mb-7">
+          <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.24em] text-mbg-green">Milos BG / {t.breadcrumb}</p>
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{t.title}</h1>
+          <p className="mt-2 text-sm text-mbg-black/60">{t.subtitle}</p>
+        </header>
 
-      <div
-        className="
-          mb-5
-          flex
-          items-end
-          justify-between
-          gap-5
-        "
-      >
-        <div>
-          <p
-            className="
-              text-[8px]
-              font-extrabold
-              uppercase
-              tracking-[0.25em]
-              text-mbg-green
-            "
-          >
-            {activeTab === "tracking"
-              ? "Current activity"
-              : "Archive"}
-          </p>
+        {requiresSignIn ? (
+          <StatePanel title={t.signInTitle} body={t.signInText}>
+            <Link href="/sign-in" className="inline-flex min-h-11 items-center justify-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.signIn}</Link>
+          </StatePanel>
+        ) : error ? (
+          <StatePanel title={t.loadError} body={error.type === "unauthorized" ? t.sessionErrorText : t.loadErrorText}>
+            {error.type === "unauthorized" && (
+              <Link href="/sign-in" className="inline-flex min-h-11 items-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.signIn}</Link>
+            )}
+            <button type="button" disabled={isRefreshing} onClick={() => refresh(true)} className="min-h-11 rounded-sm border border-mbg-black px-6 text-xs font-bold uppercase tracking-wider hover:border-mbg-green hover:text-mbg-green disabled:opacity-50">{isRefreshing ? t.refreshing : t.retry}</button>
+          </StatePanel>
+        ) : (
+          <>
+            {view === "tracking" && (
+              <section aria-label={t.tracking} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <SummaryCard count={counts.awaiting} label={t.awaiting} variant="awaiting" />
+                <SummaryCard count={counts.preparing} label={t.preparing} variant="preparing" />
+                <SummaryCard count={counts.shipping} label={t.shipping} variant="shipping" />
+                <Link href="/products" className="flex min-h-28 flex-col items-center justify-center rounded-sm bg-mbg-green p-4 text-center text-white transition-colors hover:bg-mbg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green">
+                  <span aria-hidden="true" className="text-3xl leading-none">+</span>
+                  <span className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em]">{t.newOrder}</span>
+                </Link>
+              </section>
+            )}
 
-          <h3
-            className="
-              mt-1
-              text-lg
-              font-extrabold
-              uppercase
-              tracking-tight
-              text-mbg-black
-            "
-          >
-            {activeTab === "tracking"
-              ? "Order tracking"
-              : "Order history"}
-          </h3>
-        </div>
+            <section
+              id="orders-panel"
+              aria-label={view === "tracking" ? t.tracking : t.history}
+              className="mt-7 border-t border-mbg-black/10 pt-7"
+            >
+              {visibleOrders.length ? (
+                <>
+                  <div className="mb-3 hidden grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] gap-3 px-5 text-[9px] font-bold uppercase tracking-[0.17em] text-mbg-black/55 lg:grid">
+                    <span>{t.order}</span><span>{t.items}</span><span>{t.placedOn}</span><span>{t.delivery}</span><span>{t.total}</span><span className="w-32" />
+                  </div>
+                  <div className="space-y-4">
+                    {visibleOrders.map((order) => (
+                      <OrderCard key={order._id} order={order} language={language} t={t} />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <StatePanel
+                  title={view === "tracking" ? t.emptyTracking : t.emptyHistory}
+                  body={view === "tracking" ? t.emptyTrackingText : t.emptyHistoryText}
+                >
+                  {view === "tracking" ? (
+                    <Link href="/products" className="inline-flex min-h-11 items-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.shop}</Link>
+                  ) : (
+                    <button type="button" onClick={() => setView("tracking")} className="min-h-11 rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.backToTracking}</button>
+                  )}
+                </StatePanel>
+              )}
+            </section>
+          </>
+        )}
+      </Container>
+    </main>
+  );
+}
 
-        <button
-          type="button"
-          onClick={() => triggerRefresh(true)}
-          disabled={isRefreshing}
-          aria-label="Refresh orders"
-          title="Refresh orders"
-          className="
-            flex
-            h-10
-            w-10
-            shrink-0
-            items-center
-            justify-center
-            border
-            border-mbg-black/10
-            text-mbg-black
-            transition-all
-            duration-300
-            hover:border-mbg-green
-            hover:bg-mbg-green
-            hover:text-white
-            disabled:cursor-wait
-            disabled:opacity-40
-          "
-        >
-          <RefreshCw
-            className={`
-              h-4
-              w-4
-              ${isRefreshing ? "animate-spin" : ""}
-            `}
-          />
-        </button>
-      </div>
+function StatePanel({
+  title,
+  body,
+  children,
+}: {
+  title: string;
+  body: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="flex min-h-64 flex-col items-center justify-center rounded-sm border border-mbg-black/10 bg-white px-6 py-12 text-center">
+      <h2 className="text-xl font-bold">{title}</h2>
+      <p className="mt-2 max-w-md text-sm text-mbg-black/60">{body}</p>
+      <div className="mt-6 flex flex-wrap justify-center gap-3">{children}</div>
+    </section>
+  );
+}
 
-      {/* ===================================================
-          DESKTOP COLUMN HEADERS
-      ==================================================== */}
-
-      {visibleOrders.length > 0 && (
-        <div
-          className="
-            mb-3
-            hidden
-            grid-cols-[1.4fr_1fr_1fr_0.8fr_auto]
-            gap-4
-            px-5
-            lg:grid
-          "
-        >
-          <ColumnLabel>Order</ColumnLabel>
-
-          <ColumnLabel>Created</ColumnLabel>
-
-          <ColumnLabel>Delivery</ColumnLabel>
-
-          <ColumnLabel>Total</ColumnLabel>
-
-          <div className="w-[125px]" />
-        </div>
-      )}
-
-      {/* ===================================================
-          ORDERS
-      ==================================================== */}
-
-      {visibleOrders.length > 0 ? (
-        <div className="space-y-4">
-          {visibleOrders.map(
-            (order, index) => (
-              <OrderRow
-                key={
-                  String(order?._id ?? "") ||
-                  `order-${index}`
-                }
-                order={order}
-              />
-            ),
-          )}
-        </div>
-      ) : (
-        <EmptyTab tab={activeTab} />
-      )}
+function SummaryCard({
+  count,
+  label,
+  variant,
+}: {
+  count: number;
+  label: string;
+  variant: "awaiting" | "preparing" | "shipping";
+}) {
+  const color = {
+    awaiting: "bg-mbg-black text-white",
+    preparing: "bg-mbg-darkgrey text-white",
+    shipping: "bg-mbg-green text-white",
+  }[variant];
+  return (
+    <div className="relative flex min-h-28 flex-col justify-end rounded-sm border border-mbg-black/10 bg-white px-5 pb-4 pt-8">
+      <span className={"absolute -top-3 left-4 flex h-9 w-9 items-center justify-center rounded-sm " + color}>
+        <StageIcon variant={variant} />
+      </span>
+      <strong className="text-3xl leading-none">{count}</strong>
+      <span className="mt-2 text-[10px] font-medium uppercase tracking-[0.13em] text-mbg-black/60">{label}</span>
     </div>
   );
 }
 
-/* =========================================================
-   ORDER ROW
-========================================================= */
+function StageIcon({ variant }: { variant: "awaiting" | "preparing" | "shipping" }) {
+  if (variant === "shipping") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+        <path d="M3 6h11v10H3zM14 9h4l3 3v4h-7z" />
+        <circle cx="7" cy="17" r="1.5" /><circle cx="18" cy="17" r="1.5" />
+      </svg>
+    );
+  }
+  if (variant === "preparing") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" className="h-5 w-5">
+        <path d="M4 8 12 4l8 4-8 4-8-4zM4 8v9l8 4 8-4V8M12 12v9" />
+      </svg>
+    );
+  }
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="h-5 w-5">
+      <path d="M5 7h14M5 12h14M5 17h9" /><circle cx="19" cy="17" r="2" />
+    </svg>
+  );
+}
 
-function OrderRow({
+function OrderCard({
   order,
+  language,
+  t,
 }: {
   order: StorefrontOrder;
+  language: Language;
+  t: Texts;
 }) {
-  const typedOrder =
-    order as ExtendedStorefrontOrder;
-
-  const orderId = String(
-    order?._id ?? "",
-  );
-
-  const status = normalizeStatus(
-    order?.fulfillmentStatus,
-  );
-
-  const products = Array.isArray(
-    order?.products,
-  )
-    ? order.products
-    : [];
-
-  const totalItems = products.reduce(
-    (sum, product) => {
-      const quantity = Number(
-        product?.quantity ?? 1,
-      );
-
-      return (
-        sum +
-        (Number.isFinite(quantity)
-          ? quantity
-          : 1)
-      );
-    },
+  const [expanded, setExpanded] = useState(false);
+  const status = normalizeStatus(order.fulfillmentStatus);
+  const stage = getStage(status);
+  const products = order.products ?? [];
+  const quantity = products.reduce(
+    (sum, product) => sum + safeQuantity(product.quantity),
     0,
   );
-
-  const createdDate =
-    typedOrder.createdAt ??
-    typedOrder.orderDate ??
-    null;
-
-  const deliveryDate =
-    typedOrder.deliveredAt ??
-    typedOrder.deliveryDate ??
-    typedOrder.estimatedDeliveryDate ??
-    null;
-
-  const href = orderId
-    ? `/orders/${orderId}`
-    : "/orders";
+  const orderId = String(order._id);
+  const reference = getReference(order);
+  const isCancelled = status === "CANCELLED" || status === "CANCELED";
 
   return (
-    <article
-      className="
-        overflow-hidden
-        border
-        border-mbg-black/10
-        bg-white
-        transition-all
-        duration-300
-        hover:border-mbg-black/20
-        hover:shadow-[0_14px_40px_rgba(0,0,0,0.055)]
-      "
-    >
-      {/* ===================================================
-          MAIN INFORMATION
-      ==================================================== */}
-
-      <div
-        className="
-          grid
-          gap-5
-          px-5
-          py-5
-          lg:grid-cols-[1.4fr_1fr_1fr_0.8fr_auto]
-          lg:items-center
-          lg:gap-4
-        "
-      >
-        {/* ORDER */}
-
+    <article className="overflow-hidden rounded-sm border border-mbg-black/10 bg-white transition-shadow hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+      <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] lg:items-center lg:gap-3">
         <div className="min-w-0">
-          <div className="lg:hidden">
-            <ColumnLabel>Order</ColumnLabel>
-          </div>
-
-          <Link
-            href={href}
-            className="
-              mt-1
-              block
-              w-fit
-              max-w-full
-              truncate
-              text-[11px]
-              font-extrabold
-              uppercase
-              tracking-[0.08em]
-              text-mbg-black
-              transition-colors
-              duration-200
-              hover:text-mbg-green
-            "
-          >
-            #{shortOrderId(orderId)}
+          <SmallLabel className="lg:hidden">{t.order}</SmallLabel>
+          <Link href={"/orders/" + encodeURIComponent(orderId)} className="block truncate text-xs font-bold uppercase tracking-[0.07em] hover:text-mbg-green">
+            {reference}
           </Link>
-
-          <p
-            className="
-              mt-1
-              text-[8px]
-              font-semibold
-              uppercase
-              tracking-[0.15em]
-              text-mbg-black/35
-            "
-          >
-            {totalItems}{" "}
-            {totalItems === 1
-              ? "item"
-              : "items"}
-          </p>
+          <span className="mt-1 block text-[10px] font-medium text-mbg-black/50">
+            {statusLabel(status, t)}
+          </span>
         </div>
-
-        {/* CREATED */}
-
-        <OrderMeta
-          label="Created"
-          value={formatDate(createdDate)}
-        />
-
-        {/* DELIVERY */}
-
-        <OrderMeta
-          label="Delivery"
-          value={formatDate(deliveryDate)}
-        />
-
-        {/* TOTAL */}
-
-        <OrderMeta
-          label="Total"
-          value={formatCurrency(
-            order?.totalAmount,
-          )}
-          strong
-        />
-
-        {/* ACTION */}
-
-        <Link
-          href={href}
-          className="
-            group
-            inline-flex
-            min-h-10
-            w-fit
-            min-w-[125px]
-            items-center
-            justify-center
-            gap-2
-            border
-            border-mbg-black/10
-            px-4
-            text-[8px]
-            font-extrabold
-            uppercase
-            tracking-[0.14em]
-            text-mbg-black
-            transition-all
-            duration-300
-            hover:border-mbg-green
-            hover:bg-mbg-green
-            hover:text-white
-          "
+        <div>
+          <SmallLabel className="lg:hidden">{t.items}</SmallLabel>
+          <span className="text-xs font-semibold">{quantity} {t.items.toLowerCase()}</span>
+        </div>
+        <div>
+          <SmallLabel className="lg:hidden">{t.placedOn}</SmallLabel>
+          <span className="text-xs font-semibold">{formatDate(getCreatedAt(order), language)}</span>
+        </div>
+        <div>
+          <SmallLabel className="lg:hidden">{t.delivery}</SmallLabel>
+          <span className="text-xs font-semibold">{formatShipping(order.shippingMethod, t)}</span>
+        </div>
+        <div>
+          <SmallLabel className="lg:hidden">{t.total}</SmallLabel>
+          <span className="text-xs font-bold">{formatMoney(order.totalAmount, language)}</span>
+        </div>
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={"order-details-" + orderId}
+          onClick={() => setExpanded((previous) => !previous)}
+          className="inline-flex min-h-10 w-full items-center justify-center gap-3 rounded-sm border border-mbg-black/15 px-3 text-[10px] font-semibold text-mbg-green transition-colors hover:border-mbg-green hover:bg-mbg-green/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green sm:w-auto lg:w-32"
         >
-          View details
-
-          <ChevronRight
-            className="
-              h-3.5
-              w-3.5
-              transition-transform
-              duration-300
-              group-hover:translate-x-0.5
-            "
-          />
-        </Link>
+          {expanded ? t.hideDetails : t.details}
+          <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={"h-3.5 w-3.5 transition-transform " + (expanded ? "rotate-180" : "")}>
+            <path d="m3 6 5 5 5-5" />
+          </svg>
+        </button>
       </div>
 
-      {/* ===================================================
-          PROGRESS
-      ==================================================== */}
+      {stage !== null && !isCancelled ? (
+        <OrderProgress stage={stage} language={language} t={t} />
+      ) : (
+        <div className="border-t border-mbg-black/10 px-5 py-3 text-xs font-semibold text-mbg-darkgrey">
+          {statusLabel(status, t)}
+        </div>
+      )}
 
-      <div
-        className="
-          border-t
-          border-mbg-black/10
-          bg-mbg-black/[0.018]
-          px-5
-          py-5
-          sm:px-7
-          sm:py-6
-        "
-      >
-        <OrderProgress status={status} />
+      <div id={"order-details-" + orderId} hidden={!expanded} className="border-t border-mbg-black/10 bg-[#fcfcfc] px-5 py-5">
+        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-mbg-black/50">{t.products}</p>
+        {products.length > 0 && (
+          <div className="mt-3 divide-y divide-mbg-black/10">
+            {products.map((product, index) => (
+              <OrderProduct key={product._id ?? index} product={product} language={language} t={t} />
+            ))}
+          </div>
+        )}
+        <div className="mt-4 flex justify-end">
+          <Link href={"/orders/" + encodeURIComponent(orderId)} className="inline-flex min-h-10 items-center rounded-sm bg-mbg-black px-5 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-mbg-green">
+            {t.orderDetails} <span aria-hidden="true" className="ml-2">→</span>
+          </Link>
+        </div>
       </div>
     </article>
   );
 }
 
-/* =========================================================
-   ORDER PROGRESS
-========================================================= */
-
-function OrderProgress({
-  status,
-}: {
-  status: string;
-}) {
-  if (
-    status === "CANCELLED" ||
-    status === "REFUNDED"
-  ) {
-    return (
-      <div
-        className="
-          flex
-          flex-col
-          gap-3
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-        "
-      >
-        <span
-          className="
-            text-[9px]
-            font-extrabold
-            uppercase
-            tracking-[0.18em]
-            text-mbg-black
-          "
-        >
-          {status === "REFUNDED"
-            ? "Order refunded"
-            : "Order cancelled"}
-        </span>
-
-        <span
-          className="
-            w-fit
-            border
-            border-mbg-black/10
-            px-3
-            py-1.5
-            text-[8px]
-            font-extrabold
-            uppercase
-            tracking-[0.15em]
-            text-mbg-black/45
-          "
-        >
-          {status === "REFUNDED"
-            ? "Refunded"
-            : "Cancelled"}
-        </span>
-      </div>
-    );
-  }
-
-  const stage = getProgressStage(status);
-
-  const progressPercentage =
-    stage <= 0
-      ? 0
-      : Math.min(
-          (stage /
-            (PROGRESS_STEPS.length - 1)) *
-            100,
-          100,
-        );
-
-  return (
-    <div className="w-full">
-      {/* HEADER */}
-
-      <div
-        className="
-          mb-5
-          flex
-          items-center
-          justify-between
-          gap-4
-        "
-      >
-        <span
-          className="
-            text-[8px]
-            font-extrabold
-            uppercase
-            tracking-[0.2em]
-            text-mbg-black/40
-          "
-        >
-          Progress
-        </span>
-
-        <span
-          className="
-            text-right
-            text-[8px]
-            font-extrabold
-            uppercase
-            tracking-[0.18em]
-            text-mbg-green
-          "
-        >
-          {getStatusLabel(status)}
-        </span>
-      </div>
-
-      {/* TIMELINE */}
-
-      <div className="relative">
-        {/* BASE LINE */}
-
-        <div
-          className="
-            absolute
-            left-[12.5%]
-            right-[12.5%]
-            top-[32px]
-            h-[3px]
-            overflow-hidden
-            bg-mbg-black/10
-          "
-        >
-          <div
-            className="
-              h-full
-              bg-mbg-green
-              transition-all
-              duration-700
-              ease-out
-            "
-            style={{
-              width: `${progressPercentage}%`,
-            }}
-          />
-        </div>
-
-        {/* STEPS */}
-
-        <div
-          className="
-            relative
-            grid
-            grid-cols-4
-          "
-        >
-          {PROGRESS_STEPS.map(
-            (label, index) => {
-              const completed =
-                index < stage;
-
-              const current =
-                index === stage;
-
-              return (
-                <div
-                  key={label}
-                  className="
-                    flex
-                    min-w-0
-                    flex-col
-                    items-center
-                    text-center
-                  "
-                >
-                  <span
-                    className={`
-                      mb-3
-                      flex
-                      min-h-[18px]
-                      items-end
-                      justify-center
-                      text-[6px]
-                      font-bold
-                      uppercase
-                      leading-tight
-                      tracking-[0.08em]
-                      sm:text-[8px]
-                      sm:tracking-[0.1em]
-                      ${
-                        completed ||
-                        current
-                          ? "text-mbg-black"
-                          : "text-mbg-black/35"
-                      }
-                    `}
-                  >
-                    {label}
-                  </span>
-
-                  <span
-                    className={`
-                      relative
-                      z-10
-                      flex
-                      h-5
-                      w-5
-                      shrink-0
-                      items-center
-                      justify-center
-                      border-2
-                      bg-white
-                      transition-all
-                      duration-300
-                      ${
-                        completed
-                          ? "border-mbg-green bg-mbg-green text-white"
-                          : current
-                            ? "border-mbg-green text-mbg-green"
-                            : "border-mbg-black/15 text-transparent"
-                      }
-                    `}
-                  >
-                    {completed && (
-                      <Check
-                        className="h-3 w-3"
-                        strokeWidth={3}
-                      />
-                    )}
-
-                    {current &&
-                      !completed && (
-                        <span
-                          className="
-                            h-1.5
-                            w-1.5
-                            bg-mbg-green
-                          "
-                        />
-                      )}
-                  </span>
-                </div>
-              );
-            },
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   SUMMARY CARD
-========================================================= */
-
-function SummaryCard({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: number;
-  icon: LucideIcon;
-}) {
-  return (
-    <div
-      className="
-        relative
-        min-h-[118px]
-        overflow-hidden
-        border
-        border-mbg-black/10
-        bg-white
-        px-5
-        pb-5
-        pt-8
-        transition-all
-        duration-300
-        hover:border-mbg-black/20
-      "
-    >
-      <div
-        className="
-          absolute
-          left-4
-          top-0
-          flex
-          h-10
-          w-10
-          items-center
-          justify-center
-          bg-mbg-black
-          text-white
-        "
-      >
-        <Icon className="h-4 w-4" />
-      </div>
-
-      <p
-        className="
-          text-3xl
-          font-extrabold
-          leading-none
-          text-mbg-green
-        "
-      >
-        {value}
-      </p>
-
-      <p
-        className="
-          mt-3
-          text-[8px]
-          font-extrabold
-          uppercase
-          tracking-[0.17em]
-          text-mbg-black/45
-        "
-      >
-        {label}
-      </p>
-    </div>
-  );
-}
-
-/* =========================================================
-   ORDER META
-========================================================= */
-
-function OrderMeta({
-  label,
-  value,
-  strong = false,
-}: {
-  label: string;
-  value: string;
-  strong?: boolean;
-}) {
-  return (
-    <div className="min-w-0">
-      <div className="lg:hidden">
-        <ColumnLabel>{label}</ColumnLabel>
-      </div>
-
-      <p
-        className={`
-          mt-1
-          truncate
-          text-[10px]
-          uppercase
-          tracking-[0.06em]
-          ${
-            strong
-              ? "font-extrabold text-mbg-green"
-              : "font-bold text-mbg-black"
-          }
-        `}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-/* =========================================================
-   COLUMN LABEL
-========================================================= */
-
-function ColumnLabel({
+function SmallLabel({
   children,
+  className = "",
 }: {
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <span
-      className="
-        text-[8px]
-        font-extrabold
-        uppercase
-        tracking-[0.22em]
-        text-mbg-black/35
-      "
-    >
+    <span className={"mb-1 block text-[9px] font-bold uppercase tracking-[0.15em] text-mbg-black/45 " + className}>
       {children}
     </span>
   );
 }
 
-/* =========================================================
-   EMPTY TAB
-========================================================= */
-
-function EmptyTab({
-  tab,
+function OrderProgress({
+  stage,
+  language,
+  t,
 }: {
-  tab: OrdersTab;
+  stage: Stage;
+  language: Language;
+  t: Texts;
 }) {
+  const labels = [
+    stage === 0 ? t.awaiting : t.confirmed,
+    stage <= 1 ? t.preparing : t.prepared,
+    stage <= 2 ? t.shipping : t.shipped,
+    t.delivered,
+  ];
   return (
-    <div
-      className="
-        flex
-        min-h-[220px]
-        flex-col
-        items-center
-        justify-center
-        border
-        border-mbg-black/10
-        bg-mbg-black/[0.018]
-        px-6
-        text-center
-      "
-    >
-      <span
-        className="
-          text-[9px]
-          font-extrabold
-          uppercase
-          tracking-[0.2em]
-          text-mbg-green
-        "
-      >
-        {tab === "tracking"
-          ? "All clear"
-          : "History"}
-      </span>
-
-      <p
-        className="
-          mt-3
-          max-w-sm
-          text-[11px]
-          font-medium
-          leading-relaxed
-          text-mbg-black/45
-        "
-      >
-        {tab === "tracking"
-          ? "You don't have any active orders right now."
-          : "No completed orders are available yet."}
-      </p>
-
-      {tab === "tracking" && (
-        <Link
-          href="/products"
-          className="
-            mt-6
-            inline-flex
-            min-h-10
-            items-center
-            justify-center
-            bg-mbg-black
-            px-6
-            text-[8px]
-            font-extrabold
-            uppercase
-            tracking-[0.18em]
-            text-white
-            transition-colors
-            duration-300
-            hover:bg-mbg-green
-          "
-        >
-          Explore products
-        </Link>
-      )}
+    <div className="border-t border-mbg-black/10 px-2 py-5 sm:px-5" aria-label={t.timeline} lang={language}>
+      <ol className="grid grid-cols-4">
+        {labels.map((label, index) => {
+          const done = index < stage || stage === 3;
+          const active = index === stage && stage !== 3;
+          return (
+            <li key={index} className="min-w-0 text-center">
+              <span className={"block min-h-8 px-1 text-[9px] font-semibold leading-tight sm:text-[11px] " +
+                (done || active ? "text-mbg-green" : "text-mbg-black/45")}>
+                {label}
+              </span>
+              <div className="relative mt-2 flex h-5 items-center justify-center">
+                {index > 0 && <span aria-hidden="true" className={"absolute left-0 right-1/2 h-0.5 " + (index <= stage ? "bg-mbg-green" : "bg-mbg-black/15")} />}
+                {index < 3 && <span aria-hidden="true" className={"absolute left-1/2 right-0 h-0.5 " + (index < stage ? "bg-mbg-green" : "bg-mbg-black/15")} />}
+                <span aria-hidden="true" className={"relative z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 text-[10px] leading-none " +
+                  (done
+                    ? "border-mbg-green bg-mbg-green text-white"
+                    : active
+                      ? "border-mbg-green bg-white"
+                      : "border-mbg-black/15 bg-white")}>
+                  {done ? "✓" : ""}
+                </span>
+              </div>
+              <span className="sr-only">
+                {done ? (language === "fr" ? "Terminée" : "Complete") : active ? (language === "fr" ? "En cours" : "Current") : (language === "fr" ? "À venir" : "Upcoming")}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }
 
-/* =========================================================
-   TAB CLASS
-========================================================= */
-
-function tabClass(active: boolean) {
-  return `
-    min-h-11
-    px-4
-    text-[9px]
-    font-extrabold
-    uppercase
-    tracking-[0.2em]
-    transition-all
-    duration-300
-    ${
-      active
-        ? `
-          bg-white
-          text-mbg-green
-          shadow-[0_2px_10px_rgba(0,0,0,0.04)]
-        `
-        : `
-          text-mbg-black/50
-          hover:bg-white/60
-          hover:text-mbg-black
-        `
-    }
-  `;
-}
-
-/* =========================================================
-   NORMALIZE STATUS
-========================================================= */
-
-function normalizeStatus(
-  value: unknown,
-): string {
-  return String(value ?? "PENDING")
-    .trim()
-    .toUpperCase();
-}
-
-/* =========================================================
-   PROGRESS STAGE
-========================================================= */
-
-function getProgressStage(
-  status: string,
-): number {
-  if (
-    status === "DELIVERED" ||
-    status === "COMPLETED"
-  ) {
-    return 3;
-  }
-
-  if (SHIPPING_STATUSES.has(status)) {
-    return 2;
-  }
-
-  if (PREPARING_STATUSES.has(status)) {
-    return 1;
-  }
-
-  return 0;
-}
-
-/* =========================================================
-   STATUS LABEL
-========================================================= */
-
-function getStatusLabel(
-  status: string,
-): string {
-  const labels: Record<string, string> = {
-    PENDING: "Pending confirmation",
-
-    VALIDATION: "Pending confirmation",
-
-    VALIDATING: "Pending confirmation",
-
-    ORDER_PLACED: "Order confirmed",
-
-    PLACED: "Order confirmed",
-
-    PROCESSING: "Preparing",
-
-    PREPARING: "Preparing",
-
-    PREPARED: "Prepared",
-
-    SHIPPED: "Shipped",
-
-    IN_TRANSIT: "In transit",
-
-    OUT_FOR_DELIVERY: "Out for delivery",
-
-    DELIVERED: "Delivered",
-
-    COMPLETED: "Completed",
-
-    REFUNDED: "Refunded",
-
-    CANCELLED: "Cancelled",
-  };
-
+function OrderProduct({
+  product,
+  language,
+  t,
+}: {
+  product: StorefrontOrderProduct;
+  language: Language;
+  t: Texts;
+}) {
+  const imageSrc = product.product?.media?.[0] || EMPTY_IMAGE;
+  const quantity = safeQuantity(product.quantity);
+  const unitPrice = Number(product.unitPrice ?? product.product?.price ?? 0);
   return (
-    labels[status] ??
-    status.replaceAll("_", " ")
+    <div className="flex items-center gap-4 py-4">
+      <div className="h-16 w-16 shrink-0 overflow-hidden bg-white sm:h-20 sm:w-20">
+        <Image src={imageSrc} alt={product.product?.title || "Milos BG"} width={80} height={80} className="h-full w-full object-contain" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-bold uppercase">{product.product?.title || "Milos BG"}</p>
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-mbg-black/65">
+          {product.color && <span>{t.color}: {product.color}</span>}
+          {product.size && <span>{t.size}: {product.size}</span>}
+          <span>{t.quantity}: {quantity}</span>
+        </div>
+      </div>
+      <strong className="shrink-0 text-xs">{formatMoney(unitPrice * quantity, language)}</strong>
+    </div>
   );
 }
 
-/* =========================================================
-   SHORT ORDER ID
-========================================================= */
-
-function shortOrderId(
-  value: unknown,
-): string {
-  const id = String(value ?? "");
-
-  if (!id) {
-    return "ORDER";
-  }
-
-  if (id.length <= 10) {
-    return id.toUpperCase();
-  }
-
-  return id
-    .slice(-10)
-    .toUpperCase();
+function normalizeStatus(status: unknown): string {
+  return String(status || "PENDING").trim().toUpperCase();
 }
 
-/* =========================================================
-   CURRENCY
-========================================================= */
-
-function formatCurrency(
-  value: unknown,
-): string {
-  const numeric =
-    typeof value === "number"
-      ? value
-      : Number(value ?? 0);
-
-  if (!Number.isFinite(numeric)) {
-    return "€0.00";
-  }
-
-  return new Intl.NumberFormat(
-    "en-IE",
-    {
-      style: "currency",
-      currency: "EUR",
-    },
-  ).format(numeric);
+function getStage(status: string): Stage | null {
+  if (status === "PENDING") return 0;
+  if (status === "PROCESSING" || status === "CONFIRMED" || status === "PACKED") return 1;
+  if (status === "SHIPPED" || status === "OUT_FOR_DELIVERY") return 2;
+  if (status === "DELIVERED" || status === "COMPLETED") return 3;
+  return null;
 }
 
-/* =========================================================
-   DATE
-========================================================= */
-
-function formatDate(
-  value:
-    | string
-    | Date
-    | null
-    | undefined,
-): string {
-  if (!value) {
-    return "—";
+function statusLabel(status: string, t: Texts): string {
+  switch (status) {
+    case "PENDING": return t.pending;
+    case "PROCESSING": return t.processing;
+    case "CONFIRMED": return t.confirmed;
+    case "PACKED": return t.prepared;
+    case "SHIPPED": return t.shipped;
+    case "OUT_FOR_DELIVERY": return t.outForDelivery;
+    case "DELIVERED": return t.delivered;
+    case "COMPLETED": return t.completed;
+    case "CANCELLED":
+    case "CANCELED": return t.cancelled;
+    case "REFUNDED": return t.refunded;
+    case "RETURNED": return t.returned;
+    default: return status.replaceAll("_", " ");
   }
+}
 
-  const date =
-    value instanceof Date
-      ? value
-      : new Date(value);
-
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
-    return "—";
+function getReference(order: StorefrontOrder): string {
+  const reference = (order as unknown as Record<string, unknown>).orderNumber;
+  if (typeof reference === "string" && reference.trim()) {
+    return "#" + reference.replace(/^#/, "");
   }
+  return "#" + String(order._id).slice(-8).toUpperCase();
+}
 
-  return new Intl.DateTimeFormat(
-    "en-GB",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    },
-  ).format(date);
+function getCreatedAt(order: StorefrontOrder): unknown {
+  return (order as unknown as Record<string, unknown>).createdAt;
+}
+
+function formatDate(value: unknown, language: Language): string {
+  if (!(value instanceof Date) && typeof value !== "string" && typeof value !== "number") return "—";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(language === "fr" ? "fr-FR" : "en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function formatMoney(value: unknown, language: Language): string {
+  const numeric = Number(value);
+  if (value == null || !Number.isFinite(numeric)) return "—";
+  return new Intl.NumberFormat(language === "fr" ? "fr-FR" : "en-GB", {
+    style: "currency",
+    currency: "EUR",
+  }).format(numeric);
+}
+
+function formatShipping(value: string | null | undefined, t: Texts): string {
+  if (!value) return "—";
+  const normalized = value.trim().toUpperCase();
+  if (normalized.includes("EXPRESS")) return t.express;
+  if (normalized.includes("FREE")) return t.free;
+  if (normalized.includes("STANDARD")) return t.standard;
+  return value;
+}
+
+function safeQuantity(value: unknown): number {
+  const numeric = Number(value ?? 1);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 1;
 }
