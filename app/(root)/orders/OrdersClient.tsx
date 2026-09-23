@@ -17,7 +17,7 @@ import {
   Check,
   ChevronRight,
   Clock3,
-  PackageCheck,
+  Package,
   RefreshCw,
   ShoppingBag,
   Truck,
@@ -76,11 +76,7 @@ const PENDING_STATUSES = new Set([
   "ORDER_PLACED",
 ]);
 
-const PREPARING_STATUSES = new Set([
-  "PROCESSING",
-  "PREPARING",
-  "PREPARED",
-]);
+const PREPARING_STATUSES = new Set(["PROCESSING", "PREPARING", "PREPARED"]);
 
 const SHIPPING_STATUSES = new Set([
   "SHIPPED",
@@ -88,30 +84,20 @@ const SHIPPING_STATUSES = new Set([
   "OUT_FOR_DELIVERY",
 ]);
 
-const PROGRESS_STEPS = [
-  "Confirmed",
-  "Preparing",
-  "Shipped",
-  "Delivered",
-];
+const PROGRESS_STEPS = ["Confirmed", "Preparing", "Shipped", "Delivered"];
 
 /* =========================================================
    COMPONENT
 ========================================================= */
 
-export default function OrdersClient({
-  orders,
-  error,
-}: OrdersClientProps) {
+export default function OrdersClient({ orders, error }: OrdersClientProps) {
   const router = useRouter();
 
   const lastRefreshRef = useRef(0);
 
-  const [activeTab, setActiveTab] =
-    useState<OrdersTab>("tracking");
+  const [activeTab, setActiveTab] = useState<OrdersTab>("tracking");
 
-  const [isRefreshing, startTransition] =
-    useTransition();
+  const [isRefreshing, startTransition] = useTransition();
 
   /* =======================================================
      REFRESH
@@ -121,11 +107,7 @@ export default function OrdersClient({
     (force = false) => {
       const now = Date.now();
 
-      if (
-        !force &&
-        now - lastRefreshRef.current <
-          FOCUS_REFRESH_THROTTLE_MS
-      ) {
+      if (!force && now - lastRefreshRef.current < FOCUS_REFRESH_THROTTLE_MS) {
         return;
       }
 
@@ -151,21 +133,12 @@ export default function OrdersClient({
 
     window.addEventListener("focus", handleFocus);
 
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibility,
-    );
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      window.removeEventListener(
-        "focus",
-        handleFocus,
-      );
+      window.removeEventListener("focus", handleFocus);
 
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibility,
-      );
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [triggerRefresh]);
 
@@ -179,9 +152,7 @@ export default function OrdersClient({
     let shipping = 0;
 
     orders.forEach((order) => {
-      const status = normalizeStatus(
-        order.fulfillmentStatus,
-      );
+      const status = normalizeStatus(order.fulfillmentStatus);
 
       if (PENDING_STATUSES.has(status)) {
         pending += 1;
@@ -207,9 +178,7 @@ export default function OrdersClient({
 
   const visibleOrders = useMemo(() => {
     return orders.filter((order) => {
-      const status = normalizeStatus(
-        order.fulfillmentStatus,
-      );
+      const status = normalizeStatus(order.fulfillmentStatus);
 
       if (activeTab === "history") {
         return FINAL_STATUSES.has(status);
@@ -336,16 +305,10 @@ export default function OrdersClient({
             "
           >
             <RefreshCw
-              className={`h-3.5 w-3.5 ${
-                isRefreshing
-                  ? "animate-spin"
-                  : ""
-              }`}
+              className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
             />
 
-            {isRefreshing
-              ? "Refreshing"
-              : "Try Again"}
+            {isRefreshing ? "Refreshing" : "Try Again"}
           </button>
         </div>
       </section>
@@ -473,24 +436,16 @@ export default function OrdersClient({
         <div className="grid grid-cols-3">
           <button
             type="button"
-            onClick={() =>
-              setActiveTab("tracking")
-            }
-            className={tabClass(
-              activeTab === "tracking",
-            )}
+            onClick={() => setActiveTab("tracking")}
+            className={tabClass(activeTab === "tracking")}
           >
             Tracking
           </button>
 
           <button
             type="button"
-            onClick={() =>
-              setActiveTab("history")
-            }
-            className={tabClass(
-              activeTab === "history",
-            )}
+            onClick={() => setActiveTab("history")}
+            className={tabClass(activeTab === "history")}
           >
             History
           </button>
@@ -532,23 +487,11 @@ export default function OrdersClient({
           xl:grid-cols-4
         "
       >
-        <SummaryCard
-          label="Pending"
-          value={stats.pending}
-          icon={Clock3}
-        />
+        <SummaryCard label="Pending" value={stats.pending} icon={Clock3} />
 
-        <SummaryCard
-          label="Preparing"
-          value={stats.preparing}
-          icon={PackageCheck}
-        />
+        <SummaryCard label="Preparing" value={stats.preparing} icon={Package} />
 
-        <SummaryCard
-          label="In delivery"
-          value={stats.shipping}
-          icon={Truck}
-        />
+        <SummaryCard label="In delivery" value={stats.shipping} icon={Truck} />
 
         <Link
           href="/products"
@@ -618,9 +561,7 @@ export default function OrdersClient({
               text-mbg-green
             "
           >
-            {activeTab === "tracking"
-              ? "Current activity"
-              : "Archive"}
+            {activeTab === "tracking" ? "Current activity" : "Archive"}
           </p>
 
           <h3
@@ -633,9 +574,7 @@ export default function OrdersClient({
               text-mbg-black
             "
           >
-            {activeTab === "tracking"
-              ? "Order tracking"
-              : "Order history"}
+            {activeTab === "tracking" ? "Order tracking" : "Order history"}
           </h3>
         </div>
 
@@ -661,9 +600,7 @@ export default function OrdersClient({
           "
         >
           <RefreshCw
-            className={`h-4 w-4 ${
-              isRefreshing ? "animate-spin" : ""
-            }`}
+            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
           />
         </button>
       </div>
@@ -702,10 +639,7 @@ export default function OrdersClient({
       {visibleOrders.length > 0 ? (
         <div className="space-y-4">
           {visibleOrders.map((order) => (
-            <OrderRow
-              key={order._id}
-              order={order}
-            />
+            <OrderRow key={order._id} order={order} />
           ))}
         </div>
       ) : (
@@ -719,27 +653,21 @@ export default function OrdersClient({
    ORDER ROW
 ========================================================= */
 
-function OrderRow({
-  order,
-}: {
-  order: StorefrontOrder;
-}) {
+function OrderRow({ order }: { order: StorefrontOrder }) {
+  const orderId = String(order?._id ?? "");
   const typedOrder = order as OrderWithDates;
 
-  const status = normalizeStatus(
-    order.fulfillmentStatus,
-  );
+  const status = normalizeStatus(order.fulfillmentStatus);
 
-  const totalItems =
-    order.products?.reduce(
-      (sum, product) =>
-        sum + Number(product.quantity ?? 1),
-      0,
-    ) ?? 0;
+  const products = Array.isArray(order?.products) ? order.products : [];
 
-  const createdDate =
-    typedOrder.createdAt ??
-    typedOrder.orderDate;
+  const totalItems = products.reduce((sum, product) => {
+    const quantity = Number(product?.quantity ?? 1);
+
+    return sum + (Number.isFinite(quantity) ? quantity : 1);
+  }, 0);
+
+  const createdDate = typedOrder.createdAt ?? typedOrder.orderDate;
 
   const deliveryDate =
     typedOrder.deliveredAt ??
@@ -782,7 +710,7 @@ function OrderRow({
           </p>
 
           <Link
-            href={`/orders/${order._id}`}
+            href={orderId ? `/orders/${orderId}` : "/orders"}
             className="
               mt-1
               block
@@ -796,7 +724,7 @@ function OrderRow({
               hover:text-mbg-green
             "
           >
-            #{shortOrderId(order._id)}
+            #{shortOrderId(orderId)}
           </Link>
 
           <p
@@ -809,32 +737,23 @@ function OrderRow({
               text-mbg-black/35
             "
           >
-            {totalItems}{" "}
-            {totalItems === 1 ? "item" : "items"}
+            {totalItems} {totalItems === 1 ? "item" : "items"}
           </p>
         </div>
 
         {/* CREATED */}
 
-        <OrderMeta
-          label="Created"
-          value={formatDate(createdDate)}
-        />
+        <OrderMeta label="Created" value={formatDate(createdDate)} />
 
         {/* DELIVERY */}
 
-        <OrderMeta
-          label="Delivery"
-          value={formatDate(deliveryDate)}
-        />
+        <OrderMeta label="Delivery" value={formatDate(deliveryDate)} />
 
         {/* TOTAL */}
 
         <OrderMeta
           label="Total"
-          value={formatCurrency(
-            order.totalAmount,
-          )}
+          value={formatCurrency(order.totalAmount)}
           strong
         />
 
@@ -866,7 +785,6 @@ function OrderRow({
           "
         >
           View details
-
           <ChevronRight
             className="
               h-3.5
@@ -903,11 +821,7 @@ function OrderRow({
    PROGRESS
 ========================================================= */
 
-function OrderProgress({
-  status,
-}: {
-  status: string;
-}) {
+function OrderProgress({ status }: { status: string }) {
   if (status === "CANCELLED") {
     return (
       <div
@@ -951,10 +865,7 @@ function OrderProgress({
 
   const stage = getProgressStage(status);
 
-  const progress =
-    stage <= 0
-      ? 0
-      : Math.min((stage / 3) * 100, 100);
+  const progress = stage <= 0 ? 0 : Math.min((stage / 3) * 100, 100);
 
   return (
     <div>
@@ -1027,27 +938,24 @@ function OrderProgress({
             grid-cols-4
           "
         >
-          {PROGRESS_STEPS.map(
-            (label, index) => {
-              const completed =
-                index < stage;
+          {PROGRESS_STEPS.map((label, index) => {
+            const completed = index < stage;
 
-              const current =
-                index === stage;
+            const current = index === stage;
 
-              return (
-                <div
-                  key={label}
-                  className="
+            return (
+              <div
+                key={label}
+                className="
                     flex
                     min-w-0
                     flex-col
                     items-center
                     text-center
                   "
-                >
-                  <span
-                    className={`
+              >
+                <span
+                  className={`
                       mb-3
                       min-h-[18px]
                       text-[7px]
@@ -1056,18 +964,17 @@ function OrderProgress({
                       tracking-[0.1em]
                       sm:text-[8px]
                       ${
-                        completed ||
-                        current
+                        completed || current
                           ? "text-mbg-black"
                           : "text-mbg-black/35"
                       }
                     `}
-                  >
-                    {label}
-                  </span>
+                >
+                  {label}
+                </span>
 
-                  <span
-                    className={`
+                <span
+                  className={`
                       relative
                       z-10
                       flex
@@ -1087,29 +994,22 @@ function OrderProgress({
                             : "border-mbg-black/15 text-transparent"
                       }
                     `}
-                  >
-                    {completed && (
-                      <Check
-                        className="h-3 w-3"
-                        strokeWidth={3}
-                      />
-                    )}
+                >
+                  {completed && <Check className="h-3 w-3" strokeWidth={3} />}
 
-                    {current &&
-                      !completed && (
-                        <span
-                          className="
+                  {current && !completed && (
+                    <span
+                      className="
                             h-1.5
                             w-1.5
                             bg-mbg-green
                           "
-                        />
-                      )}
-                  </span>
-                </div>
-              );
-            },
-          )}
+                    />
+                  )}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -1225,11 +1125,7 @@ function OrderMeta({
   );
 }
 
-function ColumnLabel({
-  children,
-}: {
-  children: ReactNode;
-}) {
+function ColumnLabel({ children }: { children: ReactNode }) {
   return (
     <span
       className="
@@ -1245,11 +1141,7 @@ function ColumnLabel({
   );
 }
 
-function EmptyTab({
-  tab,
-}: {
-  tab: OrdersTab;
-}) {
+function EmptyTab({ tab }: { tab: OrdersTab }) {
   return (
     <div
       className="
@@ -1274,9 +1166,7 @@ function EmptyTab({
           text-mbg-green
         "
       >
-        {tab === "tracking"
-          ? "All clear"
-          : "History"}
+        {tab === "tracking" ? "All clear" : "History"}
       </span>
 
       <p
@@ -1318,19 +1208,14 @@ function tabClass(active: boolean) {
   `;
 }
 
-function normalizeStatus(
-  value: string | null | undefined,
-) {
+function normalizeStatus(value: string | null | undefined) {
   return String(value || "PENDING")
     .trim()
     .toUpperCase();
 }
 
 function getProgressStage(status: string) {
-  if (
-    status === "DELIVERED" ||
-    status === "COMPLETED"
-  ) {
+  if (status === "DELIVERED" || status === "COMPLETED") {
     return 3;
   }
 
@@ -1367,27 +1252,25 @@ function getStatusLabel(status: string) {
     CANCELLED: "Cancelled",
   };
 
-  return (
-    labels[status] ||
-    status.replaceAll("_", " ")
-  );
+  return labels[status] || status.replaceAll("_", " ");
 }
 
-function shortOrderId(value: string) {
-  if (value.length <= 10) {
-    return value.toUpperCase();
+function shortOrderId(value: unknown) {
+  const id = String(value ?? "");
+
+  if (!id) {
+    return "ORDER";
   }
 
-  return value
-    .slice(-10)
-    .toUpperCase();
+  if (id.length <= 10) {
+    return id.toUpperCase();
+  }
+
+  return id.slice(-10).toUpperCase();
 }
 
 function formatCurrency(value: unknown) {
-  const numeric =
-    typeof value === "number"
-      ? value
-      : Number(value ?? 0);
+  const numeric = typeof value === "number" ? value : Number(value ?? 0);
 
   if (!Number.isFinite(numeric)) {
     return "€0.00";
@@ -1399,13 +1282,7 @@ function formatCurrency(value: unknown) {
   }).format(numeric);
 }
 
-function formatDate(
-  value:
-    | string
-    | Date
-    | null
-    | undefined,
-) {
+function formatDate(value: string | Date | null | undefined) {
   if (!value) {
     return "—";
   }
@@ -1416,12 +1293,9 @@ function formatDate(
     return "—";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-GB",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    },
-  ).format(date);
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }
