@@ -1748,7 +1748,7 @@ const TermsAndConditions: React.FC = () => {
           )}
 
           <footer className="mt-12 border-t pt-6 text-[10px] text-mbg-green">
-            <p>{ui.lastUpdateLabel}&nbsp; 23/09/2025</p>
+            <p>{ui.lastUpdateLabel}&nbsp; 20/09/2026</p>
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Milos BG - {ui.rights}
             </p>
