@@ -14,6 +14,39 @@ import { BiSolidBasketball } from "react-icons/bi";
 const LANG_STORAGE_KEY = "mbg.legal.lang" as const;
 type Lang = "en" | "fr";
 
+
+// -----------------------------------------------------------------------------
+// Legal information — COMPLETE THE TODO VALUES BEFORE PRODUCTION
+// -----------------------------------------------------------------------------
+const LEGAL_INFO = {
+  fullName: "Gamil BEN AHMED",
+  legalFormFR: "Entrepreneur individuel",
+  legalFormEN: "Sole trader",
+  businessName: "Milos BG",
+  domain: "milos-bg.com",
+  siren: "984 671 206",
+  ape: "3299Z",
+  phoneDisplay: "07 83 15 07 91",
+  phoneHref: "tel:+33783150791",
+  email: "contact@milos-bg.com",
+
+  // REQUIRED BEFORE PRODUCTION:
+  businessAddress:
+    "À COMPLÉTER — adresse professionnelle complète de l’entreprise",
+  rneRegistration:
+    "À COMPLÉTER — mention exacte d’immatriculation RNE/RCS figurant sur votre justificatif INPI",
+  repTextileIdu:
+    "À COMPLÉTER — identifiant unique REP textile (TLC), si applicable",
+
+  // mbg-store is deployed on Vercel. Keep these values only while Vercel is
+  // the actual hosting provider serving milos-bg.com.
+  hostingName: "Vercel Inc.",
+  hostingAddress: "440 N Barranca Avenue #4133, Covina, CA 91723, United States",
+  hostingPhoneDisplay: "+1 559 288 7060",
+  hostingPhoneHref: "tel:+15592887060",
+  hostingUrl: "https://vercel.com",
+} as const;
+
 const useLang = (): [Lang, (l: Lang) => void] => {
   const [lang, setLang] = useState<Lang>("en");
 
@@ -49,8 +82,8 @@ const IDS = [
   "coordonnees-contact",
   "directeur-de-la-publication",
   "hebergeur",
-  "propriete-et-tva",
-  "livraison-et-environnement",
+  "immatriculation-fiscalite-rep",
+  "propriete-intellectuelle",
 ] as const;
 
 // -----------------------------------------------------------------------------
@@ -62,12 +95,16 @@ const tocItems = {
     ["2.", "Coordonnées & Contact", IDS[1]],
     ["3.", "Directeur de la publication", IDS[2]],
     ["4.", "Hébergement", IDS[3]],
+    ["5.", "Immatriculation, TVA & REP", IDS[4]],
+    ["6.", "Propriété intellectuelle", IDS[5]],
   ],
   en: [
     ["1.", "Publisher identification", IDS[0]],
     ["2.", "Contact details", IDS[1]],
     ["3.", "Publication director", IDS[2]],
     ["4.", "Hosting", IDS[3]],
+    ["5.", "Registration, VAT & EPR", IDS[4]],
+    ["6.", "Intellectual property", IDS[5]],
   ],
 } as const;
 
@@ -139,7 +176,7 @@ const Section: React.FC<{
 };
 
 // -----------------------------------------------------------------------------
-// Content (EN concise; FR placeholders so you can paste full text later)
+// Localized legal content
 // -----------------------------------------------------------------------------
 const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
   <>
@@ -149,20 +186,20 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="1. Publisher identification"
     >
       <p className="uppercase font-semibold text-mbg-green">
-        Full Name : Gamil BEN AHMED
+        Full name: {LEGAL_INFO.fullName}
       </p>
       <p className="uppercase font-semibold text-mbg-green">
-        Legal Form : Sole Trader
-      </p>
-      <p className="uppercase font-semibold text-mbg-green">APE Code : 3299Z</p>
-      <p className="uppercase font-semibold text-mbg-green">
-        Business Name : Milos BG
+        Legal form: {LEGAL_INFO.legalFormEN}
       </p>
       <p className="uppercase font-semibold text-mbg-green">
-        Domain Name : milos-bg.com
+        Business name: {LEGAL_INFO.businessName}
       </p>
-      <p className="uppercase font-semibold text-mbg-green">
-        SIREN : 984 671 206
+      <p>Domain name: {LEGAL_INFO.domain}</p>
+      <p>SIREN: {LEGAL_INFO.siren}</p>
+      <p>APE code: {LEGAL_INFO.ape}</p>
+      <p>
+        Professional address:{" "}
+        <strong className="text-mbg-green">{LEGAL_INFO.businessAddress}</strong>
       </p>
     </Section>
 
@@ -173,16 +210,16 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <ul className="list-disc space-y-1 pl-6">
         <li>
-          Phone :{" "}
-          <a className="mbg-link" href="tel:+33450458002">
-            07 83 15 07 91
+          Phone:{" "}
+          <a className="mbg-link" href={LEGAL_INFO.phoneHref}>
+            {LEGAL_INFO.phoneDisplay}
           </a>
         </li>
         <li>
-          Email :{" "}
-          <Link className="mbg-link" href="mailto:contact@milos-bg.com">
-            contact@milos-bg.com
-          </Link>
+          Email:{" "}
+          <a className="mbg-link" href={`mailto:${LEGAL_INFO.email}`}>
+            {LEGAL_INFO.email}
+          </a>
         </li>
       </ul>
     </Section>
@@ -192,40 +229,94 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       forceOpen={allOpen ?? undefined}
       title="3. Publication director"
     >
-      <p>Publication director : Mr Gamil BEN AHMED, President of Milos BG.</p>
+      <p>
+        Publication director: {LEGAL_INFO.fullName}, {LEGAL_INFO.legalFormEN}.
+      </p>
     </Section>
 
     <Section id="hebergeur" forceOpen={allOpen ?? undefined} title="4. Hosting">
-      <p>IONOS SARL — 7 PLACE DE LA GARE 57200 SARREGUEMINES, France</p>
+      <p>{LEGAL_INFO.hostingName}</p>
+      <p>{LEGAL_INFO.hostingAddress}</p>
+      <p>
+        Phone:{" "}
+        <a className="mbg-link" href={LEGAL_INFO.hostingPhoneHref}>
+          {LEGAL_INFO.hostingPhoneDisplay}
+        </a>
+      </p>
+      <p>
+        Website:{" "}
+        <a
+          className="mbg-link"
+          href={LEGAL_INFO.hostingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          vercel.com
+        </a>
+      </p>
+    </Section>
+
+    <Section
+      id="immatriculation-fiscalite-rep"
+      forceOpen={allOpen ?? undefined}
+      title="5. Registration, VAT & EPR"
+    >
+      <p>
+        Business registration:{" "}
+        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistration}</strong>
+      </p>
+      <p>
+        VAT: VAT not applicable — article 293 B of the French General Tax Code
+        (CGI), for as long as Milos BG benefits from the VAT exemption scheme.
+      </p>
+      <p>
+        Textile EPR unique identifier (TLC), where applicable:{" "}
+        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIdu}</strong>
+      </p>
+    </Section>
+
+    <Section
+      id="propriete-intellectuelle"
+      forceOpen={allOpen ?? undefined}
+      title="6. Intellectual property"
+    >
+      <p>
+        Unless otherwise stated, the structure, texts, visual identity, photos,
+        illustrations, graphics, videos, logos and other original content
+        published on this website are protected by intellectual property law
+        and remain the property of Milos BG or their respective rights holders.
+        Any reproduction, adaptation or exploitation beyond the exceptions
+        provided by law requires prior authorization.
+      </p>
     </Section>
   </>
 );
 
 const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
   <>
-    {/* Short placeholders — replace with your full FR text later */}
     <Section
       id="identification-de-lediteur"
       forceOpen={allOpen ?? undefined}
       title="1. Identification de l’éditeur"
     >
       <p className="uppercase font-semibold text-mbg-green">
-        Nom Complet : Gamil BEN AHMED
+        Nom complet : {LEGAL_INFO.fullName}
       </p>
       <p className="uppercase font-semibold text-mbg-green">
-        Forme Juridique : Entrepreneur individuel
-      </p>
-      <p className="uppercase font-semibold text-mbg-green">Code APE : 3299Z</p>
-      <p className="uppercase font-semibold text-mbg-green">
-        Nom Commercial : Milos BG
+        Forme juridique : {LEGAL_INFO.legalFormFR}
       </p>
       <p className="uppercase font-semibold text-mbg-green">
-        Nom de Domaine : milos-bg.com
+        Nom commercial : {LEGAL_INFO.businessName}
       </p>
-      <p className="uppercase font-semibold text-mbg-green">
-        SIREN : 984 671 206
+      <p>Nom de domaine : {LEGAL_INFO.domain}</p>
+      <p>SIREN : {LEGAL_INFO.siren}</p>
+      <p>Code APE : {LEGAL_INFO.ape}</p>
+      <p>
+        Adresse professionnelle :{" "}
+        <strong className="text-mbg-green">{LEGAL_INFO.businessAddress}</strong>
       </p>
     </Section>
+
     <Section
       id="coordonnees-contact"
       forceOpen={allOpen ?? undefined}
@@ -234,33 +325,89 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <ul className="list-disc space-y-1 pl-6">
         <li>
           Téléphone :{" "}
-          <a className="mbg-link" href="tel:+33450458002">
-            07 83 15 07 91
+          <a className="mbg-link" href={LEGAL_INFO.phoneHref}>
+            {LEGAL_INFO.phoneDisplay}
           </a>
         </li>
         <li>
           Courriel :{" "}
-          <Link className="mbg-link" href="mailto:contact@milos-bg.com">
-            contact@milos-bg.com
-          </Link>
+          <a className="mbg-link" href={`mailto:${LEGAL_INFO.email}`}>
+            {LEGAL_INFO.email}
+          </a>
         </li>
       </ul>
     </Section>
+
     <Section
       id="directeur-de-la-publication"
       forceOpen={allOpen ?? undefined}
       title="3. Directeur de la publication"
     >
       <p>
-        Directeur de publication : M. Gamil BEN AHMED, Président de Milos BG.
+        Directeur de la publication : {LEGAL_INFO.fullName},{" "}
+        {LEGAL_INFO.legalFormFR}.
       </p>
     </Section>
+
     <Section
       id="hebergeur"
       forceOpen={allOpen ?? undefined}
       title="4. Hébergement"
     >
-      <p>IONOS SARL — 7 PLACE DE LA GARE 57200 SARREGUEMINES, France</p>
+      <p>{LEGAL_INFO.hostingName}</p>
+      <p>{LEGAL_INFO.hostingAddress}</p>
+      <p>
+        Téléphone :{" "}
+        <a className="mbg-link" href={LEGAL_INFO.hostingPhoneHref}>
+          {LEGAL_INFO.hostingPhoneDisplay}
+        </a>
+      </p>
+      <p>
+        Site :{" "}
+        <a
+          className="mbg-link"
+          href={LEGAL_INFO.hostingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          vercel.com
+        </a>
+      </p>
+    </Section>
+
+    <Section
+      id="immatriculation-fiscalite-rep"
+      forceOpen={allOpen ?? undefined}
+      title="5. Immatriculation, TVA & REP"
+    >
+      <p>
+        Immatriculation :{" "}
+        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistration}</strong>
+      </p>
+      <p>
+        TVA : TVA non applicable — article 293 B du CGI, tant que Milos BG
+        bénéficie de la franchise en base de TVA.
+      </p>
+      <p>
+        Identifiant unique REP textile (TLC), lorsque applicable :{" "}
+        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIdu}</strong>
+      </p>
+    </Section>
+
+    <Section
+      id="propriete-intellectuelle"
+      forceOpen={allOpen ?? undefined}
+      title="6. Propriété intellectuelle"
+    >
+      <p>
+        Sauf mention contraire, la structure, les textes, l’identité visuelle,
+        les photographies, illustrations, graphismes, vidéos, logos et autres
+        contenus originaux publiés sur le Site sont protégés par le droit de la
+        propriété intellectuelle et demeurent la propriété de Milos BG ou de
+        leurs titulaires respectifs. Toute reproduction, adaptation ou
+        exploitation au-delà des exceptions prévues par la loi nécessite une
+        autorisation préalable.
+      </p>
     </Section>
   </>
 );
@@ -459,7 +606,7 @@ const LegalNotice: React.FC = () => {
           )}
 
           <footer className="mt-12 border-t pt-6 text-[10px] text-mbg-green">
-            <p>{ui.lastUpdateLabel}&nbsp;23/09/2025</p>
+            <p>{ui.lastUpdateLabel}&nbsp;23/09/2026</p>
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Milos BG - {ui.rights}
             </p>
