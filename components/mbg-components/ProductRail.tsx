@@ -1,19 +1,12 @@
 "use client";
 
 import type { Product } from "@/lib/types";
-import {
-  ArrowLeft,
-  ArrowRight,
-  PackageSearch,
-} from "lucide-react";
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ArrowLeft, ArrowRight, PackageSearch } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import ProductCard from "./ProductCard";
+import Image from "next/image";
+import { GrindUntilAchieve2 } from "@/images";
 
 type ProductRailProps = {
   products: Product[];
@@ -33,9 +26,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
     const { scrollLeft, scrollWidth, clientWidth } = rail;
 
     setCanScrollLeft(scrollLeft > 4);
-    setCanScrollRight(
-      scrollLeft + clientWidth < scrollWidth - 4
-    );
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 4);
   }, []);
 
   useEffect(() => {
@@ -66,12 +57,9 @@ const ProductRail = ({ products }: ProductRailProps) => {
 
     if (!rail) return;
 
-    const firstCard = rail.querySelector<HTMLElement>(
-      "[data-product-card]"
-    );
+    const firstCard = rail.querySelector<HTMLElement>("[data-product-card]");
 
-    const cardWidth =
-      firstCard?.getBoundingClientRect().width ?? 250;
+    const cardWidth = firstCard?.getBoundingClientRect().width ?? 250;
 
     const gap = 16;
 
@@ -81,11 +69,10 @@ const ProductRail = ({ products }: ProductRailProps) => {
      */
     const visibleCards = Math.max(
       1,
-      Math.floor(rail.clientWidth / (cardWidth + gap))
+      Math.floor(rail.clientWidth / (cardWidth + gap)),
     );
 
-    const distance =
-      (cardWidth + gap) * Math.max(1, visibleCards - 1);
+    const distance = (cardWidth + gap) * Math.max(1, visibleCards - 1);
 
     rail.scrollBy({
       left: direction === "right" ? distance : -distance,
@@ -97,9 +84,21 @@ const ProductRail = ({ products }: ProductRailProps) => {
     return (
       <div className="rounded-lg border border-black/10 bg-black/[0.02] px-6 py-14 text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-black/5">
-          <PackageSearch
-            size={21}
-            className="text-black/50"
+          <Image
+            src={GrindUntilAchieve2}
+            alt="GRIND UNTIL ACHIEVE"
+            width={32}
+            height={32}
+            priority
+            className="
+                h-4
+                w-4
+                cursor-pointer
+                object-contain
+                transition-opacity
+                duration-300
+                group-hover:opacity-80
+              "
           />
         </div>
 
@@ -108,8 +107,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
         </h3>
 
         <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-black/50">
-          Products will appear here as soon as they are
-          available.
+          Products will appear here as soon as they are available.
         </p>
       </div>
     );
@@ -120,10 +118,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
       {/* HEADER */}
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-
-          <h2 className="mt-1 heading2-bold">
-            Outfits
-          </h2>
+          <h2 className="mt-1 heading2-bold">Outfits</h2>
         </div>
 
         <div className="flex items-center gap-2">
