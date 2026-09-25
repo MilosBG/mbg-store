@@ -9,6 +9,8 @@ import MilosBGAnimatedSlogan from "./components/MilosBGAnimatedSlogan/MilosBGAni
 import MilosBGSocialsSection from "./components/MilosBGSocialsSection";
 import GrindModeHero from "./components/GrindModeHero";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = buildMetadata({
   title: "Milos BG",
 
