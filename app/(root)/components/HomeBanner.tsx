@@ -8,7 +8,7 @@ const HomeBanner = async () => {
   const { imageUrl, imageAlt, cta } = await getHomeBannerSettings();
 
   return (
-    <div className="relative mt-5 h-[300px] overflow-hidden bg-mbg-black p-4 mbg-p-center">
+    <div className="relative mt-5 h-[420px] overflow-hidden bg-mbg-black p-4 mbg-p-center md:h-[540px] lg:h-[680px] 2xl:h-[760px]">
       {imageUrl ? (
         <Image
           src={imageUrl}
@@ -23,7 +23,7 @@ const HomeBanner = async () => {
           src={GrindUntilAchieve}
           alt="Grind Until Achieve"
           priority
-          className="max-h-[160px] md:max-h-[200px] w-auto object-contain"
+          className="max-h-[200px] w-auto object-contain md:max-h-[260px] lg:max-h-[340px] 2xl:max-h-[400px]"
         />
       )}
 
