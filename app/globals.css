@@ -525,6 +525,37 @@ body {
   }
 }
 
+@keyframes mbgHomeBlackPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 7px rgba(0, 0, 0, 0.55), 0 0 16px rgba(0, 0, 0, 0.35);
+  }
+
+  50% {
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.85), 0 0 28px rgba(0, 0, 0, 0.6), 0 0 44px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.mbg-home-cta {
+  animation: mbgHomeBlackPulse 2.4s ease-in-out infinite;
+}
+
+.mbg-home-cta-sweep {
+  animation: mbgGlowSweep 2.6s ease-in-out infinite;
+}
+
+.mbg-home-cta-inner {
+  animation: mbgInnerGlow 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mbg-home-cta,
+  .mbg-home-cta-sweep,
+  .mbg-home-cta-inner {
+    animation: none;
+  }
+}
+
 @keyframes mbgInnerGlow {
   0%,
   100% {

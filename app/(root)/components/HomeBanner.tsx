@@ -35,9 +35,13 @@ const HomeBanner = async () => {
       {cta && (
         <Link
           href={cta.href}
-          className="absolute bottom-5 left-1/2 z-20 max-w-[90%] -translate-x-1/2 truncate whitespace-nowrap bg-mbg-green px-5 py-2.5 text-center text-[11px] font-bold uppercase tracking-wider text-mbg-black transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green"
+          className="mbg-home-cta absolute bottom-5 left-1/2 z-20 inline-flex min-h-12 max-w-[90%] -translate-x-1/2 items-center justify-center overflow-hidden whitespace-nowrap border border-white/25 bg-black px-6 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          {cta.label}
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+            <span className="mbg-home-cta-sweep absolute -inset-y-1/2 -left-1/2 w-[45%] -skew-x-[20deg] bg-gradient-to-r from-transparent via-white/60 to-transparent blur-md" />
+          </span>
+          <span aria-hidden="true" className="mbg-home-cta-inner pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-black/0 via-white/10 to-black/0" />
+          <span className="relative z-10 truncate">{cta.label}</span>
         </Link>
       )}
     </div>
