@@ -8,7 +8,7 @@ const HomeBanner = async () => {
   const { imageUrl, imageAlt, cta } = await getHomeBannerSettings();
 
   return (
-    <div className="relative mt-5 h-[420px] overflow-hidden bg-mbg-black p-4 mbg-p-center md:h-[540px] lg:h-[680px] 2xl:h-[760px]">
+    <div className="relative mt-5 h-[400px] overflow-hidden bg-mbg-black p-4 mbg-p-center md:h-[500px] lg:h-[680px] 2xl:h-[600px]">
       {imageUrl ? (
         <Image
           src={imageUrl}
