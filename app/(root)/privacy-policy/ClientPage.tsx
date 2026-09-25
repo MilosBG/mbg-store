@@ -14,6 +14,32 @@ import { BiSolidBasketball } from "react-icons/bi";
 const LANG_STORAGE_KEY = "mbg.privacy.lang" as const;
 type Lang = "en" | "fr";
 
+
+// -----------------------------------------------------------------------------
+// Privacy information — COMPLETE THE TODO VALUES BEFORE PRODUCTION
+// -----------------------------------------------------------------------------
+const PRIVACY_INFO = {
+  controllerName: "Gamil BEN AHMED — Milos BG",
+  email: "contact@milos-bg.com",
+  legalNoticePath: "/legal-notice",
+
+  // Named processors currently known from the application architecture.
+  hostingProvider: "Vercel Inc.",
+  authenticationProvider: "Clerk",
+  paymentProvider: "PayPal",
+  databaseProvider: "MongoDB / MongoDB Atlas",
+
+  // REQUIRED BEFORE PRODUCTION if these services are used:
+  emailProviderFR:
+    "À COMPLÉTER — prestataire d’email transactionnel / marketing réellement utilisé",
+  emailProviderEN:
+    "TO COMPLETE — actual transactional / marketing email provider",
+  carrierFR:
+    "À COMPLÉTER — transporteur(s) recevant les données de livraison",
+  carrierEN:
+    "TO COMPLETE — carrier(s) receiving delivery data",
+} as const;
+
 const useLang = (): [Lang, (l: Lang) => void] => {
   const [lang, setLang] = useState<Lang>("en");
 
@@ -68,7 +94,7 @@ const IDS = [
   "annexe-cookies",
   "annexe-sous-traitants",
   "annexe-bases-legales",
-  "contact-dpo",
+  "contact-confidentialite",
 ] as const;
 
 // -----------------------------------------------------------------------------
@@ -85,11 +111,11 @@ const tocItems = {
     ["7.", "Cookies & traceurs", IDS[6]],
     ["8.", "Publicité & réseaux sociaux", IDS[7]],
     ["9.", "Mesure d’audience (Analytics)", IDS[8]],
-    ["10.", "Paiement & anti‑fraude", IDS[9]],
+    ["10.", "Paiement & anti-fraude", IDS[9]],
     ["11.", "Compte client & service client", IDS[10]],
-    ["12.", "Newsletters & SMS", IDS[11]],
+    ["12.", "Newsletters & emails marketing", IDS[11]],
     ["13.", "Personnalisation / profilage", IDS[12]],
-    ["14.", "Partage & sous‑traitants", IDS[13]],
+    ["14.", "Partage & sous-traitants", IDS[13]],
     ["15.", "Transferts internationaux", IDS[14]],
     ["16.", "Durées de conservation", IDS[15]],
     ["17.", "Sécurité", IDS[16]],
@@ -98,10 +124,10 @@ const tocItems = {
     ["20.", "Consentement & GPC", IDS[19]],
     ["21.", "Exercer vos droits", IDS[20]],
     ["22.", "Mises à jour", IDS[21]],
-    ["Annexe A.", "Table des cookies", IDS[22]],
-    ["Annexe B.", "Sous‑traitants", IDS[23]],
+    ["Annexe A.", "Registre cookies & traceurs", IDS[22]],
+    ["Annexe B.", "Sous-traitants", IDS[23]],
     ["Annexe C.", "Bases légales par finalité", IDS[24]],
-    ["Contact", "DPO / contact confidentialité", IDS[25]],
+    ["Contact", "Contact protection des données", IDS[25]],
   ],
   en: [
     ["1.", "Who we are", IDS[0]],
@@ -113,9 +139,9 @@ const tocItems = {
     ["7.", "Cookies & trackers", IDS[6]],
     ["8.", "Advertising & social", IDS[7]],
     ["9.", "Analytics & measurement", IDS[8]],
-    ["10.", "Payments & anti‑fraud", IDS[9]],
+    ["10.", "Payments & anti-fraud", IDS[9]],
     ["11.", "Account & support", IDS[10]],
-    ["12.", "Newsletters & SMS", IDS[11]],
+    ["12.", "Newsletters & marketing emails", IDS[11]],
     ["13.", "Personalization / profiling", IDS[12]],
     ["14.", "Sharing & processors", IDS[13]],
     ["15.", "International transfers", IDS[14]],
@@ -126,10 +152,10 @@ const tocItems = {
     ["20.", "Consent & GPC", IDS[19]],
     ["21.", "Exercising your rights", IDS[20]],
     ["22.", "Updates", IDS[21]],
-    ["Annex A.", "Cookie table (example)", IDS[22]],
-    ["Annex B.", "Processor categories", IDS[23]],
+    ["Annex A.", "Cookie & tracker register", IDS[22]],
+    ["Annex B.", "Processors", IDS[23]],
     ["Annex C.", "Legal bases by purpose", IDS[24]],
-    ["Contact", "DPO / privacy contact", IDS[25]],
+    ["Contact", "Data protection contact", IDS[25]],
   ],
 } as const;
 
@@ -262,12 +288,12 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <p>
         The controller is Milos BG (see{" "}
-        <Link className="mbg-link" href={"legal-notice"}>
+        <Link className="mbg-link" href={PRIVACY_INFO.legalNoticePath}>
           Legal notice
         </Link>
         ). Privacy contact :{" "}
-        <Link className="mbg-link" href="mailto:contact@milos-bg.com">
-          contact@milos-bg.com
+        <Link className="mbg-link" href={`mailto:${PRIVACY_INFO.email}`}>
+          {PRIVACY_INFO.email}
         </Link>
       </p>
     </Section>
@@ -278,7 +304,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <ul className="list-disc space-y-1 pl-6">
         <li>
-          <strong>Identity</strong>: name, title, birthdate (optional).
+          <strong>Identity</strong>: name and first name when provided.
         </li>
         <li>
           <strong>Contact</strong>: email, phone, shipping/billing addresses.
@@ -291,8 +317,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           never see card numbers).
         </li>
         <li>
-          <strong>Support</strong>: messages, optional recordings, internal
-          notes.
+          <strong>Support</strong>: messages and internal follow-up notes where necessary.
         </li>
         <li>
           <strong>Technical</strong>: logs, IP address, user‑agent, session
@@ -330,9 +355,9 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           contract).
         </li>
         <li>
-          <strong>Marketing</strong> email/SMS with consent, or to existing
-          customers for similar products (consent/legitimate interest depending
-          on country).
+          <strong>Marketing emails</strong>: prior consent for prospects; for
+          existing customers, marketing may concern products or services similar
+          to those already purchased, with a simple and free right to object.
         </li>
         <li>
           <strong>Personalization</strong> and recommendations (consent if
@@ -368,9 +393,10 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="8. Advertising & social"
     >
       <p>
-        We may use platforms (e.g., Meta, Google, Pinterest) for
-        retargeting/affinity. Ad cookies remain off until you consent via the
-        CMP. Audiences may use hashed customer emails (opt‑out available).
+        Any advertising or retargeting tool requiring consent must remain disabled
+        until the user has consented through the consent manager. Before a new
+        advertising platform is activated, Milos BG updates this policy and the
+        cookie register to identify the relevant processing.
       </p>
     </Section>
     <Section
@@ -408,12 +434,14 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     <Section
       id="newsletters-sms"
       forceOpen={allOpen ?? undefined}
-      title="12. Newsletters & SMS"
+      title="12. Newsletters & marketing emails"
     >
       <p>
-        With your consent, we send marketing communications (new items, promos,
-        care tips). You can unsubscribe anytime (link in the email/SMS or from
-        your account).
+        With your consent, we send marketing emails about new products,
+        collections, offers and Milos BG content. You can withdraw your consent
+        or unsubscribe at any time using the unsubscribe link included in each
+        marketing email. Existing customers may also receive messages about
+        similar products where permitted by law, with an easy and free opt-out.
       </p>
     </Section>
     <Section
@@ -468,7 +496,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           archive.
         </li>
         <li>
-          <strong>Prospects (email/SMS)</strong>: 3 years after last contact or
+          <strong>Prospects (marketing email)</strong>: 3 years after last contact or
           until consent withdrawal.
         </li>
         <li>
@@ -501,12 +529,12 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="18. Your rights"
     >
       <p>
-        Depending on your jurisdiction: rights of access, rectification,
-        erasure, restriction, objection, portability, withdrawal of consent, and
-        post‑mortem directives (France). California: access, deletion,
-        correction, opt‑out of “sale/sharing” for targeted ads; right to
-        non‑discrimination. Québec: cessation of dissemination/de‑indexing in
-        certain cases.
+        Under the GDPR and French data-protection rules, you may have rights of
+        access, rectification, erasure, restriction, objection, portability and
+        withdrawal of consent at any time. In France, you may also define
+        directives concerning the use of your personal data after death. You may
+        lodge a complaint with the CNIL if you consider that your rights have not
+        been respected.
       </p>
     </Section>
     <Section id="mineurs" forceOpen={allOpen ?? undefined} title="19. Minors">
@@ -533,10 +561,12 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <p>
         Use the{" "}
-        <Link className="mbg-link" href="mailto:contact@milos-bg.com">
-          contact@milos-bg.com
+        <Link className="mbg-link" href={`mailto:${PRIVACY_INFO.email}`}>
+          {PRIVACY_INFO.email}
         </Link>
-        . We may ask for information to verify your identity.
+        . We may ask only for information necessary to verify your identity. We
+        respond within the time limits provided by the GDPR, normally within one
+        month, subject to the extensions permitted by law.
       </p>
     </Section>
     <Section
@@ -553,78 +583,89 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     <Section
       id="annexe-cookies"
       forceOpen={allOpen ?? undefined}
-      title="Annex A — Cookie table (example)"
+      title="Annex A — Cookie & tracker register"
     >
-      <ul className="list-disc space-y-1 pl-6">
+      <p>
+        This register must match the trackers actually used in production. No
+        non-essential tracker may be activated before the required consent has
+        been obtained.
+      </p>
+      <ul className="list-disc space-y-2 pl-6">
         <li>
-          <strong>Essential</strong> (session, cart, anti‑bot) — session to 12
-          months — legal basis: legitimate interest/contract.
+          <strong>mbg.privacy.lang</strong> — localStorage — Privacy Policy
+          language preference — retained until the preference is changed or the
+          browser storage is cleared.
         </li>
         <li>
-          <strong>Analytics</strong> (aggregated measurement) — 13 months —
-          consent or legitimate interest depending on setup.
+          <strong>mbg.legal.lang / mbg.lang</strong> — localStorage — language
+          preferences for the legal pages and Terms — retained until the
+          preference is changed or the browser storage is cleared.
         </li>
         <li>
-          <strong>Advertising</strong> (retargeting) — 3–13 months — consent.
+          <strong>Clerk authentication/session trackers</strong> — strictly
+          necessary for sign-in, session security and account access — duration
+          according to the active Clerk session configuration.
         </li>
         <li>
-          <strong>Personalization</strong> — 6–13 months — consent.
-        </li>
-        <li>
-          <strong>Social</strong> — 3–13 months — consent.
+          <strong>Non-essential analytics / advertising trackers</strong> —{" "}
+          <span className="font-semibold text-mbg-green">
+            add here each tracker actually enabled in production
+          </span>{" "}
+          (provider, name, purpose and duration). They must remain disabled before
+          consent where consent is required.
         </li>
       </ul>
       <p className="text-[11px] text-mbg-darkgrey">
-        See the consent manager (CMP) in the footer for detailed list.
+        Users may review or change their choices concerning non-essential cookies
+        at any time through the consent-management control available on the
+        Website.
       </p>
     </Section>
     <Section
       id="annexe-sous-traitants"
       forceOpen={allOpen ?? undefined}
-      title="Annex B — Processor categories"
+      title="Annex B — Processors"
     >
-      <ul className="list-disc space-y-1 pl-6">
-        <li>Hosting & CDN;</li>
-        <li>Email & SMS platforms;</li>
-        <li>Payments & anti‑fraud;</li>
-        <li>Analytics & A/B testing;</li>
-        <li>Online ads & social;</li>
-        <li>Customer service (ticketing, chat);</li>
-        <li>Logistics, carriers, workshops.</li>
+      <ul className="list-disc space-y-2 pl-6">
+        <li><strong>{PRIVACY_INFO.hostingProvider}</strong> — hosting, deployment and CDN.</li>
+        <li><strong>{PRIVACY_INFO.authenticationProvider}</strong> — authentication and session management.</li>
+        <li><strong>{PRIVACY_INFO.paymentProvider}</strong> — online payment processing.</li>
+        <li><strong>{PRIVACY_INFO.databaseProvider}</strong> — application database hosting when used in production.</li>
+        <li><strong>Email provider</strong> — {PRIVACY_INFO.emailProviderEN}.</li>
+        <li><strong>Shipping / logistics</strong> — {PRIVACY_INFO.carrierEN}.</li>
       </ul>
       <p className="text-[11px] text-mbg-darkgrey">
-        A named list can be provided upon legitimate request.
+        Update this list whenever a provider receiving personal data is added,
+        replaced or removed.
       </p>
     </Section>
     <Section
       id="annexe-bases-legales"
       forceOpen={allOpen ?? undefined}
-      title="Annex C — Legal bases by purpose (recap)"
+      title="Annex C — Legal bases by purpose"
     >
       <ul className="list-disc space-y-1 pl-6">
-        <li>Sale/delivery/support: contract performance.</li>
-        <li>Billing/accounting: legal obligation.</li>
-        <li>Essential analytics & security: legitimate interest.</li>
-        <li>
-          Direct marketing email/SMS: consent (or legitimate interest for
-          existing customers, country‑dependent).
-        </li>
-        <li>Targeted ads, personalization: consent.</li>
-        <li>Anti‑fraud: legitimate interest/legal obligation.</li>
+        <li>Sales, delivery, returns and customer support: performance of the contract.</li>
+        <li>Invoices and accounting records: legal obligation.</li>
+        <li>Account security and fraud prevention: legitimate interest and, where applicable, legal obligations.</li>
+        <li>Marketing emails sent to prospects: consent.</li>
+        <li>Marketing to existing customers for similar products: legitimate interest where permitted by law, with a simple and free right to object.</li>
+        <li>Non-essential analytics, advertising and tracker-based personalization: consent.</li>
       </ul>
     </Section>
     <Section
-      id="contact-dpo"
+      id="contact-confidentialite"
       forceOpen={allOpen ?? undefined}
-      title="Contact — DPO / privacy"
+      title="Contact — Data protection"
     >
       <p>
-        For privacy questions contact us via{" "}
-        <Link className="mbg-link" href="mailto:contact@milos-bg.com">
-          contact@milos-bg.com
-        </Link>
-        . If you believe your rights are not respected after contacting us, you
-        may contact your supervisory authority (in France: CNIL).
+        For any question concerning personal data or to exercise your rights,
+        contact{" "}
+        <a className="mbg-link" href={`mailto:${PRIVACY_INFO.email}`}>
+          {PRIVACY_INFO.email}
+        </a>
+        . If you consider that your rights have not been respected after
+        contacting Milos BG, you may lodge a complaint with the CNIL.
       </p>
     </Section>
   </>
@@ -701,12 +742,12 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <p>
         Le responsable du traitement est Milos BG (voir{" "}
-        <Link className="mbg-link" href={"legal-notice"}>
+        <Link className="mbg-link" href={PRIVACY_INFO.legalNoticePath}>
           Mentions légales
         </Link>
         ). Contact confidentialité :{" "}
-        <Link className="mbg-link" href="mailto:contact@milos-bg.com">
-          contact@milos-bg.com
+        <Link className="mbg-link" href={`mailto:${PRIVACY_INFO.email}`}>
+          {PRIVACY_INFO.email}
         </Link>
       </p>
     </Section>
@@ -719,8 +760,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <ul className="list-disc space-y-1 pl-6">
         <li>
-          <strong>Identité</strong> : nom, prénom, civilité, date de naissance
-          (facultatif).
+          <strong>Identité</strong> : nom et prénom lorsqu’ils sont fournis.
         </li>
         <li>
           <strong>Coordonnées</strong> : email, téléphone, adresses de
@@ -735,8 +775,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           paiement (pas d’accès aux numéros de carte).
         </li>
         <li>
-          <strong>Service client</strong> : messages, enregistrements
-          facultatifs, notes internes.
+          <strong>Service client</strong> : messages et notes internes de suivi lorsque nécessaire.
         </li>
         <li>
           <strong>Technique</strong> : logs, adresse IP, user‑agent,
@@ -778,9 +817,10 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           exécution du contrat).
         </li>
         <li>
-          <strong>Prospection</strong> email/SMS si consentie ou clients
-          existants pour produits similaires (consentement/intérêt légitime
-          selon pays).
+          <strong>Emails marketing</strong> : consentement préalable pour les
+          prospects ; pour les clients existants, la prospection peut concerner
+          des produits ou services analogues à ceux déjà achetés, avec possibilité
+          d’opposition simple et gratuite.
         </li>
         <li>
           <strong>Personnalisation</strong> du site et recommandations
@@ -822,10 +862,11 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="8. Publicité & réseaux sociaux"
     >
       <p>
-        Nous pouvons utiliser des plateformes (ex. Meta, Google, Pinterest) pour
-        des campagnes de retargeting/affinité. Les cookies publicitaires sont
-        désactivés tant que vous n’avez pas consenti via le CMP. Les audiences
-        peuvent être constituées d’emails hachés de clients (opt‑out possible).
+        Tout outil publicitaire ou de retargeting nécessitant un consentement doit
+        rester désactivé tant que l’utilisateur n’a pas consenti via le
+        gestionnaire de consentement. Avant l’activation d’une nouvelle
+        plateforme publicitaire, Milos BG met à jour la présente politique et
+        le registre des traceurs afin d’identifier le traitement concerné.
       </p>
     </Section>
 
@@ -873,13 +914,16 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     <Section
       id="newsletters-sms"
       forceOpen={allOpen ?? undefined}
-      title="12. Newsletters & SMS"
+      title="12. Newsletters & emails marketing"
     >
       <p>
-        Avec votre consentement, nous envoyons des communications marketing
-        (nouveautés, promotions, conseils d’entretien des vêtements faits main).
-        Vous pouvez vous désabonner à tout moment (lien dans l’email/SMS ou
-        depuis votre compte).
+        Avec votre consentement, nous envoyons des emails marketing concernant
+        les nouveautés, collections, offres et contenus Milos BG. Vous pouvez
+        retirer votre consentement ou vous désabonner à tout moment via le lien
+        de désinscription présent dans chaque email marketing. Les clients
+        existants peuvent également recevoir, lorsque la réglementation le
+        permet, des communications relatives à des produits analogues, avec une
+        opposition simple et gratuite.
       </p>
     </Section>
 
@@ -949,7 +993,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           archivage sécurisé.
         </li>
         <li>
-          <strong>Prospects (email/SMS)</strong> : 3 ans après le dernier
+          <strong>Prospects (marketing email)</strong> : 3 ans après le dernier
           contact ou jusqu’au retrait du consentement.
         </li>
         <li>
@@ -987,12 +1031,13 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       title="18. Vos droits"
     >
       <p>
-        Selon votre juridiction, vous disposez notamment des droits d’accès,
-        rectification, effacement, limitation, opposition, portabilité, retrait
-        du consentement et directives post‑mortem (France). En Californie :
-        accès, suppression, correction, opt‑out de la « vente/partage » à des
-        fins de publicité ciblée ; droit à la non‑discrimination. Au Québec :
-        droit à la cessation de diffusion/ réindexation dans certains cas.
+        Conformément au RGPD et à la législation française, vous disposez, selon
+        le traitement concerné, des droits d’accès, de rectification,
+        d’effacement, de limitation, d’opposition, de portabilité et de retrait
+        du consentement à tout moment. Vous pouvez également définir des
+        directives relatives au sort de vos données après votre décès. Vous
+        pouvez introduire une réclamation auprès de la CNIL si vous estimez que
+        vos droits ne sont pas respectés.
       </p>
     </Section>
 
@@ -1026,11 +1071,13 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <p>
         Pour exercer vos droits, écrivez nous via{" "}
-        <Link className="mbg-link" href="mailto:contact@milos-bg.com">
-          contact@milos-bg.com
+        <Link className="mbg-link" href={`mailto:${PRIVACY_INFO.email}`}>
+          {PRIVACY_INFO.email}
         </Link>
-        . Afin de protéger votre compte, nous pouvons vous demander des
-        informations permettant de vérifier votre identité.
+        . Afin de protéger vos données, nous pouvons vous demander uniquement les
+        informations nécessaires à la vérification de votre identité. Nous
+        répondons dans les délais prévus par le RGPD, en principe sous un mois,
+        sous réserve des prolongations autorisées par la loi.
       </p>
     </Section>
 
@@ -1052,84 +1099,93 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     <Section
       id="annexe-cookies"
       forceOpen={allOpen ?? undefined}
-      title="Annexe A — Table des cookies (exemple)"
+      title="Annexe A — Registre cookies & traceurs"
     >
-      <ul className="list-disc space-y-1 pl-6">
+      <p>
+        Ce registre doit correspondre aux traceurs réellement utilisés en
+        production. Aucun traceur non essentiel ne doit être activé avant le
+        consentement requis.
+      </p>
+      <ul className="list-disc space-y-2 pl-6">
         <li>
-          <strong>Essentiels</strong> (session, panier, anti‑bot) — durée :
-          session à 12 mois — base légale : intérêt légitime/exécution du
-          contrat.
+          <strong>mbg.privacy.lang</strong> — localStorage — préférence de langue
+          de la page Politique de confidentialité — conservée jusqu’au changement
+          ou à l’effacement du stockage du navigateur.
         </li>
         <li>
-          <strong>Analytics</strong> (mesure d’audience agrégée) — 13 mois —
-          consentement ou intérêt légitime selon paramétrage.
+          <strong>mbg.legal.lang / mbg.lang</strong> — localStorage — préférences
+          de langue des pages juridiques et CGV — conservées jusqu’au changement
+          ou à l’effacement du stockage du navigateur.
         </li>
         <li>
-          <strong>Publicité</strong> (retargeting) — 3 à 13 mois — consentement.
+          <strong>Traceurs d’authentification/session Clerk</strong> —
+          strictement nécessaires à la connexion, à la sécurité de session et à
+          l’accès au compte — durée selon la configuration de session Clerk
+          active.
         </li>
         <li>
-          <strong>Personnalisation</strong> — 6 à 13 mois — consentement.
-        </li>
-        <li>
-          <strong>Réseaux sociaux</strong> — 3 à 13 mois — consentement.
+          <strong>Traceurs analytics / publicitaires non essentiels</strong> —{" "}
+          <span className="font-semibold text-mbg-green">
+            ajouter ici chaque traceur réellement activé en production
+          </span>{" "}
+          (prestataire, nom, finalité et durée). Ils doivent rester désactivés
+          avant consentement lorsque celui-ci est requis.
         </li>
       </ul>
       <p className="text-[11px] text-mbg-darkgrey">
-        La liste détaillée est disponible dans le gestionnaire de consentement
-        (CMP) accessible en bas de page.
+        L’utilisateur peut revoir ou modifier à tout moment ses choix relatifs
+        aux cookies non essentiels via le contrôle de gestion du consentement
+        disponible sur le Site.
       </p>
     </Section>
 
     <Section
       id="annexe-sous-traitants"
       forceOpen={allOpen ?? undefined}
-      title="Annexe B — Catégories de sous‑traitants"
+      title="Annexe B — Sous-traitants"
     >
-      <ul className="list-disc space-y-1 pl-6">
-        <li>Hébergement & CDN ;</li>
-        <li>Plateforme d’emailing & SMS ;</li>
-        <li>Solutions de paiement & lutte anti‑fraude ;</li>
-        <li>Outils analytics & A/B testing ;</li>
-        <li>Publicité en ligne & réseaux sociaux ;</li>
-        <li>Service client (ticketing, chat) ;</li>
-        <li>Logistique, transporteurs, ateliers de fabrication.</li>
+      <ul className="list-disc space-y-2 pl-6">
+        <li><strong>{PRIVACY_INFO.hostingProvider}</strong> — hébergement, déploiement et CDN.</li>
+        <li><strong>{PRIVACY_INFO.authenticationProvider}</strong> — authentification et gestion des sessions.</li>
+        <li><strong>{PRIVACY_INFO.paymentProvider}</strong> — traitement du paiement en ligne.</li>
+        <li><strong>{PRIVACY_INFO.databaseProvider}</strong> — hébergement de la base applicative lorsqu’il est utilisé en production.</li>
+        <li><strong>Prestataire email</strong> — {PRIVACY_INFO.emailProviderFR}.</li>
+        <li><strong>Transport / logistique</strong> — {PRIVACY_INFO.carrierFR}.</li>
       </ul>
       <p className="text-[11px] text-mbg-darkgrey">
-        Une liste nominative peut être fournie sur demande légitime.
+        Mettre à jour cette liste dès qu’un prestataire recevant des données
+        personnelles est ajouté, remplacé ou supprimé.
       </p>
     </Section>
 
     <Section
       id="annexe-bases-legales"
       forceOpen={allOpen ?? undefined}
-      title="Annexe C — Bases légales par finalité (récap)"
+      title="Annexe C — Bases légales par finalité"
     >
       <ul className="list-disc space-y-1 pl-6">
-        <li>Vente/livraison/SAV : exécution du contrat.</li>
-        <li>Facturation/comptabilité : obligation légale.</li>
-        <li>Analytics essentiel & sécurité : intérêt légitime.</li>
-        <li>
-          Marketing direct email/SMS : consentement (ou intérêt légitime clients
-          existants, pays‑dépendant).
-        </li>
-        <li>Publicité ciblée, personnalisation : consentement.</li>
-        <li>Anti‑fraude : intérêt légitime/obligation légale.</li>
+        <li>Vente, livraison, retours et SAV : exécution du contrat.</li>
+        <li>Factures et pièces comptables : obligation légale.</li>
+        <li>Sécurité du compte et lutte contre la fraude : intérêt légitime et, le cas échéant, obligations légales.</li>
+        <li>Emails marketing adressés aux prospects : consentement.</li>
+        <li>Prospection de clients existants pour des produits analogues : intérêt légitime lorsque la loi le permet, avec opposition simple et gratuite.</li>
+        <li>Analytics non essentiels, publicité et personnalisation via traceurs : consentement.</li>
       </ul>
     </Section>
 
     <Section
-      id="contact-dpo"
+      id="contact-confidentialite"
       forceOpen={allOpen ?? undefined}
-      title="Contact — DPO / confidentialité"
+      title="Contact — Protection des données"
     >
       <p>
-        Pour toute question relative à la confidentialité adressez vous à{" "}
-        <Link className="mbg-link" href="mailto:contact@milos-bg.com">
-          contact@milos-bg.com
-        </Link>
-        . Si vous estimez, après nous avoir contactés, que vos droits ne sont
-        pas respectés, vous pouvez saisir l’autorité de contrôle compétente (en
-        France : CNIL).
+        Pour toute question relative à vos données personnelles ou pour exercer
+        vos droits, contactez{" "}
+        <a className="mbg-link" href={`mailto:${PRIVACY_INFO.email}`}>
+          {PRIVACY_INFO.email}
+        </a>
+        . Si vous estimez, après avoir contacté Milos BG, que vos droits ne sont
+        pas respectés, vous pouvez introduire une réclamation auprès de la CNIL.
       </p>
     </Section>
   </>
@@ -1222,14 +1278,15 @@ const PrivacyPolicy: React.FC = () => {
       subIntro:
         lang === "fr" ? (
           <>
-            Document conforme au RGPD/UK GDPR avec mentions pour d’autres
-            juridictions (CPRA/CCPA, Loi 25 – Québec). Ceci n’est pas un conseil
-            juridique.
+            Cette politique décrit les traitements de données personnelles mis
+            en œuvre par Milos BG et doit rester alignée avec les services
+            réellement utilisés sur le Site.
           </>
         ) : (
           <>
-            Designed for GDPR/UK GDPR and includes notes for other jurisdictions
-            (CPRA/CCPA, Québec Law 25). This is not legal advice.
+            This policy describes the personal-data processing carried out by
+            Milos BG and must remain aligned with the services actually used on
+            the Website.
           </>
         ),
       tocAria: lang === "fr" ? "Fil d'Ariane" : "Breadcrumb",
@@ -1339,7 +1396,7 @@ const PrivacyPolicy: React.FC = () => {
           )}
 
           <footer className="mt-12 border-t pt-6 text-[10px] text-mbg-green">
-            <p>{ui.lastUpdateLabel}&nbsp;23/09/2025</p>
+            <p>{ui.lastUpdateLabel}&nbsp;25/09/2026</p>
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Milos BG - {ui.rights}
             </p>

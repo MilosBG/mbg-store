@@ -31,12 +31,18 @@ const LEGAL_INFO = {
   email: "contact@milos-bg.com",
 
   // REQUIRED BEFORE PRODUCTION:
-  businessAddress:
+  businessAddressFR:
     "À COMPLÉTER — adresse professionnelle complète de l’entreprise",
-  rneRegistration:
+  businessAddressEN:
+    "TO COMPLETE — full professional business address",
+  rneRegistrationFR:
     "À COMPLÉTER — mention exacte d’immatriculation RNE/RCS figurant sur votre justificatif INPI",
-  repTextileIdu:
+  rneRegistrationEN:
+    "TO COMPLETE — exact RNE/RCS registration details shown on your INPI document",
+  repTextileIduFR:
     "À COMPLÉTER — identifiant unique REP textile (TLC), si applicable",
+  repTextileIduEN:
+    "TO COMPLETE — textile EPR unique identifier (TLC), where applicable",
 
   // mbg-store is deployed on Vercel. Keep these values only while Vercel is
   // the actual hosting provider serving milos-bg.com.
@@ -199,7 +205,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>APE code: {LEGAL_INFO.ape}</p>
       <p>
         Professional address:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.businessAddress}</strong>
+        <strong className="text-mbg-green">{LEGAL_INFO.businessAddressEN}</strong>
       </p>
     </Section>
 
@@ -263,7 +269,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <p>
         Business registration:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistration}</strong>
+        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistrationEN}</strong>
       </p>
       <p>
         VAT: VAT not applicable — article 293 B of the French General Tax Code
@@ -271,7 +277,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
       <p>
         Textile EPR unique identifier (TLC), where applicable:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIdu}</strong>
+        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIduEN}</strong>
       </p>
     </Section>
 
@@ -313,7 +319,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>Code APE : {LEGAL_INFO.ape}</p>
       <p>
         Adresse professionnelle :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.businessAddress}</strong>
+        <strong className="text-mbg-green">{LEGAL_INFO.businessAddressFR}</strong>
       </p>
     </Section>
 
@@ -382,7 +388,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <p>
         Immatriculation :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistration}</strong>
+        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistrationFR}</strong>
       </p>
       <p>
         TVA : TVA non applicable — article 293 B du CGI, tant que Milos BG
@@ -390,7 +396,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
       <p>
         Identifiant unique REP textile (TLC), lorsque applicable :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIdu}</strong>
+        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIduFR}</strong>
       </p>
     </Section>
 
@@ -606,7 +612,7 @@ const LegalNotice: React.FC = () => {
           )}
 
           <footer className="mt-12 border-t pt-6 text-[10px] text-mbg-green">
-            <p>{ui.lastUpdateLabel}&nbsp;23/09/2026</p>
+            <p>{ui.lastUpdateLabel}&nbsp;25/09/2026</p>
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Milos BG - {ui.rights}
             </p>
