@@ -1,59 +1,95 @@
 import { NextResponse } from "next/server";
 
-import { connectToDB } from "@/lib/mongoDB";
-import LegalSettings, { type LegalSettingsShape } from "@/lib/models/LegalSettings";
-
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const ADMIN_URL = (process.env.MBG_ADMIN_URL || "https://mbg-admin.vercel.app").replace(/\/$/, "");
-
-const FALLBACK = {
-  businessAddress: "",
-  rneRegistration: "",
-  repTextileIdu: "",
-  returnAddress: "",
-  emailProvider: "",
-  carrier: "",
-  trackers: [],
-  termsLastUpdated: "2026-09-28",
-  privacyLastUpdated: "2026-09-28",
-  legalNoticeLastUpdated: "2026-09-28",
-};
-
-async function localFallback() {
-  await connectToDB();
-  const doc = await LegalSettings.findOne({ key: "main" }).lean<LegalSettingsShape>();
-  return {
-    businessAddress: doc?.businessAddress ?? FALLBACK.businessAddress,
-    rneRegistration: doc?.rneRegistration ?? FALLBACK.rneRegistration,
-    repTextileIdu: doc?.repTextileIdu ?? FALLBACK.repTextileIdu,
-    returnAddress: doc?.returnAddress ?? FALLBACK.returnAddress,
-    emailProvider: doc?.emailProvider ?? FALLBACK.emailProvider,
-    carrier: doc?.carrier ?? FALLBACK.carrier,
-    trackers: Array.isArray(doc?.trackers) ? doc.trackers : [],
-    termsLastUpdated: doc?.termsLastUpdated ?? FALLBACK.termsLastUpdated,
-    privacyLastUpdated: doc?.privacyLastUpdated ?? FALLBACK.privacyLastUpdated,
-    legalNoticeLastUpdated: doc?.legalNoticeLastUpdated ?? FALLBACK.legalNoticeLastUpdated,
-  };
-}
+const FALLBACK_ADMIN_URL =
+  "https://mbg-admin.vercel.app";
 
 export async function GET() {
+  const adminUrl = (
+    process.env.MBG_ADMIN_URL ||
+    FALLBACK_ADMIN_URL
+  ).replace(/\/+$/, "");
+
   try {
-    const response = await fetch(`${ADMIN_URL}/api/public/legal-settings?t=${Date.now()}`, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
+    const response = await fetch(
+      `${adminUrl}/api/public/legal-settings`,
+      {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
+      },
+    );
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      console.error(
+        `[LEGAL_SETTINGS] mbg-admin returned ${response.status}`,
+        text,
+      );
+
+      return NextResponse.json(
+        {
+          error: "LEGAL_SETTINGS_UPSTREAM_ERROR",
+          status: response.status,
+        },
+        {
+          status: 502,
+          headers: {
+            "Cache-Control": "no-store",
+          },
+        },
+      );
+    }
+
+    let payload: unknown;
+
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      console.error(
+        "[LEGAL_SETTINGS] mbg-admin returned non-JSON content.",
+        text.slice(0, 500),
+      );
+
+      return NextResponse.json(
+        {
+          error: "LEGAL_SETTINGS_INVALID_JSON",
+        },
+        {
+          status: 502,
+          headers: {
+            "Cache-Control": "no-store",
+          },
+        },
+      );
+    }
+
+    return NextResponse.json(payload, {
+      headers: {
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate",
+      },
     });
-    if (!response.ok) throw new Error(`Admin legal API returned ${response.status}`);
-    const data = (await response.json()) as { settings?: Record<string, unknown> };
-    if (!data.settings) throw new Error("Missing settings payload");
-    return NextResponse.json(data, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (error) {
-    console.warn("[LEGAL_SETTINGS] Falling back to mbg-store database", error);
-    const settings = await localFallback();
+    console.error(
+      "[LEGAL_SETTINGS] Failed to reach mbg-admin.",
+      error,
+    );
+
     return NextResponse.json(
-      { settings, source: "store-fallback" },
-      { headers: { "Cache-Control": "no-store, max-age=0" } },
+      {
+        error: "LEGAL_SETTINGS_UNAVAILABLE",
+      },
+      {
+        status: 502,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
     );
   }
 }
