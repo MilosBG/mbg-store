@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import {
   clerkMiddleware,
   createRouteMatcher,
@@ -8,15 +9,15 @@ import {
 // ROUTES PUBLIQUES
 // -----------------------------------------------------------------------------
 //
-// `(.*)` permet de rendre publique la route ET toutes ses sous-routes.
+// `(.*)` rend publique la route ET toutes ses sous-routes.
 //
-// Exemple :
-// /products
-// /products/grind-t
-// /products/grind-t?lang=fr
+// Les paramètres query comme :
 //
-// Les paramètres de query (?lang=fr, ?query=..., etc.) n'ont pas besoin
-// d'être déclarés séparément.
+// ?lang=fr
+// ?lang=en
+// ?query=...
+//
+// n'ont pas besoin d'être déclarés séparément.
 // -----------------------------------------------------------------------------
 
 const isPublicRoute = createRouteMatcher([
@@ -25,47 +26,88 @@ const isPublicRoute = createRouteMatcher([
   // ---------------------------------------------------------------------------
   // AUTHENTIFICATION
   // ---------------------------------------------------------------------------
+
   "/sign-in(.*)",
   "/sign-up(.*)",
 
   // ---------------------------------------------------------------------------
-  // PAGES PUBLIQUES
+  // BOUTIQUE / PAGES PUBLIQUES
   // ---------------------------------------------------------------------------
+
   "/the-hoop(.*)",
   "/the-background(.*)",
+
   "/terms-conditions(.*)",
   "/privacy-policy(.*)",
   "/legal-notice(.*)",
+
   "/contact(.*)",
   "/grind-until-achieve(.*)",
   "/size-guide(.*)",
 
   // ---------------------------------------------------------------------------
+  // RÉTRACTATION
+  // ---------------------------------------------------------------------------
+  //
+  // IMPORTANT :
+  // Le consommateur doit pouvoir accéder au dispositif de rétractation
+  // sans devoir être authentifié.
+  // ---------------------------------------------------------------------------
+
+  "/withdrawal(.*)",
+
+  // ---------------------------------------------------------------------------
   // RECHERCHE
   // ---------------------------------------------------------------------------
+
   "/search(.*)",
 
   // ---------------------------------------------------------------------------
   // PRODUITS
   // ---------------------------------------------------------------------------
+
   "/products(.*)",
 
   // ---------------------------------------------------------------------------
   // CHAPITRES
   // ---------------------------------------------------------------------------
+
   "/chapters(.*)",
 
   // ---------------------------------------------------------------------------
   // SEO
   // ---------------------------------------------------------------------------
+
   "/robots.txt",
   "/sitemap.xml",
 
   // ---------------------------------------------------------------------------
-  // ROUTES API PUBLIQUES
+  // API PUBLIQUES — MILOS BG
   // ---------------------------------------------------------------------------
+
   "/api/milos-bg(.*)",
+
+  // ---------------------------------------------------------------------------
+  // API PUBLIQUES — CHECKOUT
+  // ---------------------------------------------------------------------------
+
   "/api/checkout(.*)",
+
+  // ---------------------------------------------------------------------------
+  // API PUBLIQUES — LEGAL CONTENT
+  // ---------------------------------------------------------------------------
+  //
+  // Ces endpoints doivent être accessibles aux pages publiques du store.
+  //
+  // /api/legal-settings
+  //     récupère les informations juridiques à afficher.
+  //
+  // /api/legal/withdrawal-form
+  //     génère/télécharge le formulaire PDF de rétractation.
+  // ---------------------------------------------------------------------------
+
+  "/api/legal-settings(.*)",
+  "/api/legal/withdrawal-form(.*)",
 ]);
 
 // -----------------------------------------------------------------------------
@@ -93,11 +135,11 @@ export default clerkMiddleware(async (auth, req) => {
   // AUTHENTIFICATION
   // ---------------------------------------------------------------------------
   //
-  // Toutes les routes qui ne sont PAS explicitement publiques nécessitent
+  // Toute route qui n'est PAS explicitement publique nécessite
   // une authentification Clerk.
   //
   // IMPORTANT :
-  // l'en-tête x-mbg-maintenance-probe ne permet jamais de contourner Clerk.
+  // `x-mbg-maintenance-probe` ne permet jamais de contourner Clerk.
   // ---------------------------------------------------------------------------
 
   if (!isPublicRoute(req)) {
@@ -135,6 +177,7 @@ export default clerkMiddleware(async (auth, req) => {
 
     const statusRes = await fetch(statusUrl, {
       cache: "no-store",
+
       headers: {
         "x-mbg-maintenance-probe": "1",
       },
@@ -145,8 +188,9 @@ export default clerkMiddleware(async (auth, req) => {
     // -------------------------------------------------------------------------
 
     if (!statusRes.ok) {
-      // Un 404 est toléré :
-      // la boutique reste considérée comme en ligne.
+      // Un 404 est volontairement toléré :
+      // l'absence temporaire de l'endpoint de statut ne doit pas
+      // rendre toute la boutique inaccessible.
 
       if (statusRes.status !== 404) {
         const text = await statusRes
@@ -154,7 +198,7 @@ export default clerkMiddleware(async (auth, req) => {
           .catch(() => "");
 
         console.warn(
-          `Maintenance status endpoint returned ${statusRes.status}`,
+          `[MBG_STORE] Maintenance status endpoint returned ${statusRes.status}`,
           text,
         );
       }
@@ -178,10 +222,10 @@ export default clerkMiddleware(async (auth, req) => {
     }
   } catch (error) {
     // Une erreur du système de maintenance ne doit jamais rendre
-    // automatiquement la boutique inaccessible.
+    // automatiquement le store inaccessible.
 
     console.warn(
-      "Failed to probe maintenance status",
+      "[MBG_STORE] Failed to probe maintenance status",
       error,
     );
   }
@@ -199,25 +243,28 @@ export const config = {
      * Middleware appliqué aux pages Next.js,
      * sauf aux assets statiques.
      *
-     * On exclut notamment :
+     * Sont notamment exclus :
      *
      * - _next
      * - images
      * - CSS
      * - JavaScript
      * - fonts
-     * - documents
+     * - PDF / documents
+     * - archives
      * - sitemap.xml
      * - robots.txt
      *
-     * robots.txt et sitemap.xml ne doivent pas dépendre
-     * de Clerk ou du système de maintenance.
+     * Les routes API restent interceptées grâce
+     * au deuxième matcher ci-dessous.
      */
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|xml|txt)).*)",
+
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|otf|woff2?|ico|csv|pdf|docx?|xlsx?|zip|webmanifest|xml|txt)).*)",
 
     /**
-     * Les API et TRPC restent interceptées par le middleware.
+     * Toutes les API et TRPC passent par le middleware.
      */
+
     "/(api|trpc)(.*)",
   ],
 };
