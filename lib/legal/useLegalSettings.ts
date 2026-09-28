@@ -1,6 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+export type LegalTrackerCategory =
+  | "ANALYTICS"
+  | "ADVERTISING"
+  | "PERSONALIZATION"
+  | "SOCIAL"
+  | "OTHER";
+
+export type LegalTracker = {
+  provider: string;
+  name: string;
+  purposeFr: string;
+  purposeEn: string;
+  duration: string;
+  category: LegalTrackerCategory;
+};
 
 export type LegalSettings = {
   businessAddress: string;
@@ -9,6 +25,7 @@ export type LegalSettings = {
   returnAddress: string;
   emailProvider: string;
   carrier: string;
+  trackers: LegalTracker[];
   termsLastUpdated: string;
   privacyLastUpdated: string;
   legalNoticeLastUpdated: string;
@@ -21,64 +38,55 @@ export const DEFAULT_LEGAL_SETTINGS: LegalSettings = {
   returnAddress: "À COMPLÉTER / TO COMPLETE — mbg-admin",
   emailProvider: "À COMPLÉTER / TO COMPLETE — mbg-admin",
   carrier: "À COMPLÉTER / TO COMPLETE — mbg-admin",
-  termsLastUpdated: "2026-09-25",
-  privacyLastUpdated: "2026-09-25",
-  legalNoticeLastUpdated: "2026-09-25",
+  trackers: [],
+  termsLastUpdated: "2026-09-28",
+  privacyLastUpdated: "2026-09-28",
+  legalNoticeLastUpdated: "2026-09-28",
 };
 
-let cache: LegalSettings | null = null;
-let inFlight: Promise<LegalSettings> | null = null;
-
-async function fetchSettings() {
-  if (cache) return cache;
-  if (inFlight) return inFlight;
-
-  inFlight = fetch("/api/legal-settings", { cache: "no-store" })
-    .then(async (response) => {
-      if (!response.ok) throw new Error("Legal settings request failed");
-      const data = await response.json();
-      const raw = data?.settings ?? {};
-      cache = Object.fromEntries(
-        Object.entries(DEFAULT_LEGAL_SETTINGS).map(([key, fallback]) => {
-          const value = raw[key];
-          return [
-            key,
-            typeof value === "string" && value.trim().length > 0
-              ? value
-              : fallback,
-          ];
-        }),
-      ) as LegalSettings;
-      return cache;
-    })
-    .finally(() => {
-      inFlight = null;
-    });
-
-  return inFlight;
+function normalize(raw: Partial<LegalSettings> | undefined): LegalSettings {
+  return {
+    ...DEFAULT_LEGAL_SETTINGS,
+    ...(raw ?? {}),
+    trackers: Array.isArray(raw?.trackers) ? raw.trackers : [],
+  };
 }
 
 export function useLegalSettings() {
-  const [settings, setSettings] = useState<LegalSettings>(
-    cache ?? DEFAULT_LEGAL_SETTINGS,
-  );
+  const [settings, setSettings] = useState<LegalSettings>(DEFAULT_LEGAL_SETTINGS);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let active = true;
-    void fetchSettings()
-      .then((next) => {
-        if (active) setSettings(next);
-      })
-      .catch(() => {
-        // On garde les valeurs de secours visibles plutôt que de masquer une
-        // information juridique manquante.
+  const refresh = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/legal-settings?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
       });
-    return () => {
-      active = false;
-    };
+      if (!response.ok) throw new Error("Legal settings request failed");
+      const data = (await response.json()) as { settings?: Partial<LegalSettings> };
+      setSettings(normalize(data.settings));
+    } catch (error) {
+      console.warn("[LEGAL_SETTINGS] Could not refresh public settings", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { settings };
+  useEffect(() => {
+    void refresh();
+    const onFocus = () => void refresh();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [refresh]);
+
+  return { settings, loading, refresh };
 }
 
 export function formatLegalDate(isoDate: string, lang: "fr" | "en") {

@@ -5,11 +5,6 @@ import fontkit from "@pdf-lib/fontkit";
 import { NextResponse } from "next/server";
 import { PDFDocument, rgb, type PDFFont } from "pdf-lib";
 
-import { connectToDB } from "@/lib/mongoDB";
-import LegalSettings, {
-  type LegalSettingsShape,
-} from "@/lib/models/LegalSettings";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -78,20 +73,35 @@ async function loadKanitFonts(pdf: PDFDocument) {
   }
 }
 
-export async function GET() {
-  await connectToDB();
+type PublicSettings = {
+  businessAddress?: string;
+  returnAddress?: string;
+};
 
-  const settings = (await LegalSettings.findOne({ key: "main" }).lean()) as
-    | (LegalSettingsShape & { _id?: unknown })
-    | null;
+async function getPublicSettings(): Promise<PublicSettings> {
+  const adminUrl = (process.env.MBG_ADMIN_URL || "https://mbg-admin.vercel.app").replace(/\/$/, "");
+  const response = await fetch(`${adminUrl}/api/public/legal-settings?t=${Date.now()}`, {
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`LEGAL_SETTINGS_${response.status}`);
+  const data = (await response.json()) as { settings?: PublicSettings };
+  return data.settings ?? {};
+}
+
+export async function GET() {
+  const settings = await getPublicSettings().catch((error) => {
+    console.error("[WITHDRAWAL_FORM] Could not load legal settings from mbg-admin", error);
+    return {} as PublicSettings;
+  });
 
   const businessAddress =
-    String(settings?.businessAddress ?? "").trim() ||
-    String(settings?.returnAddress ?? "").trim() ||
+    String(settings.businessAddress ?? "").trim() ||
+    String(settings.returnAddress ?? "").trim() ||
     "À COMPLÉTER DANS MBG-ADMIN";
 
   const returnAddress =
-    String(settings?.returnAddress ?? "").trim() || businessAddress;
+    String(settings.returnAddress ?? "").trim() || businessAddress;
 
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([595.28, 841.89]);

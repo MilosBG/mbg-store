@@ -7,6 +7,7 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { BiSolidBasketball } from "react-icons/bi";
+import { formatLegalDate, useLegalSettings } from "@/lib/legal/useLegalSettings";
 
 // -----------------------------------------------------------------------------
 // Language helpers (persist to URL & localStorage, default to EN)
@@ -30,19 +31,6 @@ const LEGAL_INFO = {
   phoneHref: "tel:+33783150791",
   email: "contact@milos-bg.com",
 
-  // REQUIRED BEFORE PRODUCTION:
-  businessAddressFR:
-    "À COMPLÉTER — adresse professionnelle complète de l’entreprise",
-  businessAddressEN:
-    "TO COMPLETE — full professional business address",
-  rneRegistrationFR:
-    "À COMPLÉTER — mention exacte d’immatriculation RNE/RCS figurant sur votre justificatif INPI",
-  rneRegistrationEN:
-    "TO COMPLETE — exact RNE/RCS registration details shown on your INPI document",
-  repTextileIduFR:
-    "À COMPLÉTER — identifiant unique REP textile (TLC), si applicable",
-  repTextileIduEN:
-    "TO COMPLETE — textile EPR unique identifier (TLC), where applicable",
 
   // mbg-store is deployed on Vercel. Keep these values only while Vercel is
   // the actual hosting provider serving milos-bg.com.
@@ -184,7 +172,9 @@ const Section: React.FC<{
 // -----------------------------------------------------------------------------
 // Localized legal content
 // -----------------------------------------------------------------------------
-const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
+const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => {
+  const { settings } = useLegalSettings();
+  return (
   <>
     <Section
       id="identification-de-lediteur"
@@ -205,7 +195,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>APE code: {LEGAL_INFO.ape}</p>
       <p>
         Professional address:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.businessAddressEN}</strong>
+        <strong className="text-mbg-green">{settings.businessAddress}</strong>
       </p>
     </Section>
 
@@ -269,7 +259,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <p>
         Business registration:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistrationEN}</strong>
+        <strong className="text-mbg-green">{settings.rneRegistration}</strong>
       </p>
       <p>
         VAT: VAT not applicable — article 293 B of the French General Tax Code
@@ -277,7 +267,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
       <p>
         Textile EPR unique identifier (TLC), where applicable:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIduEN}</strong>
+        <strong className="text-mbg-green">{settings.repTextileIdu}</strong>
       </p>
     </Section>
 
@@ -296,9 +286,12 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
     </Section>
   </>
-);
+  );
+};
 
-const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
+const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => {
+  const { settings } = useLegalSettings();
+  return (
   <>
     <Section
       id="identification-de-lediteur"
@@ -319,7 +312,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>Code APE : {LEGAL_INFO.ape}</p>
       <p>
         Adresse professionnelle :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.businessAddressFR}</strong>
+        <strong className="text-mbg-green">{settings.businessAddress}</strong>
       </p>
     </Section>
 
@@ -388,7 +381,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
     >
       <p>
         Immatriculation :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistrationFR}</strong>
+        <strong className="text-mbg-green">{settings.rneRegistration}</strong>
       </p>
       <p>
         TVA : TVA non applicable — article 293 B du CGI, tant que Milos BG
@@ -396,7 +389,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
       <p>
         Identifiant unique REP textile (TLC), lorsque applicable :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIduFR}</strong>
+        <strong className="text-mbg-green">{settings.repTextileIdu}</strong>
       </p>
     </Section>
 
@@ -416,13 +409,15 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
     </Section>
   </>
-);
+  );
+};
 
 // -----------------------------------------------------------------------------
 // Page component
 // -----------------------------------------------------------------------------
 const LegalNotice: React.FC = () => {
   const [lang, setLang] = useLang();
+  const { settings } = useLegalSettings();
 
   // Global expand/collapse control
   const [allOpen, setAllOpen] = useState<boolean | null>(null);
@@ -612,7 +607,7 @@ const LegalNotice: React.FC = () => {
           )}
 
           <footer className="mt-12 border-t pt-6 text-[10px] text-mbg-green">
-            <p>{ui.lastUpdateLabel}&nbsp;25/09/2026</p>
+            <p>{ui.lastUpdateLabel}&nbsp;{formatLegalDate(settings.legalNoticeLastUpdated, lang)}</p>
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Milos BG - {ui.rights}
             </p>

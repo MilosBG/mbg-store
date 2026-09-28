@@ -7,6 +7,7 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { BiSolidBasketball } from "react-icons/bi";
+import { formatLegalDate, useLegalSettings } from "@/lib/legal/useLegalSettings";
 
 // -----------------------------------------------------------------------------
 // Language helpers (persist to URL & localStorage, default to EN)
@@ -30,23 +31,6 @@ const LEGAL_INFO = {
   phoneHref: "tel:+33783150791",
   email: "contact@milos-bg.com",
 
-  // REQUIRED BEFORE PRODUCTION:
-  businessAddressFR:
-    "À COMPLÉTER — adresse professionnelle complète de l’entreprise",
-  businessAddressEN:
-    "TO COMPLETE — full professional business address",
-  rneRegistrationFR:
-    "À COMPLÉTER — mention exacte d’immatriculation RNE/RCS figurant sur votre justificatif INPI",
-  rneRegistrationEN:
-    "TO COMPLETE — exact RNE/RCS registration details shown on your INPI document",
-  repTextileIduFR:
-    "À COMPLÉTER — identifiant unique REP textile (TLC), si applicable",
-  repTextileIduEN:
-    "TO COMPLETE — textile EPR unique identifier (TLC), where applicable",
-  returnAddressFR:
-    "À COMPLÉTER — adresse postale complète à laquelle les retours doivent être envoyés",
-  returnAddressEN:
-    "TO COMPLETE — full postal address to which returns must be sent",
 
   // Keep CM2C only if Milos BG has an active mediation agreement with CM2C.
   mediatorName:
@@ -228,7 +212,9 @@ const Section: React.FC<{
 // -----------------------------------------------------------------------------
 // Localized content blocks (FR & EN). IDs are identical to preserve anchors.
 // -----------------------------------------------------------------------------
-const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
+const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => {
+  const { settings } = useLegalSettings();
+  return (
   <>
     {/* 1 */}
     <Section
@@ -249,11 +235,11 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>Code APE : {LEGAL_INFO.ape}</p>
       <p>
         Immatriculation :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistrationFR}</strong>
+        <strong className="text-mbg-green">{settings.rneRegistration}</strong>
       </p>
       <p>
         Adresse professionnelle :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.businessAddressFR}</strong>
+        <strong className="text-mbg-green">{settings.businessAddress}</strong>
       </p>
       <p>
         Téléphone :{" "}
@@ -270,7 +256,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>Nom de domaine : {LEGAL_INFO.domain}</p>
       <p>
         Identifiant unique REP textile (TLC), lorsque applicable :{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIduFR}</strong>
+        <strong className="text-mbg-green">{settings.repTextileIdu}</strong>
       </p>
     </Section>
 
@@ -697,7 +683,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
       <address className="not-italic border-l-2 border-mbg-green pl-4">
         <div className="font-bold text-mbg-green">{LEGAL_INFO.businessName}</div>
-        <div>{LEGAL_INFO.returnAddressFR}</div>
+        <div>{settings.returnAddress}</div>
       </address>
       <p>
         Le Client n’est responsable que de la dépréciation du Produit résultant
@@ -726,9 +712,20 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
 
       <H3 className="mt-2 text-mbg-black/96">12.5. Formulaire type de rétractation</H3>
+      <p>
+        Une version PDF remplissable est disponible ici :{" "}
+        <a
+          className="mbg-link font-semibold"
+          href="/api/legal/withdrawal-form"
+          download
+        >
+          Télécharger le formulaire de rétractation PDF
+        </a>
+        .
+      </p>
       <div className="w-full border border-mbg-black/10 p-4">
         <p>
-          À {LEGAL_INFO.businessName} — {LEGAL_INFO.returnAddressFR}
+          À {LEGAL_INFO.businessName} — {settings.returnAddress}
           {" "}— {LEGAL_INFO.email}
         </p>
         <p>
@@ -1002,9 +999,12 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
 
     {/* ... keep the rest of the original FR sections as provided ... */}
   </>
-);
+  );
+};
 
-const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
+const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => {
+  const { settings } = useLegalSettings();
+  return (
   <>
     {/* 1 */}
     <Section
@@ -1025,11 +1025,11 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>APE code: {LEGAL_INFO.ape}</p>
       <p>
         Registration:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.rneRegistrationEN}</strong>
+        <strong className="text-mbg-green">{settings.rneRegistration}</strong>
       </p>
       <p>
         Professional address:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.businessAddressEN}</strong>
+        <strong className="text-mbg-green">{settings.businessAddress}</strong>
       </p>
       <p>
         Phone:{" "}
@@ -1046,7 +1046,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       <p>Domain name: {LEGAL_INFO.domain}</p>
       <p>
         Textile EPR unique identifier (TLC), where applicable:{" "}
-        <strong className="text-mbg-green">{LEGAL_INFO.repTextileIduEN}</strong>
+        <strong className="text-mbg-green">{settings.repTextileIdu}</strong>
       </p>
     </Section>
 
@@ -1431,7 +1431,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
       <address className="not-italic border-l-2 border-mbg-green pl-4">
         <div className="font-bold text-mbg-green">{LEGAL_INFO.businessName}</div>
-        <div>{LEGAL_INFO.returnAddressEN}</div>
+        <div>{settings.returnAddress}</div>
       </address>
       <p>
         The Customer is liable only for any diminished value resulting from
@@ -1458,9 +1458,20 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
 
       <H3 className="mt-2 text-mbg-black/96">12.5. Model withdrawal form</H3>
+      <p>
+        A fillable PDF version is available here:{" "}
+        <a
+          className="mbg-link font-semibold"
+          href="/api/legal/withdrawal-form"
+          download
+        >
+          Download the PDF withdrawal form
+        </a>
+        .
+      </p>
       <div className="w-full border border-mbg-black/10 p-4">
         <p>
-          To {LEGAL_INFO.businessName} — {LEGAL_INFO.returnAddressEN}
+          To {LEGAL_INFO.businessName} — {settings.returnAddress}
           {" "}— {LEGAL_INFO.email}
         </p>
         <p>
@@ -1720,13 +1731,15 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
     </Section>
   </>
-);
+  );
+};
 
 // -----------------------------------------------------------------------------
 // Page component
 // -----------------------------------------------------------------------------
 const TermsAndConditions: React.FC = () => {
   const [lang, setLang] = useLang();
+  const { settings } = useLegalSettings();
 
   // Global expand/collapse control
   const [allOpen, setAllOpen] = useState<boolean | null>(null);
@@ -1937,7 +1950,7 @@ const TermsAndConditions: React.FC = () => {
           )}
 
           <footer className="mt-12 border-t pt-6 text-[10px] text-mbg-green">
-            <p>{ui.lastUpdateLabel}&nbsp; 25/09/2026</p>
+            <p>{ui.lastUpdateLabel}&nbsp; {formatLegalDate(settings.termsLastUpdated, lang)}</p>
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Milos BG - {ui.rights}
             </p>

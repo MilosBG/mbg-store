@@ -7,6 +7,7 @@ import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { BiSolidBasketball } from "react-icons/bi";
+import { formatLegalDate, useLegalSettings } from "@/lib/legal/useLegalSettings";
 
 // -----------------------------------------------------------------------------
 // Language helpers (persist to URL & localStorage, default to EN)
@@ -29,15 +30,6 @@ const PRIVACY_INFO = {
   paymentProvider: "PayPal",
   databaseProvider: "MongoDB / MongoDB Atlas",
 
-  // REQUIRED BEFORE PRODUCTION if these services are used:
-  emailProviderFR:
-    "À COMPLÉTER — prestataire d’email transactionnel / marketing réellement utilisé",
-  emailProviderEN:
-    "TO COMPLETE — actual transactional / marketing email provider",
-  carrierFR:
-    "À COMPLÉTER — transporteur(s) recevant les données de livraison",
-  carrierEN:
-    "TO COMPLETE — carrier(s) receiving delivery data",
 } as const;
 
 const useLang = (): [Lang, (l: Lang) => void] => {
@@ -227,7 +219,9 @@ const Toc: React.FC<{ activeId: string | null; lang: Lang }> = ({
 // -----------------------------------------------------------------------------
 // Content (EN = concise full text; FR = shortened placeholders for you to fill)
 // -----------------------------------------------------------------------------
-const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
+const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => {
+  const { settings } = useLegalSettings();
+  return (
   <>
     <Section
       id="qui-sommes-nous"
@@ -606,14 +600,21 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           necessary for sign-in, session security and account access — duration
           according to the active Clerk session configuration.
         </li>
-        <li>
-          <strong>Non-essential analytics / advertising trackers</strong> —{" "}
-          <span className="font-semibold text-mbg-green">
-            add here each tracker actually enabled in production
-          </span>{" "}
-          (provider, name, purpose and duration). They must remain disabled before
-          consent where consent is required.
-        </li>
+        {settings.trackers.length ? (
+          settings.trackers.map((tracker, index) => (
+            <li key={`${tracker.provider}-${tracker.name}-${index}`}>
+              <strong>{tracker.name || tracker.provider}</strong>
+              {tracker.provider && tracker.name ? ` — ${tracker.provider}` : ""}
+              {tracker.purposeEn ? ` — ${tracker.purposeEn}` : ""}
+              {tracker.duration ? ` — ${tracker.duration}` : ""}.
+            </li>
+          ))
+        ) : (
+          <li>
+            <strong>Non-essential trackers</strong> — no non-essential tracker is
+            currently declared as active in production.
+          </li>
+        )}
       </ul>
       <p className="text-[11px] text-mbg-darkgrey">
         Users may review or change their choices concerning non-essential cookies
@@ -631,8 +632,8 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
         <li><strong>{PRIVACY_INFO.authenticationProvider}</strong> — authentication and session management.</li>
         <li><strong>{PRIVACY_INFO.paymentProvider}</strong> — online payment processing.</li>
         <li><strong>{PRIVACY_INFO.databaseProvider}</strong> — application database hosting when used in production.</li>
-        <li><strong>Email provider</strong> — {PRIVACY_INFO.emailProviderEN}.</li>
-        <li><strong>Shipping / logistics</strong> — {PRIVACY_INFO.carrierEN}.</li>
+        <li><strong>Email provider</strong> — {settings.emailProvider}.</li>
+        <li><strong>Shipping / logistics</strong> — {settings.carrier}.</li>
       </ul>
       <p className="text-[11px] text-mbg-darkgrey">
         Update this list whenever a provider receiving personal data is added,
@@ -669,9 +670,12 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
     </Section>
   </>
-);
+  );
+};
 
-const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
+const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => {
+  const { settings } = useLegalSettings();
+  return (
   <>
     {/* NOTE: Short French placeholders so you can paste full text later */}
     {/* 1 */}
@@ -1123,14 +1127,21 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
           l’accès au compte — durée selon la configuration de session Clerk
           active.
         </li>
-        <li>
-          <strong>Traceurs analytics / publicitaires non essentiels</strong> —{" "}
-          <span className="font-semibold text-mbg-green">
-            ajouter ici chaque traceur réellement activé en production
-          </span>{" "}
-          (prestataire, nom, finalité et durée). Ils doivent rester désactivés
-          avant consentement lorsque celui-ci est requis.
-        </li>
+        {settings.trackers.length ? (
+          settings.trackers.map((tracker, index) => (
+            <li key={`${tracker.provider}-${tracker.name}-${index}`}>
+              <strong>{tracker.name || tracker.provider}</strong>
+              {tracker.provider && tracker.name ? ` — ${tracker.provider}` : ""}
+              {tracker.purposeFr ? ` — ${tracker.purposeFr}` : ""}
+              {tracker.duration ? ` — ${tracker.duration}` : ""}.
+            </li>
+          ))
+        ) : (
+          <li>
+            <strong>Traceurs non essentiels</strong> — aucun traceur non essentiel
+            n’est actuellement déclaré comme actif en production.
+          </li>
+        )}
       </ul>
       <p className="text-[11px] text-mbg-darkgrey">
         L’utilisateur peut revoir ou modifier à tout moment ses choix relatifs
@@ -1149,8 +1160,8 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
         <li><strong>{PRIVACY_INFO.authenticationProvider}</strong> — authentification et gestion des sessions.</li>
         <li><strong>{PRIVACY_INFO.paymentProvider}</strong> — traitement du paiement en ligne.</li>
         <li><strong>{PRIVACY_INFO.databaseProvider}</strong> — hébergement de la base applicative lorsqu’il est utilisé en production.</li>
-        <li><strong>Prestataire email</strong> — {PRIVACY_INFO.emailProviderFR}.</li>
-        <li><strong>Transport / logistique</strong> — {PRIVACY_INFO.carrierFR}.</li>
+        <li><strong>Prestataire email</strong> — {settings.emailProvider}.</li>
+        <li><strong>Transport / logistique</strong> — {settings.carrier}.</li>
       </ul>
       <p className="text-[11px] text-mbg-darkgrey">
         Mettre à jour cette liste dès qu’un prestataire recevant des données
@@ -1189,13 +1200,15 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => (
       </p>
     </Section>
   </>
-);
+  );
+};
 
 // -----------------------------------------------------------------------------
 // Page
 // -----------------------------------------------------------------------------
 const PrivacyPolicy: React.FC = () => {
   const [lang, setLang] = useLang();
+  const { settings } = useLegalSettings();
 
   // Global expand/collapse control
   const [allOpen, setAllOpen] = useState<boolean | null>(null);
@@ -1396,7 +1409,7 @@ const PrivacyPolicy: React.FC = () => {
           )}
 
           <footer className="mt-12 border-t pt-6 text-[10px] text-mbg-green">
-            <p>{ui.lastUpdateLabel}&nbsp;25/09/2026</p>
+            <p>{ui.lastUpdateLabel}&nbsp;{formatLegalDate(settings.privacyLastUpdated, lang)}</p>
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Milos BG - {ui.rights}
             </p>
