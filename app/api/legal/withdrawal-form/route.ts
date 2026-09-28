@@ -5,13 +5,9 @@ import fontkit from "@pdf-lib/fontkit";
 import { NextResponse } from "next/server";
 import { PDFDocument, rgb, type PDFFont } from "pdf-lib";
 
-import { connectToDB } from "@/lib/mongoDB";
-import LegalSettings, {
-  type LegalSettingsShape,
-} from "@/lib/models/LegalSettings";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const GREEN = rgb(0, 130 / 255, 26 / 255);
 const BLACK = rgb(0, 0, 0);
@@ -20,6 +16,38 @@ const GREY = rgb(102 / 255, 102 / 255, 102 / 255);
 const LIGHT = rgb(244 / 255, 244 / 255, 244 / 255);
 const BORDER = rgb(212 / 255, 212 / 255, 212 / 255);
 const WHITE = rgb(1, 1, 1);
+
+const FALLBACK_ADMIN_URL = "https://mbg-admin.vercel.app";
+
+type PublicLegalSettings = {
+  fullName?: string;
+  legalFormFr?: string;
+  legalFormEn?: string;
+  businessName?: string;
+  siren?: string;
+  apeCode?: string;
+  rneRegistration?: string;
+  businessAddress?: string;
+  phoneDisplay?: string;
+  phoneHref?: string;
+  email?: string;
+  domain?: string;
+  repTextileIdu?: string;
+  returnAddress?: string;
+  emailProvider?: string;
+  carrier?: string;
+  termsLastUpdated?: string;
+  privacyLastUpdated?: string;
+  legalNoticeLastUpdated?: string;
+};
+
+type PublicLegalSettingsResponse = {
+  settings?: PublicLegalSettings;
+};
+
+function clean(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
 
 function wrapText(
   text: string,
@@ -65,53 +93,92 @@ async function loadKanitFonts(pdf: PDFDocument) {
     "Kanit-Bold.ttf",
   );
 
-  try {
-    const [regularBytes, boldBytes] = await Promise.all([
-      readFile(regularPath),
-      readFile(boldPath),
-    ]);
+  const [regularBytes, boldBytes] = await Promise.all([
+    readFile(regularPath),
+    readFile(boldPath),
+  ]);
 
-    const [regular, bold] = await Promise.all([
-      pdf.embedFont(regularBytes, { subset: true }),
-      pdf.embedFont(boldBytes, { subset: true }),
-    ]);
+  const [regular, bold] = await Promise.all([
+    pdf.embedFont(regularBytes, { subset: true }),
+    pdf.embedFont(boldBytes, { subset: true }),
+  ]);
 
-    return {
-      regular,
-      bold,
-    };
-  } catch (error) {
-    console.error(
-      "[WITHDRAWAL_FORM] Kanit font files are missing.",
-      error,
-    );
+  return {
+    regular,
+    bold,
+  };
+}
 
+async function getLegalSettings(): Promise<PublicLegalSettings> {
+  const adminUrl = (
+    process.env.MBG_ADMIN_URL ||
+    FALLBACK_ADMIN_URL
+  ).replace(/\/+$/, "");
+
+  const response = await fetch(
+    `${adminUrl}/api/public/legal-settings`,
+    {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
+    },
+  );
+
+  const raw = await response.text();
+
+  if (!response.ok) {
     throw new Error(
-      "KANIT_FONTS_MISSING: add public/fonts/Kanit-Regular.ttf and public/fonts/Kanit-Bold.ttf",
+      `MBG_ADMIN_LEGAL_SETTINGS_${response.status}: ${raw.slice(0, 300)}`,
     );
   }
+
+  let payload: PublicLegalSettingsResponse;
+
+  try {
+    payload = JSON.parse(raw) as PublicLegalSettingsResponse;
+  } catch {
+    throw new Error(
+      "MBG_ADMIN_LEGAL_SETTINGS_INVALID_JSON",
+    );
+  }
+
+  return payload.settings ?? {};
 }
 
 export async function GET() {
   try {
-    await connectToDB();
+    const settings = await getLegalSettings();
 
-    const settings = (await LegalSettings.findOne({
-      key: "main",
-    }).lean()) as
-      | (LegalSettingsShape & {
-          _id?: unknown;
-        })
-      | null;
+    const fullName =
+      clean(settings.fullName) ||
+      "Gamil BEN AHMED";
+
+    const legalFormFr =
+      clean(settings.legalFormFr) ||
+      "Entrepreneur individuel";
+
+    const businessName =
+      clean(settings.businessName) ||
+      "Milos BG";
 
     const businessAddress =
-      String(settings?.businessAddress ?? "").trim() ||
-      String(settings?.returnAddress ?? "").trim() ||
+      clean(settings.businessAddress) ||
+      clean(settings.returnAddress) ||
       "À COMPLÉTER DANS MBG-ADMIN";
 
     const returnAddress =
-      String(settings?.returnAddress ?? "").trim() ||
+      clean(settings.returnAddress) ||
       businessAddress;
+
+    const email =
+      clean(settings.email) ||
+      "contact@milos-bg.com";
+
+    const domain =
+      clean(settings.domain) ||
+      "milos-bg.com";
 
     const pdf = await PDFDocument.create();
 
@@ -257,7 +324,7 @@ export async function GET() {
 
     const intro = [
       "Veuillez compléter et renvoyer le présent formulaire uniquement si vous souhaitez",
-      "vous rétracter du contrat conclu avec Milos BG.",
+      `vous rétracter du contrat conclu avec ${businessName}.`,
     ];
 
     intro.forEach(
@@ -297,18 +364,25 @@ export async function GET() {
 
     y -= 17;
 
-    page.drawText(
-      "Milos BG - Gamil BEN AHMED, entrepreneur individuel",
-      {
-        x: margin,
-        y,
-        size: 9.3,
-        font: bold,
-        color: DARK,
-      },
-    );
+    for (const line of wrapText(
+      `${businessName} - ${fullName}, ${legalFormFr.toLowerCase()}`,
+      contentWidth,
+      bold,
+      9.3,
+    )) {
+      page.drawText(
+        line,
+        {
+          x: margin,
+          y,
+          size: 9.3,
+          font: bold,
+          color: DARK,
+        },
+      );
 
-    y -= 15;
+      y -= 13;
+    }
 
     for (const line of wrapText(
       `Adresse géographique : ${businessAddress}`,
@@ -331,7 +405,7 @@ export async function GET() {
     }
 
     page.drawText(
-      "Adresse électronique : contact@milos-bg.com",
+      `Adresse électronique : ${email}`,
       {
         x: margin,
         y,
@@ -399,30 +473,15 @@ export async function GET() {
       },
     ) {
       const field =
-        form.createTextField(
-          name,
-        );
+        form.createTextField(name);
 
-      if (
-        options?.multiline
-      ) {
+      if (options?.multiline) {
         field.enableMultiline();
       }
 
-      /*
-       * IMPORTANT
-       * ---------
-       * Ne pas appeler field.setFontSize() ici AVANT addToPage().
-       *
-       * Sur un champ nouvellement créé, pdf-lib peut ne pas encore avoir
-       * généré l'entrée /DA (Default Appearance). setFontSize() essaierait
-       * alors de modifier cette entrée inexistante et provoquerait :
-       *
-       * No /DA (default appearance) entry found for field
-       *
-       * `font: regular` + `form.updateFieldAppearances(regular)` à la fin
-       * suffisent pour générer les apparences des champs avec Kanit.
-       */
+      // Ne pas appeler field.setFontSize() avant addToPage().
+      // Cela évite l'erreur pdf-lib :
+      // "No /DA (default appearance) entry found for field".
 
       field.addToPage(
         page,
@@ -668,7 +727,7 @@ export async function GET() {
     y -= 14;
 
     const sendText =
-      `Vous pouvez renvoyer ce formulaire par courrier à ${returnAddress} ou par email à contact@milos-bg.com. Conservez une preuve de votre envoi.`;
+      `Vous pouvez renvoyer ce formulaire par courrier à ${returnAddress} ou par email à ${email}. Conservez une preuve de votre envoi.`;
 
     for (const line of wrapText(
       sendText,
@@ -714,7 +773,7 @@ export async function GET() {
     );
 
     page.drawText(
-      "milos-bg.com",
+      domain,
       {
         x:
           width - 100,
@@ -725,7 +784,6 @@ export async function GET() {
       },
     );
 
-    // Génère les apparences des champs avec la police Kanit.
     form.updateFieldAppearances(
       regular,
     );
@@ -746,7 +804,7 @@ export async function GET() {
             'inline; filename="Formulaire-retractation-Milos-BG.pdf"',
 
           "Cache-Control":
-            "no-store, max-age=0",
+            "no-store, no-cache, must-revalidate",
         },
       },
     );
