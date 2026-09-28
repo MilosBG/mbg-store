@@ -3,11 +3,32 @@ import path from "node:path";
 
 import fontkit from "@pdf-lib/fontkit";
 import { NextResponse } from "next/server";
-import { PDFDocument, rgb, type PDFFont } from "pdf-lib";
+import {
+  PDFDocument,
+  rgb,
+  type PDFFont,
+} from "pdf-lib";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+type Lang = "en" | "fr";
+
+type PublicLegalSettings = {
+  fullName?: string;
+  legalFormFr?: string;
+  legalFormEn?: string;
+  businessName?: string;
+  businessAddress?: string;
+  returnAddress?: string;
+  email?: string;
+  domain?: string;
+};
+
+type PublicLegalSettingsResponse = {
+  settings?: PublicLegalSettings;
+};
 
 const GREEN = rgb(0, 130 / 255, 26 / 255);
 const BLACK = rgb(0, 0, 0);
@@ -17,36 +38,103 @@ const LIGHT = rgb(244 / 255, 244 / 255, 244 / 255);
 const BORDER = rgb(212 / 255, 212 / 255, 212 / 255);
 const WHITE = rgb(1, 1, 1);
 
-const FALLBACK_ADMIN_URL = "https://mbg-admin.vercel.app";
+const FALLBACK_ADMIN_URL =
+  "https://mbg-admin.vercel.app";
 
-type PublicLegalSettings = {
-  fullName?: string;
-  legalFormFr?: string;
-  legalFormEn?: string;
-  businessName?: string;
-  siren?: string;
-  apeCode?: string;
-  rneRegistration?: string;
-  businessAddress?: string;
-  phoneDisplay?: string;
-  phoneHref?: string;
-  email?: string;
-  domain?: string;
-  repTextileIdu?: string;
-  returnAddress?: string;
-  emailProvider?: string;
-  carrier?: string;
-  termsLastUpdated?: string;
-  privacyLastUpdated?: string;
-  legalNoticeLastUpdated?: string;
-};
+const PDF_COPY = {
+  fr: {
+    title: "FORMULAIRE DE RÉTRACTATION",
+    legalModel:
+      "Modèle prévu par l'annexe à l'article R221-1 du Code de la consommation",
+    intro1:
+      "Veuillez compléter et renvoyer le présent formulaire uniquement si vous souhaitez",
+    intro2:
+      "vous rétracter du contrat conclu avec {businessName}.",
+    attention: "À L'ATTENTION DE",
+    geographicAddress: "Adresse géographique",
+    emailAddress: "Adresse électronique",
+    declaration:
+      "Je/nous (*) vous notifie/notifions (*) par la présente ma/notre (*) rétractation du contrat portant sur la vente du bien (*) / pour la prestation de services (*) ci-dessous :",
+    goods: "Bien(s) / prestation concerné(e) :",
+    orderReference:
+      "Référence de commande (facultatif) :",
+    orderedOn: "Commandé le (*) :",
+    receivedOn: "Reçu le (*) :",
+    consumerName:
+      "Nom du (des) consommateur(s) :",
+    consumerAddress:
+      "Adresse du (des) consommateur(s) :",
+    date: "Date :",
+    signature:
+      "Signature du (des) consommateur(s)",
+    paperOnly:
+      "(uniquement en cas de notification sur papier)",
+    strike:
+      "(*) Rayez la mention inutile.",
+    send: "ENVOI",
+    sendText:
+      "Vous pouvez renvoyer ce formulaire par courrier à {returnAddress} ou par email à {email}. Conservez une preuve de votre envoi.",
+    filename:
+      "Formulaire-retractation-Milos-BG-FR.pdf",
+  },
 
-type PublicLegalSettingsResponse = {
-  settings?: PublicLegalSettings;
-};
+  en: {
+    title: "WITHDRAWAL FORM",
+    legalModel:
+      "Model withdrawal form pursuant to the Annex to Article R221-1 of the French Consumer Code",
+    intro1:
+      "Complete and return this form only if you wish to withdraw from",
+    intro2:
+      "the contract concluded with {businessName}.",
+    attention: "TO",
+    geographicAddress: "Business address",
+    emailAddress: "Email address",
+    declaration:
+      "I/We (*) hereby give notice that I/We (*) withdraw from my/our (*) contract for the sale of the following goods (*) / provision of the following services (*) :",
+    goods: "Goods / services concerned:",
+    orderReference:
+      "Order reference (optional):",
+    orderedOn: "Ordered on (*):",
+    receivedOn: "Received on (*):",
+    consumerName: "Name of consumer(s):",
+    consumerAddress: "Address of consumer(s):",
+    date: "Date:",
+    signature: "Signature of consumer(s)",
+    paperOnly:
+      "(only if this form is notified on paper)",
+    strike:
+      "(*) Delete as appropriate.",
+    send: "SEND",
+    sendText:
+      "You may return this form by post to {returnAddress} or by email to {email}. Keep proof of sending.",
+    filename:
+      "Withdrawal-form-Milos-BG-EN.pdf",
+  },
+} as const;
+
+function normalizeLang(
+  value: string | null | undefined,
+): Lang {
+  return value === "fr" ? "fr" : "en";
+}
 
 function clean(value: unknown): string {
-  return typeof value === "string" ? value.trim() : "";
+  return typeof value === "string"
+    ? value.trim()
+    : "";
+}
+
+function replaceTokens(
+  text: string,
+  values: Record<string, string>,
+) {
+  let result = text;
+
+  for (const [key, value] of Object.entries(values)) {
+    result = result.replaceAll(`{${key}}`, value);
+  }
+
+  return result;
 }
 
 function wrapText(
@@ -60,9 +148,16 @@ function wrapText(
   let line = "";
 
   for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
+    const candidate = line
+      ? `${line} ${word}`
+      : word;
 
-    if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
+    if (
+      font.widthOfTextAtSize(
+        candidate,
+        size,
+      ) <= maxWidth
+    ) {
       line = candidate;
       continue;
     }
@@ -76,7 +171,9 @@ function wrapText(
   return lines;
 }
 
-async function loadKanitFonts(pdf: PDFDocument) {
+async function loadKanitFonts(
+  pdf: PDFDocument,
+) {
   pdf.registerFontkit(fontkit);
 
   const regularPath = path.join(
@@ -93,14 +190,26 @@ async function loadKanitFonts(pdf: PDFDocument) {
     "Kanit-Bold.ttf",
   );
 
-  const [regularBytes, boldBytes] = await Promise.all([
+  const [
+    regularBytes,
+    boldBytes,
+  ] = await Promise.all([
     readFile(regularPath),
     readFile(boldPath),
   ]);
 
-  const [regular, bold] = await Promise.all([
-    pdf.embedFont(regularBytes, { subset: true }),
-    pdf.embedFont(boldBytes, { subset: true }),
+  const [
+    regular,
+    bold,
+  ] = await Promise.all([
+    pdf.embedFont(
+      regularBytes,
+      { subset: true },
+    ),
+    pdf.embedFont(
+      boldBytes,
+      { subset: true },
+    ),
   ]);
 
   return {
@@ -109,7 +218,8 @@ async function loadKanitFonts(pdf: PDFDocument) {
   };
 }
 
-async function getLegalSettings(): Promise<PublicLegalSettings> {
+async function getLegalSettings():
+Promise<PublicLegalSettings> {
   const adminUrl = (
     process.env.MBG_ADMIN_URL ||
     FALLBACK_ADMIN_URL
@@ -137,7 +247,9 @@ async function getLegalSettings(): Promise<PublicLegalSettings> {
   let payload: PublicLegalSettingsResponse;
 
   try {
-    payload = JSON.parse(raw) as PublicLegalSettingsResponse;
+    payload = JSON.parse(
+      raw,
+    ) as PublicLegalSettingsResponse;
   } catch {
     throw new Error(
       "MBG_ADMIN_LEGAL_SETTINGS_INVALID_JSON",
@@ -147,17 +259,34 @@ async function getLegalSettings(): Promise<PublicLegalSettings> {
   return payload.settings ?? {};
 }
 
-export async function GET() {
+export async function GET(
+  request: Request,
+) {
   try {
-    const settings = await getLegalSettings();
+    const url = new URL(request.url);
+    const lang = normalizeLang(
+      url.searchParams.get("lang"),
+    );
+
+    const t = PDF_COPY[lang];
+    const settings =
+      await getLegalSettings();
 
     const fullName =
       clean(settings.fullName) ||
       "Gamil BEN AHMED";
 
-    const legalFormFr =
-      clean(settings.legalFormFr) ||
-      "Entrepreneur individuel";
+    const legalForm =
+      (
+        lang === "fr"
+          ? clean(settings.legalFormFr)
+          : clean(settings.legalFormEn)
+      ) ||
+      (
+        lang === "fr"
+          ? "Entrepreneur individuel"
+          : "Sole trader"
+      );
 
     const businessName =
       clean(settings.businessName) ||
@@ -166,7 +295,11 @@ export async function GET() {
     const businessAddress =
       clean(settings.businessAddress) ||
       clean(settings.returnAddress) ||
-      "À COMPLÉTER DANS MBG-ADMIN";
+      (
+        lang === "fr"
+          ? "À COMPLÉTER DANS MBG-ADMIN"
+          : "TO COMPLETE IN MBG-ADMIN"
+      );
 
     const returnAddress =
       clean(settings.returnAddress) ||
@@ -180,14 +313,16 @@ export async function GET() {
       clean(settings.domain) ||
       "milos-bg.com";
 
-    const pdf = await PDFDocument.create();
+    const pdf =
+      await PDFDocument.create();
 
     const page = pdf.addPage([
       595.28,
       841.89,
     ]);
 
-    const form = pdf.getForm();
+    const form =
+      pdf.getForm();
 
     const {
       regular,
@@ -235,7 +370,9 @@ export async function GET() {
         await readFile(logoPath);
 
       const logo =
-        await pdf.embedPng(logoBytes);
+        await pdf.embedPng(
+          logoBytes,
+        );
 
       const original =
         logo.scale(1);
@@ -255,12 +392,18 @@ export async function GET() {
       const logoHeight =
         original.height * ratio;
 
-      page.drawImage(logo, {
-        x: (width - logoWidth) / 2,
-        y: height - 90,
-        width: logoWidth,
-        height: logoHeight,
-      });
+      page.drawImage(
+        logo,
+        {
+          x:
+            (width - logoWidth) /
+            2,
+          y:
+            height - 90,
+          width: logoWidth,
+          height: logoHeight,
+        },
+      );
     } catch (error) {
       console.warn(
         "[WITHDRAWAL_FORM] Logo unavailable, using text fallback.",
@@ -279,15 +422,14 @@ export async function GET() {
       );
     }
 
-    let y =
-      height - 170;
+    let y = height - 170;
 
     // -------------------------------------------------------------------------
     // TITLE
     // -------------------------------------------------------------------------
 
     page.drawText(
-      "FORMULAIRE DE RÉTRACTATION",
+      t.title,
       {
         x: margin,
         y,
@@ -299,18 +441,29 @@ export async function GET() {
 
     y -= 20;
 
-    page.drawText(
-      "Modèle prévu par l'annexe à l'article R221-1 du Code de la consommation",
-      {
-        x: margin,
-        y,
-        size: 8.5,
-        font: regular,
-        color: GREY,
-      },
-    );
+    for (
+      const line of wrapText(
+        t.legalModel,
+        contentWidth,
+        regular,
+        8.5,
+      )
+    ) {
+      page.drawText(
+        line,
+        {
+          x: margin,
+          y,
+          size: 8.5,
+          font: regular,
+          color: GREY,
+        },
+      );
 
-    y -= 28;
+      y -= 11;
+    }
+
+    y -= 17;
 
     page.drawRectangle({
       x: margin,
@@ -323,8 +476,13 @@ export async function GET() {
     });
 
     const intro = [
-      "Veuillez compléter et renvoyer le présent formulaire uniquement si vous souhaitez",
-      `vous rétracter du contrat conclu avec ${businessName}.`,
+      t.intro1,
+      replaceTokens(
+        t.intro2,
+        {
+          businessName,
+        },
+      ),
     ];
 
     intro.forEach(
@@ -352,7 +510,7 @@ export async function GET() {
     // -------------------------------------------------------------------------
 
     page.drawText(
-      "À L'ATTENTION DE",
+      t.attention,
       {
         x: margin,
         y,
@@ -364,12 +522,14 @@ export async function GET() {
 
     y -= 17;
 
-    for (const line of wrapText(
-      `${businessName} - ${fullName}, ${legalFormFr.toLowerCase()}`,
-      contentWidth,
-      bold,
-      9.3,
-    )) {
+    for (
+      const line of wrapText(
+        `${businessName} - ${fullName}, ${legalForm.toLowerCase()}`,
+        contentWidth,
+        bold,
+        9.3,
+      )
+    ) {
       page.drawText(
         line,
         {
@@ -384,12 +544,14 @@ export async function GET() {
       y -= 13;
     }
 
-    for (const line of wrapText(
-      `Adresse géographique : ${businessAddress}`,
-      contentWidth,
-      regular,
-      8.7,
-    )) {
+    for (
+      const line of wrapText(
+        `${t.geographicAddress} : ${businessAddress}`,
+        contentWidth,
+        regular,
+        8.7,
+      )
+    ) {
       page.drawText(
         line,
         {
@@ -405,7 +567,7 @@ export async function GET() {
     }
 
     page.drawText(
-      `Adresse électronique : ${email}`,
+      `${t.emailAddress} : ${email}`,
       {
         x: margin,
         y,
@@ -417,15 +579,14 @@ export async function GET() {
 
     y -= 26;
 
-    const declaration =
-      "Je/nous (*) vous notifie/notifions (*) par la présente ma/notre (*) rétractation du contrat portant sur la vente du bien (*) / pour la prestation de services (*) ci-dessous :";
-
-    for (const line of wrapText(
-      declaration,
-      contentWidth,
-      regular,
-      9,
-    )) {
+    for (
+      const line of wrapText(
+        t.declaration,
+        contentWidth,
+        regular,
+        9,
+      )
+    ) {
       page.drawText(
         line,
         {
@@ -473,15 +634,15 @@ export async function GET() {
       },
     ) {
       const field =
-        form.createTextField(name);
+        form.createTextField(
+          name,
+        );
 
-      if (options?.multiline) {
+      if (
+        options?.multiline
+      ) {
         field.enableMultiline();
       }
-
-      // Ne pas appeler field.setFontSize() avant addToPage().
-      // Cela évite l'erreur pdf-lib :
-      // "No /DA (default appearance) entry found for field".
 
       field.addToPage(
         page,
@@ -489,28 +650,19 @@ export async function GET() {
           x:
             options?.x ??
             margin,
-
           y: atY,
-
           width:
             options?.width ??
             contentWidth,
-
           height:
             fieldHeight,
-
           borderColor:
             BORDER,
-
-          borderWidth:
-            1,
-
+          borderWidth: 1,
           backgroundColor:
             WHITE,
-
           textColor:
             DARK,
-
           font:
             regular,
         },
@@ -522,7 +674,7 @@ export async function GET() {
     // -------------------------------------------------------------------------
 
     addLabel(
-      "Bien(s) / prestation concerné(e) :",
+      t.goods,
       y,
     );
 
@@ -540,7 +692,7 @@ export async function GET() {
     y -= 20;
 
     addLabel(
-      "Référence de commande (facultatif) :",
+      t.orderReference,
       y + 8,
     );
 
@@ -549,19 +701,16 @@ export async function GET() {
       y,
       20,
       {
-        x:
-          margin + 165,
-
+        x: margin + 165,
         width:
-          contentWidth -
-          165,
+          contentWidth - 165,
       },
     );
 
     y -= 38;
 
     addLabel(
-      "Commandé le (*) :",
+      t.orderedOn,
       y + 8,
     );
 
@@ -570,23 +719,16 @@ export async function GET() {
       y,
       20,
       {
-        x:
-          margin + 96,
-
-        width:
-          135,
+        x: margin + 96,
+        width: 135,
       },
     );
 
     page.drawText(
-      "Reçu le (*) :",
+      t.receivedOn,
       {
-        x:
-          margin + 290,
-
-        y:
-          y + 8,
-
+        x: margin + 290,
+        y: y + 8,
         size: 8.5,
         font: bold,
         color: DARK,
@@ -598,18 +740,15 @@ export async function GET() {
       y,
       20,
       {
-        x:
-          margin + 365,
-
-        width:
-          105,
+        x: margin + 365,
+        width: 105,
       },
     );
 
     y -= 38;
 
     addLabel(
-      "Nom du (des) consommateur(s) :",
+      t.consumerName,
       y + 8,
     );
 
@@ -622,7 +761,7 @@ export async function GET() {
     y -= 58;
 
     addLabel(
-      "Adresse du (des) consommateur(s) :",
+      t.consumerAddress,
       y + 8,
     );
 
@@ -638,7 +777,7 @@ export async function GET() {
     y -= 76;
 
     addLabel(
-      "Date :",
+      t.date,
       y + 8,
     );
 
@@ -647,18 +786,15 @@ export async function GET() {
       y,
       20,
       {
-        x:
-          margin + 46,
-
-        width:
-          140,
+        x: margin + 46,
+        width: 140,
       },
     );
 
     y -= 35;
 
     page.drawText(
-      "Signature du (des) consommateur(s)",
+      t.signature,
       {
         x: margin,
         y,
@@ -669,10 +805,9 @@ export async function GET() {
     );
 
     page.drawText(
-      "(uniquement en cas de notification sur papier)",
+      t.paperOnly,
       {
-        x:
-          margin + 184,
+        x: margin + 184,
         y,
         size: 7.5,
         font: regular,
@@ -687,13 +822,10 @@ export async function GET() {
         x: margin,
         y,
       },
-
       end: {
-        x:
-          width - margin,
+        x: width - margin,
         y,
       },
-
       thickness: 0.8,
       color: DARK,
     });
@@ -701,7 +833,7 @@ export async function GET() {
     y -= 20;
 
     page.drawText(
-      "(*) Rayez la mention inutile.",
+      t.strike,
       {
         x: margin,
         y,
@@ -714,7 +846,7 @@ export async function GET() {
     y -= 22;
 
     page.drawText(
-      "ENVOI",
+      t.send,
       {
         x: margin,
         y,
@@ -727,14 +859,22 @@ export async function GET() {
     y -= 14;
 
     const sendText =
-      `Vous pouvez renvoyer ce formulaire par courrier à ${returnAddress} ou par email à ${email}. Conservez une preuve de votre envoi.`;
+      replaceTokens(
+        t.sendText,
+        {
+          returnAddress,
+          email,
+        },
+      );
 
-    for (const line of wrapText(
-      sendText,
-      contentWidth,
-      regular,
-      7.7,
-    )) {
+    for (
+      const line of wrapText(
+        sendText,
+        contentWidth,
+        regular,
+        7.7,
+      )
+    ) {
       page.drawText(
         line,
         {
@@ -775,8 +915,7 @@ export async function GET() {
     page.drawText(
       domain,
       {
-        x:
-          width - 100,
+        x: width - 100,
         y: 15,
         size: 7.2,
         font: bold,
@@ -795,16 +934,15 @@ export async function GET() {
       Buffer.from(bytes),
       {
         status: 200,
-
         headers: {
           "Content-Type":
             "application/pdf",
-
           "Content-Disposition":
-            'inline; filename="Formulaire-retractation-Milos-BG.pdf"',
-
+            `inline; filename="${t.filename}"`,
           "Cache-Control":
             "no-store, no-cache, must-revalidate",
+          "Content-Language":
+            lang,
         },
       },
     );
@@ -818,7 +956,6 @@ export async function GET() {
       {
         error:
           "WITHDRAWAL_FORM_GENERATION_FAILED",
-
         message:
           error instanceof Error
             ? error.message
