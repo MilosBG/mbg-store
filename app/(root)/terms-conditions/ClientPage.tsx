@@ -716,7 +716,7 @@ const ContentFR: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => {
         Une version PDF remplissable est disponible ici :{" "}
         <a
           className="mbg-link font-semibold"
-          href="/api/legal/withdrawal-form"
+          href="/api/legal/withdrawal-form?lang=fr"
           download
         >
           Télécharger le formulaire de rétractation PDF
@@ -1462,7 +1462,7 @@ const ContentEN: React.FC<{ allOpen: boolean | null }> = ({ allOpen }) => {
         A fillable PDF version is available here:{" "}
         <a
           className="mbg-link font-semibold"
-          href="/api/legal/withdrawal-form"
+          href="/api/legal/withdrawal-form?lang=en"
           download
         >
           Download the PDF withdrawal form
