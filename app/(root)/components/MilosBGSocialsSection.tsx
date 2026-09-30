@@ -420,19 +420,19 @@ const NewsletterContent = () => {
   disabled={state === "loading"}
   className="
     h-12
-    bg-mbg-green
+    bg-white
     px-6
     text-[10px]
     font-black
     uppercase
     tracking-[0.12em]
-    text-white
+    text-black
     transition
-    hover:bg-white
-    hover:text-black
+    hover:bg-black
+    hover:text-white
     focus-visible:outline-2
     focus-visible:outline-offset-2
-    focus-visible:outline-mbg-green
+    focus-visible:outline-white
     disabled:cursor-wait
     disabled:opacity-60
   "
