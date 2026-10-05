@@ -390,7 +390,7 @@ const NewsletterContent = () => {
               <button
                 type="submit"
                 disabled={state === "loading"}
-                className="
+                className={`
     group
     relative
     isolate
@@ -401,47 +401,39 @@ const NewsletterContent = () => {
     border-mbg-green
     bg-mbg-green
     px-6
-
     text-[10px]
     font-black
     uppercase
     tracking-[0.12em]
     text-white
-
     shadow-[0_0_14px_rgba(0,130,26,0.35)]
-
     transition-all
     duration-300
     ease-out
-
     hover:bg-black
     hover:text-mbg-green
     hover:shadow-[0_0_8px_rgba(0,130,26,0.75),0_0_28px_rgba(0,130,26,0.55)]
-
-    focus-visible:outline
     focus-visible:outline-2
     focus-visible:outline-offset-2
     focus-visible:outline-mbg-green
-
     disabled:cursor-wait
     disabled:opacity-60
-
     sm:min-w-[185px]
-  "
+  `}
               >
                 {/* BALAYAGE LUMINEUX */}
                 <span
                   aria-hidden="true"
-                  className="
+                  className={`
       pointer-events-none
       absolute
       inset-0
       z-0
       overflow-hidden
-    "
+    `}
                 >
                   <span
-                    className="
+                    className={`
         mbg-subscribe-sweep
         absolute
         -inset-y-1/2
@@ -453,41 +445,39 @@ const NewsletterContent = () => {
         via-white/70
         to-transparent
         blur-md
-
         transition-opacity
         duration-300
         group-hover:opacity-20
-      "
+      `}
                   />
                 </span>
 
                 {/* GLOW INTERNE */}
                 <span
                   aria-hidden="true"
-                  className="
+                  className={`
       pointer-events-none
       absolute
       inset-0
       z-0
       bg-[radial-gradient(circle_at_80%_50%,rgba(255,255,255,0.32),transparent_35%)]
-
       opacity-100
       transition-opacity
       duration-300
       group-hover:opacity-0
-    "
+    `}
                 />
 
                 {/* CONTENU */}
                 <span
-                  className="
+                  className={`
       relative
       z-10
       flex
       items-center
       justify-center
       gap-5
-    "
+    `}
                 >
                   <span>
                     {state === "loading" ? t.subscribing : t.subscribe}
@@ -496,13 +486,13 @@ const NewsletterContent = () => {
                   {state !== "loading" && (
                     <span
                       aria-hidden="true"
-                      className="
+                      className={`
           text-base
           leading-none
           transition-transform
           duration-300
           group-hover:translate-x-1.5
-        "
+        `}
                     >
                       →
                     </span>
