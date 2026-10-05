@@ -2,12 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import {
-  Suspense,
-  useState,
-  type ChangeEvent,
-  type FormEvent,
-} from "react";
+import { Suspense, useState, type ChangeEvent, type FormEvent } from "react";
 
 import { MBGPeriwinkle } from "@/images";
 
@@ -99,8 +94,7 @@ const NewsletterContent = () => {
    * /?lang=en            → EN
    * /?lang=fr            → FR
    */
-  const language: Language =
-    searchParams.get("lang") === "fr" ? "fr" : "en";
+  const language: Language = searchParams.get("lang") === "fr" ? "fr" : "en";
 
   const t = translations[language];
 
@@ -108,8 +102,7 @@ const NewsletterContent = () => {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
 
-  const [state, setState] =
-    useState<SubscribeState>("idle");
+  const [state, setState] = useState<SubscribeState>("idle");
 
   const [message, setMessage] = useState("");
 
@@ -117,9 +110,7 @@ const NewsletterContent = () => {
   // SUBMIT
   // ---------------------------------------------------------------------------
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (state === "loading") return;
@@ -128,21 +119,18 @@ const NewsletterContent = () => {
     setMessage("");
 
     try {
-      const response = await fetch(
-        "/api/marketing/subscribe",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            firstName: firstName.trim(),
-            email: email.trim().toLowerCase(),
-            consent,
-            company: "",
-          }),
+      const response = await fetch("/api/marketing/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          email: email.trim().toLowerCase(),
+          consent,
+          company: "",
+        }),
+      });
 
       const payload = (await response
         .json()
@@ -177,11 +165,7 @@ const NewsletterContent = () => {
     } catch (error) {
       setState("error");
 
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : t.errors.generic,
-      );
+      setMessage(error instanceof Error ? error.message : t.errors.generic);
     }
   };
 
@@ -212,15 +196,9 @@ const NewsletterContent = () => {
         className="object-cover object-center"
       />
 
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-black/45"
-      />
+      <div aria-hidden="true" className="absolute inset-0 bg-black/45" />
 
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-black/20"
-      />
+      <div aria-hidden="true" className="absolute inset-0 bg-black/20" />
 
       {/* ------------------------------------------------------------------ */}
       {/* CONTENT                                                            */}
@@ -329,10 +307,7 @@ const NewsletterContent = () => {
             >
               {/* FIRST NAME */}
 
-              <label
-                className="sr-only"
-                htmlFor="newsletter-first-name"
-              >
+              <label className="sr-only" htmlFor="newsletter-first-name">
                 {t.firstNameLabel}
               </label>
 
@@ -342,9 +317,9 @@ const NewsletterContent = () => {
                 type="text"
                 autoComplete="given-name"
                 value={firstName}
-                onChange={(
-                  event: ChangeEvent<HTMLInputElement>,
-                ) => setFirstName(event.target.value)}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  setFirstName(event.target.value)
+                }
                 placeholder={t.firstNamePlaceholder}
                 maxLength={80}
                 className="
@@ -372,10 +347,7 @@ const NewsletterContent = () => {
 
               {/* EMAIL */}
 
-              <label
-                className="sr-only"
-                htmlFor="newsletter-email"
-              >
+              <label className="sr-only" htmlFor="newsletter-email">
                 {t.emailLabel}
               </label>
 
@@ -387,9 +359,9 @@ const NewsletterContent = () => {
                 autoComplete="email"
                 inputMode="email"
                 value={email}
-                onChange={(
-                  event: ChangeEvent<HTMLInputElement>,
-                ) => setEmail(event.target.value)}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  setEmail(event.target.value)
+                }
                 placeholder={t.emailPlaceholder}
                 className="
                   h-12
@@ -415,32 +387,151 @@ const NewsletterContent = () => {
 
               {/* SUBMIT */}
 
-             <button
-  type="submit"
-  disabled={state === "loading"}
-  className="
+              <button
+                type="submit"
+                disabled={state === "loading"}
+                className="
+    group
+    relative
+    isolate
     h-12
+    w-full
+    overflow-hidden
+    border
+    border-mbg-green
     bg-mbg-green
     px-6
+
     text-[10px]
     font-black
     uppercase
     tracking-[0.12em]
-    text-mbg-white
-    transition
+    text-white
+
+    shadow-[0_0_14px_rgba(0,130,26,0.35)]
+
+    transition-all
+    duration-300
+    ease-out
+
     hover:bg-black
-    hover:text-white
+    hover:text-mbg-green
+    hover:shadow-[0_0_8px_rgba(0,130,26,0.75),0_0_28px_rgba(0,130,26,0.55)]
+
+    focus-visible:outline
     focus-visible:outline-2
     focus-visible:outline-offset-2
-    focus-visible:outline-white
+    focus-visible:outline-mbg-green
+
     disabled:cursor-wait
     disabled:opacity-60
+
+    sm:min-w-[185px]
   "
->
-  {state === "loading"
-    ? t.subscribing
-    : t.subscribe}
-</button>
+              >
+                {/* BALAYAGE LUMINEUX */}
+                <span
+                  aria-hidden="true"
+                  className="
+      pointer-events-none
+      absolute
+      inset-0
+      z-0
+      overflow-hidden
+    "
+                >
+                  <span
+                    className="
+        mbg-subscribe-sweep
+        absolute
+        -inset-y-1/2
+        -left-1/2
+        w-[42%]
+        -skew-x-[20deg]
+        bg-gradient-to-r
+        from-transparent
+        via-white/70
+        to-transparent
+        blur-md
+
+        transition-opacity
+        duration-300
+        group-hover:opacity-20
+      "
+                  />
+                </span>
+
+                {/* GLOW INTERNE */}
+                <span
+                  aria-hidden="true"
+                  className="
+      pointer-events-none
+      absolute
+      inset-0
+      z-0
+      bg-[radial-gradient(circle_at_80%_50%,rgba(255,255,255,0.32),transparent_35%)]
+
+      opacity-100
+      transition-opacity
+      duration-300
+      group-hover:opacity-0
+    "
+                />
+
+                {/* CONTENU */}
+                <span
+                  className="
+      relative
+      z-10
+      flex
+      items-center
+      justify-center
+      gap-5
+    "
+                >
+                  <span>
+                    {state === "loading" ? t.subscribing : t.subscribe}
+                  </span>
+
+                  {state !== "loading" && (
+                    <span
+                      aria-hidden="true"
+                      className="
+          text-base
+          leading-none
+          transition-transform
+          duration-300
+          group-hover:translate-x-1.5
+        "
+                    >
+                      →
+                    </span>
+                  )}
+                </span>
+
+                <style jsx>{`
+                  @keyframes mbgSubscribeSweep {
+                    0% {
+                      transform: translateX(-80%) skewX(-20deg);
+                    }
+
+                    55%,
+                    100% {
+                      transform: translateX(430%) skewX(-20deg);
+                    }
+                  }
+
+                  .mbg-subscribe-sweep {
+                    animation: mbgSubscribeSweep 2.7s ease-in-out infinite;
+                  }
+
+                  @media (prefers-reduced-motion: reduce) {
+                    .mbg-subscribe-sweep {
+                      animation: none;
+                    }
+                  }
+                `}</style>
+              </button>
             </div>
 
             {/* ------------------------------------------------------------ */}
@@ -461,9 +552,9 @@ const NewsletterContent = () => {
                 type="checkbox"
                 required
                 checked={consent}
-                onChange={(
-                  event: ChangeEvent<HTMLInputElement>,
-                ) => setConsent(event.target.checked)}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  setConsent(event.target.checked)
+                }
                 className="
                   mt-0.5
                   h-4
@@ -496,21 +587,13 @@ const NewsletterContent = () => {
             >
               {message ? (
                 <p
-                  role={
-                    state === "error"
-                      ? "alert"
-                      : "status"
-                  }
+                  role={state === "error" ? "alert" : "status"}
                   className={`
                     text-[10px]
                     font-bold
                     uppercase
                     tracking-[0.08em]
-                    ${
-                      state === "success"
-                        ? "text-mbg-green"
-                        : "text-red-300"
-                    }
+                    ${state === "success" ? "text-mbg-green" : "text-red-300"}
                   `}
                 >
                   {message}
