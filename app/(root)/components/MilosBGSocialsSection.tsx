@@ -420,13 +420,13 @@ const NewsletterContent = () => {
   disabled={state === "loading"}
   className="
     h-12
-    bg-white
+    bg-mbg-green
     px-6
     text-[10px]
     font-black
     uppercase
     tracking-[0.12em]
-    text-black
+    text-mbg-white
     transition
     hover:bg-black
     hover:text-white
