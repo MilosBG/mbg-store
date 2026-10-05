@@ -132,10 +132,7 @@ export default function GrindModeHero({
         <div className="w-full max-w-[720px]">
           {/* EYEBROW */}
           <div className="mb-5 flex items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="h-px w-8 bg-mbg-green"
-            />
+            <span aria-hidden="true" className="h-px w-8 bg-mbg-green" />
 
             <p
               className="
@@ -196,12 +193,12 @@ export default function GrindModeHero({
               sm:items-center
             "
           >
-<Link
-  href={withStoreLanguage("/grind-mode", lang)}
-  style={{
-    animation: "mbgGlowPulse 2.4s ease-in-out infinite",
-  }}
-  className="
+            <Link
+              href={withStoreLanguage("/grind-mode", lang)}
+              style={{
+                animation: "mbgGlowPulse 2.4s ease-in-out infinite",
+              }}
+              className="
     relative
     isolate
     inline-flex
@@ -230,23 +227,23 @@ export default function GrindModeHero({
     focus-visible:ring-offset-2
     focus-visible:ring-offset-black
   "
->
-  {/* BALAYAGE PERMANENT */}
-  <span
-    aria-hidden="true"
-    className="
+            >
+              {/* BALAYAGE PERMANENT */}
+              <span
+                aria-hidden="true"
+                className="
       pointer-events-none
       absolute
       inset-0
       z-0
       overflow-hidden
     "
-  >
-    <span
-      style={{
-        animation: "mbgGlowSweep 2.6s ease-in-out infinite",
-      }}
-      className="
+              >
+                <span
+                  style={{
+                    animation: "mbgGlowSweep 2.6s ease-in-out infinite",
+                  }}
+                  className="
         absolute
         -inset-y-1/2
         -left-1/2
@@ -258,16 +255,16 @@ export default function GrindModeHero({
         to-transparent
         blur-md
       "
-    />
-  </span>
+                />
+              </span>
 
-  {/* GLOW VERT INTERNE */}
-  <span
-    aria-hidden="true"
-    style={{
-      animation: "mbgInnerGlow 2.4s ease-in-out infinite",
-    }}
-    className="
+              {/* GLOW VERT INTERNE */}
+              <span
+                aria-hidden="true"
+                style={{
+                  animation: "mbgInnerGlow 2.4s ease-in-out infinite",
+                }}
+                className="
       pointer-events-none
       absolute
       inset-0
@@ -277,17 +274,15 @@ export default function GrindModeHero({
       via-white/10
       to-mbg-green/0
     "
-  />
+              />
 
-  {/* TEXTE */}
-  <span className="relative z-10">
-    {t.primary}
-  </span>
+              {/* TEXTE */}
+              <span className="relative z-10">{t.primary}</span>
 
-  {/* FLÈCHE */}
-  <span
-    aria-hidden="true"
-    className="
+              {/* FLÈCHE */}
+              <span
+                aria-hidden="true"
+                className="
       relative
       z-10
       ml-4
@@ -297,10 +292,10 @@ export default function GrindModeHero({
       duration-300
       hover:translate-x-1
     "
-  >
-    →
-  </span>
-</Link>
+              >
+                ✿
+              </span>
+            </Link>
             <Link
               href={withStoreLanguage("/the-background", lang)}
               className="
@@ -347,9 +342,7 @@ export default function GrindModeHero({
             "
           >
             <div>
-              <p className="text-xl font-black text-white">
-                05
-              </p>
+              <p className="text-xl font-black text-white">05</p>
 
               <p
                 className="
@@ -368,9 +361,7 @@ export default function GrindModeHero({
             <div className="h-8 w-px bg-white/15" />
 
             <div>
-              <p className="text-xl font-black text-mbg-green">
-                01
-              </p>
+              <p className="text-xl font-black text-mbg-green">01</p>
 
               <p
                 className="

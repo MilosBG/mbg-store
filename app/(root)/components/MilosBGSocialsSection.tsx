@@ -494,7 +494,7 @@ const NewsletterContent = () => {
           group-hover:translate-x-1.5
         `}
                     >
-                      →
+                      ✿
                     </span>
                   )}
                 </span>
