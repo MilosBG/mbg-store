@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
-import { BsShop } from "react-icons/bs";
+import { IoListCircleSharp } from "react-icons/io5";
 
 import { GiBasketballBasket, GiHouse } from "react-icons/gi";
 import { FaUserCircle } from "react-icons/fa";
@@ -137,7 +137,7 @@ const Header = () => {
               {/* ALL PRODUCTS */}
               <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
                 <Link href="/products" aria-label="All Products">
-                  <BsShop
+                  <IoListCircleSharp
                     className="
                             mbg-icons-style
                             hoverEffect
