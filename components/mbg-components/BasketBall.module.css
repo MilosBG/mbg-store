@@ -96,3 +96,105 @@
   .iconLike, .iconUnlike { animation: none; }
   .burst { display: none; }
 }
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.button {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #00821a;
+  cursor: pointer;
+  transition: background-color 180ms ease;
+}
+
+.button:hover:not(:disabled) { background-color: rgb(0 130 26 / 10%); }
+.button:disabled { cursor: wait; }
+.button:focus-visible { outline: 2px solid #00821a; outline-offset: 2px; }
+.button:active:not(:disabled) .icon { transform: scale(0.86); }
+
+.icon { display: inline-flex; align-items: center; justify-content: center; }
+.iconLike { animation: basketball-like 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.iconUnlike { animation: basketball-unlike 310ms ease-out both; }
+
+.burst {
+  /* Le portail DOM place les confettis au-dessus de la carte (non recadrés). */
+  position: fixed;
+  z-index: 9999;
+  width: 36px;
+  height: 36px;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  margin: -14px;
+  border: 2px solid #00821a;
+  border-radius: 50%;
+  animation: basketball-ring 510ms ease-out both;
+}
+
+.origin { position: absolute; top: 50%; left: 50%; width: 0; height: 0; }
+.particle {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 2px rgb(0 130 26 / 34%));
+  will-change: transform, opacity;
+  animation: basketball-particle 800ms cubic-bezier(0.22, 1, 0.36, 1) var(--delay) both;
+}
+
+@keyframes basketball-like {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); }
+  18%  { transform: translateY(4px) rotate(-26deg) scale(0.42); }
+  42%  { transform: translateY(-6px) rotate(15deg) scale(1.5); }
+  67%  { transform: translateY(2px) rotate(-7deg) scale(0.88); }
+  86%  { transform: translateY(-1px) rotate(3deg) scale(1.08); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+@keyframes basketball-unlike {
+  0%   { transform: rotate(10deg) scale(1.12); }
+  45%  { transform: rotate(-5deg) scale(0.82); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes basketball-ring {
+  0%   { opacity: 0.75; transform: scale(0.4); }
+  45%  { opacity: 0.4; transform: scale(1.6); }
+  100% { opacity: 0; transform: scale(3.1); }
+}
+
+@keyframes basketball-particle {
+  0%   { opacity: 0; transform: translate(0, 0) rotate(0deg) scale(0.2); }
+  18%  { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1.24); }
+  65%  { opacity: 1; transform: translate(var(--mid-x), var(--mid-y)) rotate(var(--spin)) scale(1); }
+  100% { opacity: 0; transform: translate(var(--end-x), var(--end-y)) rotate(var(--spin)) scale(0.48); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconLike, .iconUnlike { animation: none; }
+  .burst { display: none; }
+}

@@ -4,6 +4,7 @@ import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PiBasketballFill, PiBasketballLight } from "react-icons/pi";
 
 import { GrindUntilAchieve2 } from "@/images";
@@ -59,8 +60,11 @@ export default function BasketBall({
   const [effect, setEffect] = useState<{
     key: number;
     kind: "like" | "unlike";
+    x: number;
+    y: number;
   } | null>(null);
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const sequence = useRef(0);
   const activeRequest = useRef(false);
   const effectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -109,7 +113,15 @@ export default function BasketBall({
     if (effectTimer.current) clearTimeout(effectTimer.current);
     sequence.current += 1;
     const key = sequence.current;
-    setEffect({ key, kind });
+    // Position réelle du bouton dans la fenêtre. Le portail évite le recadrage
+    // de la ProductCard sans libérer le balayage lumineux de son conteneur.
+    const bounds = buttonRef.current?.getBoundingClientRect();
+    setEffect({
+      key,
+      kind,
+      x: bounds ? bounds.left + bounds.width / 2 : 0,
+      y: bounds ? bounds.top + bounds.height / 2 : 0,
+    });
     effectTimer.current = setTimeout(() => {
       setEffect((current) => (current?.key === key ? null : current));
     }, 1050);
@@ -158,6 +170,7 @@ export default function BasketBall({
   return (
     <div className={styles.root}>
       <button
+        ref={buttonRef}
         type="button"
         onClick={handleLike}
         disabled={busy}
@@ -185,10 +198,11 @@ export default function BasketBall({
         </span>
       </button>
 
-      {effect?.kind === "like" && (
+      {effect?.kind === "like" && typeof document !== "undefined" && createPortal(
         <span
           key={`burst-${effect.key}`}
           className={styles.burst}
+          style={{ left: effect.x, top: effect.y }}
           aria-hidden="true"
         >
           <span className={styles.ring} />
@@ -229,7 +243,8 @@ export default function BasketBall({
               </span>
             </span>
           ))}
-        </span>
+        </span>,
+        document.body,
       )}
     </div>
   );

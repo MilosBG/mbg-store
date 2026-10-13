@@ -27,10 +27,9 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
 
   return (
     <article
-      style={{ overflow: "visible" }}
       className={`
         group relative isolate z-0 flex w-full max-w-[250px] flex-col
-        overflow-visible border border-mbg-rgbalight bg-mbg-white shadow-lg
+        overflow-hidden border border-mbg-rgbalight bg-mbg-white shadow-lg
         hover:z-20 focus-within:z-20
         ${styles.productCard}
       `}
@@ -38,12 +37,12 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
       {/* L'ensemble de la carte ouvre le produit, sauf le bouton favoris. */}
       <Link
         href={`/products/${product.slug}`}
-        className="absolute inset-0 z-10 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green"
+        className="absolute inset-0 z-10 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green"
       >
         <span className="sr-only">View {product.title}</span>
       </Link>
 
-      {/* Seule l'image est recadrée ; la carte laisse sortir les confettis. */}
+      {/* La carte recadre son balayage lumineux ; les confettis sont affichés via un portail. */}
       <div className="relative w-full overflow-hidden">
         <Image
           src={imgSrc}
@@ -66,7 +65,7 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
       <div className="mt-auto flex items-center justify-between border-t border-mbg-rgbalight bg-mbg-green/7 px-2 py-2">
         <p className="font-bold text-mbg-green">€ {product.price}</p>
 
-        {/* Au-dessus du lien produit ; particules libres de dépasser la carte. */}
+        {/* Bouton au-dessus du lien produit. Les particules sont affichées hors de la carte. */}
         <div className="relative z-30 flex shrink-0 items-center justify-center overflow-visible">
           <BasketBall
             product={product}
