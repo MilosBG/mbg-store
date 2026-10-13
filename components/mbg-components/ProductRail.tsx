@@ -116,50 +116,48 @@ const ProductRail = ({ products }: ProductRailProps) => {
   return (
     <div className="w-full bg-mbg-white/80 inset-shadow-sm/20 border-1 border-mbg-rgbalight p-4 px-5">
       {/* HEADER */}
-      <div className="mb-5 px-2 bg-mbg-green/7 flex items-center justify-between gap-4">
-        <div>
-          <h2 className=" heading2-bold">Outfits</h2>
+      <div className="mb-5 flex items-center justify-between gap-4 bg-mbg-green/7 px-2">
+        <div className="w-full text-center sm:w-auto sm:text-left">
+          <h2 className="heading2-bold py-2 uppercase">Outfits</h2>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="hidden items-center gap-2 sm:flex">
           {/* Navigation desktop */}
-          <div className="hidden items-center py-1 gap-2 sm:flex">
-            <button
-              type="button"
-              onClick={() => scroll("left")}
-              disabled={!canScrollLeft}
-              aria-label="Previous products"
-              className="
-                flex h-10 w-10 items-center justify-center
-                rounded-xs border border-black/10
-                bg-white
-                transition-all duration-200
-                hover:border-black hover:bg-mbg-black hover:text-white
-                disabled:pointer-events-none
-                disabled:opacity-25
-              "
-            >
-              <ArrowLeft size={17} />
-            </button>
+          <button
+            type="button"
+            onClick={() => scroll("left")}
+            disabled={!canScrollLeft}
+            aria-label="Previous products"
+            className="
+        flex h-10 w-10 items-center justify-center
+        rounded-xs border border-black/10
+        bg-white
+        transition-all duration-200
+        hover:border-black hover:bg-mbg-black hover:text-white
+        disabled:pointer-events-none
+        disabled:opacity-25
+      "
+          >
+            <ArrowLeft size={17} />
+          </button>
 
-            <button
-              type="button"
-              onClick={() => scroll("right")}
-              disabled={!canScrollRight}
-              aria-label="Next products"
-              className="
-                flex h-10 w-10 items-center justify-center
-                rounded-xs border border-black/10
-                bg-white
-                transition-all duration-200
-                hover:border-black hover:bg-mbg-black hover:text-white
-                disabled:pointer-events-none
-                disabled:opacity-25
-              "
-            >
-              <ArrowRight size={17} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => scroll("right")}
+            disabled={!canScrollRight}
+            aria-label="Next products"
+            className="
+        flex h-10 w-10 items-center justify-center
+        rounded-xs border border-black/10
+        bg-white
+        transition-all duration-200
+        hover:border-black hover:bg-mbg-black hover:text-white
+        disabled:pointer-events-none
+        disabled:opacity-25
+      "
+          >
+            <ArrowRight size={17} />
+          </button>
         </div>
       </div>
 
