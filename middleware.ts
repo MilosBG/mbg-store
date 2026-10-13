@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import {
-  clerkMiddleware,
-  createRouteMatcher,
-} from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/marketing/unsubscribe(.*)",
+  "/api/marketing/unsubscribe(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/the-hoop(.*)",
@@ -30,17 +29,13 @@ const isPublicRoute = createRouteMatcher([
   "/api/admin/withdrawals(.*)",
 ]);
 
-const isMaintenanceRoute = createRouteMatcher([
-  "/api/milos-bg(.*)",
-]);
+const isMaintenanceRoute = createRouteMatcher(["/api/milos-bg(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
-  const maintenanceProbeHeader =
-    req.headers.get("x-mbg-maintenance-probe");
+  const maintenanceProbeHeader = req.headers.get("x-mbg-maintenance-probe");
 
   const skipMaintenanceProbe =
-    maintenanceProbeHeader === "1" ||
-    isMaintenanceRoute(req);
+    maintenanceProbeHeader === "1" || isMaintenanceRoute(req);
 
   if (!isPublicRoute(req)) {
     await auth.protect();
@@ -82,10 +77,7 @@ export default clerkMiddleware(async (auth, req) => {
       response.headers.set("x-mbg-store-online", "0");
     }
   } catch (error) {
-    console.warn(
-      "[MBG_STORE] Failed to probe maintenance status",
-      error,
-    );
+    console.warn("[MBG_STORE] Failed to probe maintenance status", error);
   }
 
   return response;
