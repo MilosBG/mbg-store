@@ -29,7 +29,7 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
     <article
       className={`
         group relative isolate z-0 flex w-full max-w-[250px] flex-col
-        overflow-hidden border border-mbg-rgbalight bg-mbg-white shadow-lg
+        overflow-hidden border border-mbg-rgbalight mt-1 bg-mbg-white shadow-lg
         hover:z-20 focus-within:z-20
         ${styles.productCard}
       `}
