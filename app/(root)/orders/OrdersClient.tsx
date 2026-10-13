@@ -235,52 +235,114 @@ export default function OrdersClient({
 
   return (
     <main className="min-h-[60vh] bg-[#f7f8fa] pb-16 font-[Kanit] text-mbg-black">
-      <div className="bg-mbg-green">
-        <Container className="flex min-h-12 items-center justify-between gap-3 py-1">
-          <nav aria-label={language === "fr" ? "Commandes" : "Orders"} className="flex min-w-0 items-center">
-            <div role="group" aria-label={language === "fr" ? "Afficher les commandes" : "Show orders"} className="flex items-center">
-              <button
-                type="button"
-                id="tab-tracking"
-                aria-controls="orders-panel"
-                aria-pressed={view === "tracking"}
-                onClick={() => setView("tracking")}
-                className={"min-h-10 rounded-sm px-4 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors sm:px-7 " +
-                  (view === "tracking"
-                    ? "bg-white text-mbg-green"
-                    : "bg-white/15 text-white hover:bg-white/25")}
-              >
-                {t.tracking}
-                <span className="ml-1.5 opacity-70">{trackingOrders.length}</span>
-              </button>
-              <button
-                type="button"
-                id="tab-history"
-                aria-controls="orders-panel"
-                aria-pressed={view === "history"}
-                onClick={() => setView("history")}
-                className={"min-h-10 rounded-sm px-4 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors sm:px-7 " +
-                  (view === "history"
-                    ? "bg-white text-mbg-green"
-                    : "bg-white/15 text-white hover:bg-white/25")}
-              >
-                {t.history}
-                <span className="ml-1.5 opacity-70">{historyOrders.length}</span>
-              </button>
-            </div>
-            <Link
-              href="/the-hoop"
-              className="flex min-h-10 items-center rounded-sm bg-white/15 px-4 text-[10px] font-bold uppercase tracking-[0.16em] text-white transition-colors hover:bg-white/25 sm:px-7"
-            >
-              {t.cart}
-            </Link>
-          </nav>
-          <div role="group" aria-label={t.language} className="flex shrink-0 items-center gap-1 text-[10px] font-bold">
-            <button type="button" lang="en" aria-pressed={language === "en"} onClick={() => changeLanguage("en")} className={"rounded-sm px-2 py-2 " + (language === "en" ? "bg-white text-mbg-green" : "text-white")}>EN</button>
-            <button type="button" lang="fr" aria-pressed={language === "fr"} onClick={() => changeLanguage("fr")} className={"rounded-sm px-2 py-2 " + (language === "fr" ? "bg-white text-mbg-green" : "text-white")}>FR</button>
-          </div>
-        </Container>
+      
+<div className="bg-mbg-green">
+  <Container className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-1">
+
+    {/* NAVIGATION */}
+    <nav
+      aria-label={language === "fr" ? "Commandes" : "Orders"}
+      className="grid w-full min-w-0 grid-cols-3 gap-1.5 sm:flex sm:w-auto sm:items-center sm:gap-2"
+    >
+      <div
+        role="group"
+        aria-label={
+          language === "fr"
+            ? "Afficher les commandes"
+            : "Show orders"
+        }
+        className="col-span-2 grid min-w-0 grid-cols-2 gap-1.5 sm:flex sm:items-center sm:gap-2"
+      >
+        {/* TRACKING */}
+        <button
+          type="button"
+          id="tab-tracking"
+          aria-controls="orders-panel"
+          aria-pressed={view === "tracking"}
+          onClick={() => setView("tracking")}
+          className={
+            "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[9px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
+            (view === "tracking"
+              ? "bg-white text-mbg-green"
+              : "bg-white/15 text-white hover:bg-white/25")
+          }
+        >
+          <span className="truncate">{t.tracking}</span>
+          <span className="shrink-0 opacity-70">
+            {trackingOrders.length}
+          </span>
+        </button>
+
+        {/* HISTORY */}
+        <button
+          type="button"
+          id="tab-history"
+          aria-controls="orders-panel"
+          aria-pressed={view === "history"}
+          onClick={() => setView("history")}
+          className={
+            "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[9px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
+            (view === "history"
+              ? "bg-white text-mbg-green"
+              : "bg-white/15 text-white hover:bg-white/25")
+          }
+        >
+          <span className="truncate">{t.history}</span>
+          <span className="shrink-0 opacity-70">
+            {historyOrders.length}
+          </span>
+        </button>
       </div>
+
+      {/* CART */}
+      <Link
+        href="/the-hoop"
+        className="flex min-h-11 min-w-0 items-center justify-center rounded-sm bg-white/15 px-2 text-[9px] font-bold uppercase tracking-[0.06em] text-white transition-all duration-200 hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7"
+      >
+        <span className="truncate">{t.cart}</span>
+      </Link>
+    </nav>
+
+    {/* LANGUAGE SELECTOR */}
+    <div
+      role="group"
+      aria-label={t.language}
+      className="flex w-full items-center justify-end gap-1 border-t border-white/20 pt-2 text-[10px] font-bold sm:w-auto sm:shrink-0 sm:border-0 sm:pt-0"
+    >
+      <button
+        type="button"
+        lang="en"
+        aria-pressed={language === "en"}
+        onClick={() => changeLanguage("en")}
+        className={
+          "min-h-9 min-w-10 rounded-sm px-2 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
+          (language === "en"
+            ? "bg-white text-mbg-green"
+            : "text-white hover:bg-white/15")
+        }
+      >
+        EN
+      </button>
+
+      <button
+        type="button"
+        lang="fr"
+        aria-pressed={language === "fr"}
+        onClick={() => changeLanguage("fr")}
+        className={
+          "min-h-9 min-w-10 rounded-sm px-2 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
+          (language === "fr"
+            ? "bg-white text-mbg-green"
+            : "text-white hover:bg-white/15")
+        }
+      >
+        FR
+      </button>
+    </div>
+
+  </Container>
+</div>
+
 
       <Container className="pt-8 md:pt-10">
         <header className="mb-7">
