@@ -84,7 +84,7 @@ const ProductCard = ({
       </div>
 
       {/* INFORMATIONS PRODUIT */}
-      <div className="px-2 pt-2">
+      <div className="px-2 py-2">
         <p
           className="
             text-xs
@@ -121,7 +121,6 @@ const ProductCard = ({
           bg-mbg-green/7
           px-2
           py-2
-          pt-3
         "
       >
         <p className="font-bold text-mbg-green">
