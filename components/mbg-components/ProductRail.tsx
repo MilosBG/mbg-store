@@ -118,12 +118,12 @@ const ProductRail = ({ products }: ProductRailProps) => {
       {/* HEADER */}
       <div className="mb-5 px-2 bg-mbg-green/7 flex items-center justify-between gap-4">
         <div>
-          <h2 className="mt-1 heading2-bold">Outfits</h2>
+          <h2 className=" heading2-bold">Outfits</h2>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Navigation desktop */}
-          <div className="hidden items-center gap-2 sm:flex">
+          <div className="hidden items-center py-1 gap-2 sm:flex">
             <button
               type="button"
               onClick={() => scroll("left")}
