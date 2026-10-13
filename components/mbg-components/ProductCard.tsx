@@ -24,16 +24,16 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
     <>
       <Link
         href={`/products/${product.slug}`}
-        className="bg-mbg-white rounded-t-md shadow-xl w-fit flex flex-col "
+        className="bg-mbg-white shadow-lg w-fit flex flex-col "
       >
         <Image
           src={imgSrc}
           alt={`${product.title}`}
           width={250}
           height={300}
-          className="object-contain w-full shadow-xs mb-2"
+          className="object-contain w-full shadow-xs mb-2 border-1 border-mbg-rgbalight"
         />
-        <div className="px-2">
+        <div className="px-2 border-1 border-mbg-rgbalight">
           <p className="text-xs font-bold uppercase text-mbg-black">
             {product.title}
           </p>
@@ -41,7 +41,7 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
             {product.tags}
           </p>
         </div>
-        <div className="mt-3 bg-mbg-green/7 py-2 px-2 mbg-p-between">
+        <div className="mt-3 bg-mbg-green/7 border-1 border-mbg-rgbalight py-2 px-2 mbg-p-between">
           <p className="font-bold text-mbg-green">€ {product.price}</p>
           <BasketBall
             product={product}
