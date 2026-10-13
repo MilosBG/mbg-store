@@ -2,6 +2,7 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 import { TiSocialInstagram, TiSocialYoutube } from "react-icons/ti";
+import { FaSquareThreads } from "react-icons/fa6";
 import Link from "next/link";
 import {
   Tooltip,
@@ -20,6 +21,11 @@ const socialLink = [
     title: "INSTAGRAM : @m.i.l.o.s.bg",
     href: "https://www.instagram.com/m.i.l.o.s.bg/",
     icon: <TiSocialInstagram size={16} />,
+  },
+  {
+    title: "THREADS : @m.i.l.o.s.bg",
+    href: "https://www.threads.com/@m.i.l.o.s.bg",
+    icon: <FaSquareThreads size={16} />,
   },
   {
     title: "YOUTUBE : @milos-bg",
