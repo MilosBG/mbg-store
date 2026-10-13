@@ -1,11 +1,9 @@
 import "server-only";
-
 import { unstable_noStore as noStore } from "next/cache";
 import { getAdminDb } from "../adminDb";
 import { getProductById, getProducts, getProductsByIds } from "../admin";
 import type { Chapter, Product } from "../types";
 import type { ObjectId } from "mongodb";
-
 const ADMIN_API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 const STOREFRONT_SERVICE_TOKEN =
   process.env.STOREFRONT_SERVICE_TOKEN || process.env.ADMIN_SERVICE_TOKEN;
@@ -15,11 +13,8 @@ const STOREFRONT_ORIGIN = normalizeOrigin(
     process.env.NEXT_PUBLIC_VERCEL_URL,
 );
 const ORDERS_REVALIDATE_SECONDS = 20;
-
 export { getProducts } from "../admin";
-
 const MAX_SEARCH_RESULTS = 50;
-
 type MongoModule = typeof import("mongodb");
 let mongoModulePromise: Promise<MongoModule> | null = null;
 async function loadMongoModule(): Promise<MongoModule> {
@@ -28,24 +23,19 @@ async function loadMongoModule(): Promise<MongoModule> {
   }
   return mongoModulePromise;
 }
-
 type ChapterWithSlug = Chapter & {
   slug: string;
 };
-
 export const getChapters = async (): Promise<ChapterWithSlug[]> => {
   noStore();
-
   const db = await getAdminDb();
   const chapters = await db
     .collection<ChapterDocument>("chapters")
     .find({})
     .sort({ createdAt: -1 })
     .toArray();
-
   return chapters.map((chapter) => serializeChapter(chapter));
 };
-
 /**
  * Récupère un chapitre via son slug public ou son ancien ObjectId MongoDB.
  * Exemples : /chapters/grind ou /chapters/69248735606e9c4e3e739e67
@@ -54,18 +44,14 @@ export const getChapterDetails = async (
   slugOrId: string,
 ): Promise<ChapterWithSlug | null> => {
   noStore();
-
   const value = slugOrId.trim();
   if (!value) {
     return null;
   }
-
   const db = await getAdminDb();
   const chaptersCollection = db.collection<ChapterDocument>("chapters");
   const normalizedValue = createChapterSlug(value);
-
   let chapter: ChapterDocument | null = null;
-
   // Compatibilité avec les anciennes URLs basées sur l'ObjectId MongoDB.
   const { ObjectId } = await loadMongoModule();
   if (ObjectId.isValid(value)) {
@@ -73,43 +59,35 @@ export const getChapterDetails = async (
       _id: new ObjectId(value),
     });
   }
-
   // Recherche principale via le slug stocké en base.
   if (!chapter) {
     chapter = await chaptersCollection.findOne({
       slug: normalizedValue,
     });
   }
-
   // Fallback pour les anciens chapitres qui n'ont pas encore de champ `slug`.
   if (!chapter) {
     const chapters = await chaptersCollection.find({}).toArray();
     chapter =
       chapters.find((item) => createChapterSlug(item.title) === normalizedValue) ?? null;
   }
-
   if (!chapter) {
     return null;
   }
-
   const productIds = (chapter.products ?? [])
     .map((id) => (typeof id === "string" ? id : id.toHexString()))
     .filter(Boolean);
   const products = productIds.length ? await getProductsByIds(productIds) : [];
-
   return serializeChapter(chapter, products);
 };
-
 export const getProductDetails = async (productId: string) => {
   return getProductById(productId);
 };
-
 export const getSearchedProducts = async (query: string): Promise<Product[]> => {
   const normalized = query.trim().toLowerCase();
   if (!normalized) {
     return [];
   }
-
   const products = await getProducts({ availableOnly: true });
   const matches = products.filter((product) => {
     const titleMatch = product.title?.toLowerCase().includes(normalized);
@@ -117,15 +95,11 @@ export const getSearchedProducts = async (query: string): Promise<Product[]> => 
     const tagMatch = product.tags?.some((tag) => tag.toLowerCase().includes(normalized));
     return Boolean(titleMatch || categoryMatch || tagMatch);
   });
-
   return matches.slice(0, MAX_SEARCH_RESULTS);
 };
-
 // The orders helpers still proxy to the admin app. Consider replacing them with
 // direct database lookups if authenticated access is needed on the storefront.
-
 // --------- Internal helpers ---------
-
 type ChapterDocument = {
   _id: ObjectId;
   title: string;
@@ -137,7 +111,6 @@ type ChapterDocument = {
   createdAt?: Date;
   updatedAt?: Date;
 };
-
 function createChapterSlug(value: string): string {
   return value
     .trim()
@@ -147,7 +120,6 @@ function createChapterSlug(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
-
 function serializeChapter(
   doc: ChapterDocument,
   products?: Product[],
@@ -162,8 +134,6 @@ function serializeChapter(
     products,
   };
 }
-
-
 // Temporary storefront order types while real order APIs are wired up.
 export type StorefrontOrderProduct = {
   _id?: string;
@@ -178,9 +148,10 @@ export type StorefrontOrderProduct = {
     media?: string[];
   };
 };
-
 export type StorefrontOrder = {
   _id: string;
+  orderNumber?: string;
+  createdAt?: string;
   totalAmount: number;
   fulfillmentStatus?: string;
   products?: StorefrontOrderProduct[];
@@ -197,22 +168,18 @@ export type StorefrontOrder = {
   placedAt?: string;
   customerClerkId?: string;
 };
-
 export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> => {
   if (!customerId) {
     return [];
   }
-
   if (!ADMIN_API_BASE) {
     throw createOrdersError(
       "Customer orders endpoint is not configured.",
       500,
     );
   }
-
   const headers = buildOrdersHeaders();
   const endpoint = `${ADMIN_API_BASE}/orders/customers/${encodeURIComponent(customerId)}`;
-
   let response: Response;
   try {
     response = await fetch(endpoint, {
@@ -226,7 +193,6 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
       error,
     );
   }
-
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
   const rawBody = await response.text();
   const parseBody = (): unknown => {
@@ -241,7 +207,6 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
       );
     }
   };
-
   if (response.status === 401) {
     throw createOrdersError(
       "Customer orders request unauthorized.",
@@ -249,7 +214,6 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
       rawBody ? safeParse(rawBody) : undefined,
     );
   }
-
   if (!response.ok) {
     throw createOrdersError(
       "Customer orders request failed.",
@@ -257,7 +221,6 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
       rawBody ? safeParse(rawBody) : undefined,
     );
   }
-
   if (!contentType.includes("application/json")) {
     throw createOrdersError(
       "Unexpected customer orders response format.",
@@ -265,7 +228,6 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
       rawBody,
     );
   }
-
   const payload = parseBody();
   if (!Array.isArray(payload)) {
     throw createOrdersError(
@@ -274,13 +236,11 @@ export const getOrders = async (customerId: string): Promise<StorefrontOrder[]> 
       payload,
     );
   }
-
   return payload
     .map(normalizeOrder)
     .filter((order) => Boolean(order._id))
     .sort((a, b) => resolveOrderTimestamp(b) - resolveOrderTimestamp(a));
 };
-
 export const getOrderDetails = async (
   orderId: string,
   options?: { customerId?: string },
@@ -288,17 +248,14 @@ export const getOrderDetails = async (
   if (!orderId) {
     return null;
   }
-
   if (!ADMIN_API_BASE) {
     throw createOrdersError(
       "Order details endpoint is not configured.",
       500,
     );
   }
-
   const headers = buildOrdersHeaders();
   const endpoint = `${ADMIN_API_BASE}/orders/${encodeURIComponent(orderId)}`;
-
   let response: Response;
   try {
     response = await fetch(endpoint, {
@@ -312,14 +269,11 @@ export const getOrderDetails = async (
       error,
     );
   }
-
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
   const rawBody = await response.text();
-
   if (response.status === 404) {
     return null;
   }
-
   if (response.status === 401) {
     throw createOrdersError(
       "Order details request unauthorized.",
@@ -327,7 +281,6 @@ export const getOrderDetails = async (
       rawBody ? safeParse(rawBody) : undefined,
     );
   }
-
   if (!response.ok) {
     throw createOrdersError(
       "Order details request failed.",
@@ -335,7 +288,6 @@ export const getOrderDetails = async (
       rawBody ? safeParse(rawBody) : undefined,
     );
   }
-
   if (!contentType.includes("application/json")) {
     throw createOrdersError(
       "Unexpected order details response format.",
@@ -343,7 +295,6 @@ export const getOrderDetails = async (
       rawBody,
     );
   }
-
   let payload: unknown;
   try {
     payload = rawBody ? JSON.parse(rawBody) : null;
@@ -354,16 +305,12 @@ export const getOrderDetails = async (
       { raw: rawBody },
     );
   }
-
   const container = (payload as { orderDetails?: unknown; order?: unknown }) || {};
   const orderPayload = container.orderDetails ?? container.order ?? payload;
-
   const normalized = orderPayload ? normalizeOrder(orderPayload) : null;
-
   if (!normalized || !normalized._id) {
     return null;
   }
-
   if (
     options?.customerId &&
     normalized.customerClerkId &&
@@ -371,15 +318,12 @@ export const getOrderDetails = async (
   ) {
     return null;
   }
-
   return normalized;
 };
-
 interface OrdersApiError extends Error {
   status?: number;
   details?: unknown;
 }
-
 function createOrdersError(
   message: string,
   status?: number,
@@ -390,7 +334,6 @@ function createOrdersError(
   error.details = details;
   return error;
 }
-
 function safeParse(text: string): unknown {
   try {
     return JSON.parse(text);
@@ -398,66 +341,66 @@ function safeParse(text: string): unknown {
     return { raw: text };
   }
 }
-
 type AdminOrderPayload = {
   [key: string]: unknown;
   products?: unknown;
 };
-
 type AdminOrderProductPayload = {
   [key: string]: unknown;
   product?: unknown;
 };
-
 function normalizeOrder(entry: unknown): StorefrontOrder {
   const source: AdminOrderPayload =
     typeof entry === "object" && entry !== null ? (entry as AdminOrderPayload) : {};
-
   const products = Array.isArray(source.products)
     ? source.products
         .map((item) => normalizeOrderProduct(item))
         .filter((item: StorefrontOrderProduct) => item.quantity > 0)
     : undefined;
-
   const fulfillmentStatus =
     typeof source.fulfillmentStatus === "string"
       ? source.fulfillmentStatus
       : typeof source.status === "string"
       ? source.status
       : undefined;
-
   const totalAmountSource =
     source.totalAmount ?? source.amount ?? source.total ?? 0;
+  // Prefer the timestamp recorded at checkout by mbg-admin.
+  // Older API versions can use a different field name.
+  const createdAtSource =
+    source.createdAt ??
+    source.created_at ??
+    source.createdOn ??
+    source.created_on ??
+    source.orderDate ??
+    source.order_date ??
+    source.placedAt ??
+    source.placed_at;
 
   const processingAtSource =
-    (source.processingAt ?? source.placedAt ?? source.createdAt) as unknown;
+    source.processingAt ?? source.placedAt ?? source.placed_at ?? createdAtSource;
   const shippedAtSource = (source.shippedAt ?? (source as { shipped_at?: unknown }).shipped_at) as unknown;
   const deliveredAtSource = (source.deliveredAt ?? (source as { delivered_at?: unknown }).delivered_at) as unknown;
   const completedAtSource = (source.completedAt ?? (source as { completed_at?: unknown }).completed_at) as unknown;
   const cancelledAtSource = (source.cancelledAt ?? (source as { cancelled_at?: unknown }).cancelled_at) as unknown;
-  const placedAtSource = (source.placedAt ?? source.createdAt) as unknown;
+  const placedAtSource = source.placedAt ?? source.placed_at ?? createdAtSource;
   const shippingMethodSource =
     source.shippingMethod ??
     (source as { shipping_method?: unknown }).shipping_method ??
     (source as { shippingRate?: unknown }).shippingRate ??
     (source as { shipping_rate?: unknown }).shipping_rate;
-
   const trackingNumberSource =
     source.trackingNumber ??
     (source as { tracking_number?: unknown }).tracking_number;
-
   const trackingUrlSource =
     source.trackingUrl ??
     (source as { tracking_url?: unknown }).tracking_url;
-
   const transporterSource =
     source.transporter ??
     (source as { carrier?: unknown }).carrier;
-
   const dateMailedSource =
     source.dateMailed ??
     (source as { date_mailed?: unknown }).date_mailed;
-
   const customerClerkId = toStringSafe(
     (source.customerClerkId ??
       (source as { customerClerk?: unknown }).customerClerk ??
@@ -465,9 +408,13 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
       source.customer_id ??
       (source as { customer?: unknown }).customer) as unknown,
   );
+  const id = toStringSafe(source._id) ?? toStringSafe(source.id) ?? "";
+  const createdAt = toIsoString(createdAtSource) ?? objectIdDate(id);
 
   const order: StorefrontOrder = {
-    _id: toStringSafe(source._id) ?? toStringSafe(source.id) ?? "",
+    _id: id,
+    orderNumber: toStringSafe(source.orderNumber ?? source.order_number),
+    createdAt,
     totalAmount: numberFromUnknown(totalAmountSource),
     fulfillmentStatus,
     products,
@@ -481,15 +428,14 @@ function normalizeOrder(entry: unknown): StorefrontOrder {
     trackingUrl: toStringSafe(trackingUrlSource),
     transporter: toStringSafe(transporterSource),
     dateMailed: toIsoString(dateMailedSource),
-    placedAt: toIsoString(placedAtSource),
+    placedAt: toIsoString(placedAtSource) ?? createdAt,
     customerClerkId,
   };
-
   return order;
 }
-
 function resolveOrderTimestamp(order: StorefrontOrder): number {
   const candidates = [
+    order.createdAt,
     order.placedAt,
     order.processingAt,
     order.completedAt,
@@ -497,7 +443,6 @@ function resolveOrderTimestamp(order: StorefrontOrder): number {
     order.deliveredAt,
     order.shippedAt,
   ];
-
   for (const value of candidates) {
     if (!value) continue;
     const timestamp = Date.parse(value);
@@ -505,38 +450,26 @@ function resolveOrderTimestamp(order: StorefrontOrder): number {
       return timestamp;
     }
   }
-
-  if (typeof order._id === "string" && /^[a-fA-F0-9]{24}$/.test(order._id)) {
-    const seconds = parseInt(order._id.substring(0, 8), 16);
-    if (Number.isFinite(seconds)) {
-      return seconds * 1000;
-    }
-  }
-
-  return 0;
+  const fallbackDate = objectIdDate(order._id);
+  return fallbackDate ? Date.parse(fallbackDate) : 0;
 }
-
 function normalizeOrderProduct(entry: unknown): StorefrontOrderProduct {
   const source: AdminOrderProductPayload =
     typeof entry === "object" && entry !== null
       ? (entry as AdminOrderProductPayload)
       : {};
-
   const productSource =
     typeof source.product === "object" && source.product !== null
       ? (source.product as { [key: string]: unknown })
       : undefined;
-
   const productMedia = Array.isArray(productSource?.media)
     ? productSource?.media.filter((item: unknown): item is string => typeof item === "string")
     : undefined;
-
   const resolvedUnitPrice = numberFromUnknown(
     (source as { unitPrice?: unknown; unit_price?: unknown }).unitPrice ??
       (source as { unit_price?: unknown }).unit_price ??
       productSource?.price,
   );
-
   return {
     _id: toStringSafe(source._id),
     quantity: numberFromUnknown(source.quantity),
@@ -556,19 +489,56 @@ function normalizeOrderProduct(entry: unknown): StorefrontOrderProduct {
       : undefined,
   };
 }
-
+/**
+ * Converts API/MongoDB dates to ISO 8601 before crossing the Server/Client
+ * boundary. Supports Date, ISO text, Unix timestamps, and Extended JSON.
+ */
 function toIsoString(value: unknown): string | undefined {
-  if (!value) return undefined;
-  if (typeof value === "string") {
-    return value;
-  }
+  if (value == null || value === "") return undefined;
+
   if (value instanceof Date) {
-    return value.toISOString();
+    return Number.isNaN(value.getTime()) ? undefined : value.toISOString();
   }
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return undefined;
+    const date = new Date(Math.abs(value) < 1e12 ? value * 1000 : value);
+    return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+  }
+
+  if (typeof value === "string") {
+    const text = value.trim();
+    if (!text) return undefined;
+    if (/^\d{10}$|^\d{13}$/.test(text)) {
+      return toIsoString(Number(text));
+    }
+    const date = new Date(text);
+    return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+  }
+
+  if (typeof value === "object") {
+    const json = value as Record<string, unknown>;
+    if ("$date" in json) return toIsoString(json.$date);
+    if ("$numberLong" in json) return toIsoString(json.$numberLong);
+  }
+
   return undefined;
 }
 
+/**
+ * Last resort for old orders without a date from the admin API.
+ * An ObjectId timestamp reflects its creation, not necessarily checkout.
+ */
+function objectIdDate(id: string): string | undefined {
+  if (!/^[0-9a-f]{24}$/i.test(id)) return undefined;
+  const seconds = Number.parseInt(id.slice(0, 8), 16);
+  return toIsoString(seconds);
+}
 function toStringSafe(value: unknown): string | undefined {
+  if (value && typeof value === "object" && "$oid" in value) {
+    const oid = (value as { $oid?: unknown }).$oid;
+    return typeof oid === "string" ? oid : undefined;
+  }
   if (typeof value === "string") {
     return value;
   }
@@ -577,7 +547,6 @@ function toStringSafe(value: unknown): string | undefined {
   }
   return undefined;
 }
-
 function numberFromUnknown(value: unknown): number {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -607,7 +576,6 @@ function numberFromUnknown(value: unknown): number {
   }
   return 0;
 }
-
 function normalizeOrigin(value: string | undefined): string | undefined {
   if (!value) {
     return undefined;
@@ -623,14 +591,10 @@ function normalizeOrigin(value: string | undefined): string | undefined {
   }
   return undefined;
 }
-
-
-
 function buildOrdersHeaders(forceToken = false): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/json",
   };
-
   const token = STOREFRONT_SERVICE_TOKEN;
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -640,11 +604,8 @@ function buildOrdersHeaders(forceToken = false): Record<string, string> {
       500,
     );
   }
-
   if (STOREFRONT_ORIGIN) {
     headers.Origin = STOREFRONT_ORIGIN;
   }
-
   return headers;
 }
-
