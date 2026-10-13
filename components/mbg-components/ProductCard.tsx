@@ -31,9 +31,9 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
           alt={`${product.title}`}
           width={250}
           height={300}
-          className="object-contain w-full p-4 shadow-xs rounded-b-md mb-2 border-b-2 border-l-1 border-r-1 border-mbg-black/7"
+          className="object-contain w-full shadow-xs mb-2"
         />
-        <div>
+        <div className="px-2">
           <p className="text-xs font-bold uppercase text-mbg-black">
             {product.title}
           </p>
