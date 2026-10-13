@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from "next/image";
@@ -7,7 +6,6 @@ import React from "react";
 
 import BasketBall from "./BasketBall";
 import styles from "./ProductCard.module.css";
-
 import type { Product, User } from "@/lib/types";
 
 interface ProductCardProps {
@@ -15,10 +13,7 @@ interface ProductCardProps {
   updateSignedInUser?: (updatedUser: User) => void;
 }
 
-const ProductCard = ({
-  product,
-  updateSignedInUser,
-}: ProductCardProps) => {
+const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
   const fallbackSvg =
     "data:image/svg+xml;utf8," +
     encodeURIComponent(
@@ -32,103 +27,47 @@ const ProductCard = ({
 
   return (
     <article
+      style={{ overflow: "visible" }}
       className={`
-        group
-        relative
-        isolate
-        flex
-        w-full
-        max-w-[250px]
-        flex-col
-        overflow-hidden
-        border
-        border-mbg-rgbalight
-        bg-mbg-white
-        shadow-lg
+        group relative isolate z-0 flex w-full max-w-[250px] flex-col
+        overflow-visible border border-mbg-rgbalight bg-mbg-white shadow-lg
+        hover:z-20 focus-within:z-20
         ${styles.productCard}
       `}
     >
-      {/* LIEN PRODUIT : CARTE ENTIÈRE CLIQUABLE */}
+      {/* L'ensemble de la carte ouvre le produit, sauf le bouton favoris. */}
       <Link
         href={`/products/${product.slug}`}
-        className="
-          absolute
-          inset-0
-          z-10
-          outline-none
-        "
+        className="absolute inset-0 z-10 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green"
       >
-        <span className="sr-only">
-          View {product.title}
-        </span>
+        <span className="sr-only">View {product.title}</span>
       </Link>
 
-      {/* IMAGE PRODUIT */}
+      {/* Seule l'image est recadrée ; la carte laisse sortir les confettis. */}
       <div className="relative w-full overflow-hidden">
         <Image
           src={imgSrc}
           alt={product.title}
           width={250}
           height={300}
-          className="
-            block
-            w-full
-            object-contain
-            shadow-xs
-            transition-transform
-            duration-500
-            ease-out
-            motion-safe:group-hover:scale-[1.025]
-          "
+          className="block w-full object-contain shadow-xs transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.025]"
         />
       </div>
 
-      {/* INFORMATIONS PRODUIT */}
       <div className="px-2 py-2">
-        <p
-          className="
-            text-xs
-            font-bold
-            uppercase
-            text-mbg-black
-          "
-        >
+        <p className="text-xs font-bold uppercase text-mbg-black">
           {product.title}
         </p>
-
-        <p
-          className="
-            text-[7px]
-            font-medium
-            uppercase
-            tracking-wider
-            text-mbg-green
-          "
-        >
+        <p className="text-[7px] font-medium uppercase tracking-wider text-mbg-green">
           {product.tags}
         </p>
       </div>
 
-      {/* PRIX + BASKETBALL */}
-      <div
-        className="
-          mt-auto
-          flex
-          items-center
-          justify-between
-          border-t
-          border-mbg-rgbalight
-          bg-mbg-green/7
-          px-2
-          py-2
-        "
-      >
-        <p className="font-bold text-mbg-green">
-          € {product.price}
-        </p>
+      <div className="mt-auto flex items-center justify-between border-t border-mbg-rgbalight bg-mbg-green/7 px-2 py-2">
+        <p className="font-bold text-mbg-green">€ {product.price}</p>
 
-        {/* BOUTON AU-DESSUS DU LIEN DE LA CARTE */}
-        <div className="relative z-30">
+        {/* Au-dessus du lien produit ; particules libres de dépasser la carte. */}
+        <div className="relative z-30 flex shrink-0 items-center justify-center overflow-visible">
           <BasketBall
             product={product}
             updateSignedInUser={updateSignedInUser}
@@ -141,81 +80,19 @@ const ProductCard = ({
 
 export default ProductCard;
 
-// SKELETON
 export function ProductCardSkeleton() {
   return (
-    <div
-      className="
-        flex
-        w-full
-        max-w-[250px]
-        flex-col
-        border
-        border-mbg-rgbalight
-        bg-mbg-white
-        shadow-lg
-      "
-    >
-      <div
-        className="
-          h-[300px]
-          w-full
-          animate-pulse
-          bg-mbg-green/7
-        "
-      />
+    <div className="flex w-full max-w-[250px] flex-col border border-mbg-rgbalight bg-mbg-white shadow-lg">
+      <div className="h-[300px] w-full animate-pulse bg-mbg-green/7" />
 
       <div className="space-y-2 px-2 pt-2">
-        <div
-          className="
-            h-3
-            w-40
-            max-w-full
-            animate-pulse
-            bg-mbg-green/15
-          "
-        />
-
-        <div
-          className="
-            h-2
-            w-24
-            animate-pulse
-            bg-mbg-green/10
-          "
-        />
+        <div className="h-3 w-40 max-w-full animate-pulse bg-mbg-green/15" />
+        <div className="h-2 w-24 animate-pulse bg-mbg-green/10" />
       </div>
 
-      <div
-        className="
-          mt-3
-          flex
-          items-center
-          justify-between
-          border-t
-          border-mbg-rgbalight
-          px-2
-          py-2
-        "
-      >
-        <div
-          className="
-            h-3
-            w-16
-            animate-pulse
-            bg-mbg-green/10
-          "
-        />
-
-        <div
-          className="
-            h-6
-            w-6
-            animate-pulse
-            rounded-full
-            bg-mbg-green/10
-          "
-        />
+      <div className="mt-3 flex items-center justify-between border-t border-mbg-rgbalight px-2 py-2">
+        <div className="h-3 w-16 animate-pulse bg-mbg-green/10" />
+        <div className="h-6 w-6 animate-pulse rounded-full bg-mbg-green/10" />
       </div>
     </div>
   );
