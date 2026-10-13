@@ -129,7 +129,7 @@
 .button:active:not(:disabled) .icon { transform: scale(0.86); }
 
 .icon { display: inline-flex; align-items: center; justify-content: center; }
-.iconLike { animation: basketball-like 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.iconLike { animation: basketball-like 800ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 .iconUnlike { animation: basketball-unlike 310ms ease-out both; }
 
 .burst {
