@@ -24,7 +24,7 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
     <>
       <Link
         href={`/products/${product.slug}`}
-        className="bg-mbg-white p-2  rounded-t-md shadow-lg w-fit flex flex-col "
+        className="bg-mbg-white rounded-t-md shadow-lg w-fit flex flex-col "
       >
         <Image
           src={imgSrc}
