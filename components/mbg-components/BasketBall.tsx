@@ -1,14 +1,14 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { PiBasketballFill, PiBasketballLight } from "react-icons/pi";
 
 import { GrindUntilAchieve2 } from "@/images";
 import type { Product, User } from "@/lib/types";
+import styles from "./BasketBall.module.css";
 
 interface BasketballProps {
   product: Product;
@@ -16,7 +16,7 @@ interface BasketballProps {
 }
 
 type Particle = {
-  type: "basketball" | "logo";
+  kind: "basketball" | "logo";
   x: number;
   y: number;
   rotation: number;
@@ -24,38 +24,53 @@ type Particle = {
   delay: number;
 };
 
-// Trajectoires autour du ballon : alternance basket / logo G.U.A.
+// Positions en pixels autour du bouton. Un même motif alterne ballon/logo G.U.A.
 const PARTICLES: Particle[] = [
-  { type: "basketball", x: -62, y: -33, rotation: -310, size: 15, delay: 0.00 },
-  { type: "logo", x: -36, y: -65, rotation: -220, size: 18, delay: 0.04 },
-  { type: "basketball", x: -3, y: -73, rotation: 290, size: 14, delay: 0.02 },
-  { type: "logo", x: 32, y: -63, rotation: 210, size: 18, delay: 0.08 },
-  { type: "basketball", x: 62, y: -33, rotation: 340, size: 15, delay: 0.03 },
-  { type: "logo", x: 72, y: 3, rotation: -280, size: 17, delay: 0.07 },
-  { type: "basketball", x: 54, y: 43, rotation: 300, size: 14, delay: 0.05 },
-  { type: "logo", x: 22, y: 66, rotation: -200, size: 17, delay: 0.10 },
-  { type: "basketball", x: -16, y: 64, rotation: 280, size: 15, delay: 0.07 },
-  { type: "logo", x: -50, y: 42, rotation: 240, size: 18, delay: 0.04 },
-  { type: "basketball", x: -74, y: 7, rotation: -300, size: 13, delay: 0.09 },
-  { type: "logo", x: 9, y: -46, rotation: 180, size: 14, delay: 0.11 },
+  { kind: "basketball", x: -62, y: -35, rotation: -310, size: 15, delay: 0 },
+  { kind: "logo", x: -37, y: -68, rotation: -220, size: 18, delay: 40 },
+  { kind: "basketball", x: -4, y: -75, rotation: 290, size: 14, delay: 20 },
+  { kind: "logo", x: 34, y: -64, rotation: 210, size: 18, delay: 80 },
+  { kind: "basketball", x: 63, y: -34, rotation: 340, size: 15, delay: 30 },
+  { kind: "logo", x: 73, y: 2, rotation: -280, size: 17, delay: 70 },
+  { kind: "basketball", x: 55, y: 42, rotation: 300, size: 14, delay: 50 },
+  { kind: "logo", x: 22, y: 65, rotation: -200, size: 17, delay: 100 },
+  { kind: "basketball", x: -17, y: 64, rotation: 280, size: 15, delay: 70 },
+  { kind: "logo", x: -51, y: 43, rotation: 240, size: 18, delay: 40 },
+  { kind: "basketball", x: -73, y: 8, rotation: -300, size: 13, delay: 90 },
+  { kind: "logo", x: 9, y: -47, rotation: 180, size: 14, delay: 110 },
 ];
 
-const isInWishlist = (wishlist: unknown, productId: Product["_id"]) =>
-  Array.isArray(wishlist) &&
-  wishlist.some((id: unknown) => String(id) === String(productId));
+function isInWishlist(wishlist: unknown, productId: Product["_id"]): boolean {
+  return (
+    Array.isArray(wishlist) &&
+    wishlist.some((id: unknown) => String(id) === String(productId))
+  );
+}
 
-const BasketBall = ({ product, updateSignedInUser }: BasketballProps) => {
+export default function BasketBall({
+  product,
+  updateSignedInUser,
+}: BasketballProps) {
   const router = useRouter();
   const { user, isLoaded } = useUser();
-  const reduceMotion = useReducedMotion();
-
   const [isLiked, setIsLiked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingWishlist, setCheckingWishlist] = useState(false);
-  const [animationId, setAnimationId] = useState(0);
-  const [animationType, setAnimationType] = useState<"like" | "unlike" | "idle">("idle");
+  const [effect, setEffect] = useState<{
+    key: number;
+    kind: "like" | "unlike";
+  } | null>(null);
 
-  // Synchronisation de l'état réel des favoris à l'ouverture de la carte.
+  const sequence = useRef(0);
+  const activeRequest = useRef(false);
+  const effectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (effectTimer.current) clearTimeout(effectTimer.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (!user?.id) {
       setIsLiked(false);
@@ -66,185 +81,156 @@ const BasketBall = ({ product, updateSignedInUser }: BasketballProps) => {
     const controller = new AbortController();
     let active = true;
 
-    const fetchWishlist = async () => {
+    const loadWishlist = async () => {
       setCheckingWishlist(true);
       try {
-        const res = await fetch("/api/users", {
+        const response = await fetch("/api/users", {
           signal: controller.signal,
           cache: "no-store",
         });
-        if (!res.ok) throw new Error(`Wishlist GET: ${res.status}`);
-
-        const data = await res.json();
+        if (!response.ok) throw new Error(`Wishlist GET: ${response.status}`);
+        const data = await response.json();
         if (active) setIsLiked(isInWishlist(data?.wishlist, product._id));
       } catch (error) {
-        if (!controller.signal.aborted) {
-          console.error("[users_GET]", error);
-        }
+        if (!controller.signal.aborted) console.error("[users_GET]", error);
       } finally {
         if (active) setCheckingWishlist(false);
       }
     };
 
-    void fetchWishlist();
+    void loadWishlist();
     return () => {
       active = false;
       controller.abort();
     };
   }, [user?.id, product._id]);
 
-  const handleLike = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const playEffect = (kind: "like" | "unlike") => {
+    if (effectTimer.current) clearTimeout(effectTimer.current);
+    sequence.current += 1;
+    const key = sequence.current;
+    setEffect({ key, kind });
+    effectTimer.current = setTimeout(() => {
+      setEffect((current) => (current?.key === key ? null : current));
+    }, 1050);
+  };
 
-    if (loading || checkingWishlist || !isLoaded) return;
+  const handleLike = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isLoaded || activeRequest.current || loading || checkingWishlist) return;
 
     if (!user) {
       router.push("/sign-in");
       return;
     }
 
-    const previousLiked = isLiked;
-    const nextLiked = !previousLiked;
-
-    // Feedback immédiat : l'animation ne dépend pas de la latence réseau.
-    setIsLiked(nextLiked);
-    setAnimationType(nextLiked ? "like" : "unlike");
-    setAnimationId((id) => id + 1);
+    const wasLiked = isLiked;
+    const nextLiked = !wasLiked;
+    activeRequest.current = true;
     setLoading(true);
+    setIsLiked(nextLiked); // Animation immédiate sans attendre le serveur.
+    playEffect(nextLiked ? "like" : "unlike");
 
     try {
-      const res = await fetch("/api/users/wishlist", {
+      const response = await fetch("/api/users/wishlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: product._id }),
       });
-      if (!res.ok) throw new Error(`Wishlist POST: ${res.status}`);
-
-      const updatedUser: User = await res.json();
+      if (!response.ok) throw new Error(`Wishlist POST: ${response.status}`);
+      const updatedUser: User = await response.json();
       setIsLiked(isInWishlist(updatedUser.wishlist, product._id));
       updateSignedInUser?.(updatedUser);
     } catch (error) {
       console.error("[wishlist_POST]", error);
-      setIsLiked(previousLiked);
-      setAnimationType("idle");
+      setIsLiked(wasLiked);
+      if (effectTimer.current) clearTimeout(effectTimer.current);
+      setEffect(null);
     } finally {
+      activeRequest.current = false;
       setLoading(false);
     }
   };
 
-  const animateIcon = !reduceMotion && animationId > 0;
-  const isAdding = animationType === "like";
-  const showConfetti = animateIcon && isAdding;
+  const busy = loading || checkingWishlist || !isLoaded;
 
   return (
-    <div className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-visible">
-      <motion.button
+    <div className={styles.root}>
+      <button
         type="button"
         onClick={handleLike}
-        disabled={loading || checkingWishlist || !isLoaded}
+        disabled={busy}
         aria-pressed={isLiked}
-        aria-busy={loading || checkingWishlist}
+        aria-busy={busy}
         aria-label={isLiked ? "Retirer des favoris" : "Ajouter aux favoris"}
         title={isLiked ? "Retirer des favoris" : "Ajouter aux favoris"}
-        whileTap={reduceMotion ? undefined : { scale: 0.85 }}
-        className="relative z-10 flex h-9 w-9 items-center justify-center rounded-full text-[#00821A] transition-colors hover:bg-[#00821A]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] disabled:cursor-wait"
+        className={styles.button}
       >
-        <motion.span
-          key={`icon-${animationId}`}
-          className="flex items-center justify-center"
-          initial={
-            animateIcon
-              ? isAdding
-                ? { scale: 0.25, rotate: -35, y: 5 }
-                : { scale: 1.15, rotate: 10, y: 0 }
-              : false
-          }
-          animate={
-            animateIcon
-              ? isAdding
-                ? {
-                    scale: [0.25, 1.48, 0.88, 1],
-                    rotate: [-35, 18, -7, 0],
-                    y: [5, -7, 2, 0],
-                  }
-                : {
-                    scale: [1.15, 0.82, 1],
-                    rotate: [10, -5, 0],
-                    y: [0, 2, 0],
-                  }
-              : { scale: 1, rotate: 0, y: 0 }
-          }
-          transition={{
-            duration: animateIcon ? (isAdding ? 0.58 : 0.3) : 0,
-            ease: "easeOut",
-            times: isAdding ? [0, 0.38, 0.72, 1] : [0, 0.5, 1],
-          }}
+        <span
+          key={effect?.key ?? "idle"}
+          className={`${styles.icon} ${
+            effect?.kind === "like"
+              ? styles.iconLike
+              : effect?.kind === "unlike"
+                ? styles.iconUnlike
+                : ""
+          }`}
         >
           {isLiked ? (
-            <PiBasketballFill className="h-6 w-6 text-[#00821A]" />
+            <PiBasketballFill className="h-6 w-6" />
           ) : (
-            <PiBasketballLight className="h-6 w-6 text-[#00821A]" />
+            <PiBasketballLight className="h-6 w-6" />
           )}
-        </motion.span>
-      </motion.button>
+        </span>
+      </button>
 
-      {/* Particules au-dessus de la carte, jamais interactives. */}
-      {showConfetti && (
+      {effect?.kind === "like" && (
         <span
-          key={`burst-${animationId}`}
-          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
+          key={`burst-${effect.key}`}
+          className={styles.burst}
           aria-hidden="true"
         >
-          {/* Onde lumineuse initiale, aux couleurs de Milos BG. */}
-          <motion.span
-            className="absolute h-7 w-7 rounded-full border-2 border-[#00821A]"
-            initial={{ opacity: 0.75, scale: 0.4 }}
-            animate={{ opacity: [0.75, 0.45, 0], scale: [0.4, 1.6, 3.2] }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-
+          <span className={styles.ring} />
           {PARTICLES.map((particle, index) => (
-            <motion.span
-              key={`${animationId}-${index}`}
-              className="absolute flex items-center justify-center"
-              style={{ width: particle.size, height: particle.size }}
-              initial={{ opacity: 0, x: 0, y: 0, scale: 0.2, rotate: 0 }}
-              animate={{
-                opacity: [0, 1, 1, 0],
-                x: [0, particle.x * 0.22, particle.x * 0.8, particle.x],
-                y: [0, particle.y * 0.22, particle.y * 0.85, particle.y + 10],
-                scale: [0.2, 1.28, 1, 0.55],
-                rotate: [0, particle.rotation * 0.2, particle.rotation * 0.75, particle.rotation],
-              }}
-              transition={{
-                duration: 0.82,
-                delay: particle.delay,
-                ease: [0.22, 1, 0.36, 1],
-                times: [0, 0.18, 0.62, 1],
-              }}
-            >
-              {particle.type === "basketball" ? (
-                <PiBasketballFill
-                  className="h-full w-full drop-shadow-sm"
-                  style={{ color: index % 4 === 0 ? "#000000" : "#00821A" }}
-                />
-              ) : (
-                <Image
-                  src={GrindUntilAchieve2}
-                  alt=""
-                  width={particle.size}
-                  height={particle.size}
-                  loading="eager"
-                  className="h-full w-full object-contain drop-shadow-[0_0_3px_rgba(0,130,26,0.55)]"
-                />
-              )}
-            </motion.span>
+            <span key={index} className={styles.origin}>
+              <span
+                className={styles.particle}
+                style={
+                  {
+                    width: particle.size,
+                    height: particle.size,
+                    marginLeft: -particle.size / 2,
+                    marginTop: -particle.size / 2,
+                    "--mid-x": `${Math.round(particle.x * 0.7)}px`,
+                    "--mid-y": `${Math.round(particle.y * 0.7)}px`,
+                    "--end-x": `${particle.x}px`,
+                    "--end-y": `${particle.y + 10}px`,
+                    "--spin": `${particle.rotation}deg`,
+                    "--delay": `${particle.delay}ms`,
+                  } as React.CSSProperties
+                }
+              >
+                {particle.kind === "basketball" ? (
+                  <PiBasketballFill
+                    className="h-full w-full"
+                    style={{ color: index % 4 === 0 ? "#000000" : "#00821A" }}
+                  />
+                ) : (
+                  <Image
+                    src={GrindUntilAchieve2}
+                    alt=""
+                    width={particle.size}
+                    height={particle.size}
+                    className="h-full w-full object-contain"
+                    unoptimized
+                  />
+                )}
+              </span>
+            </span>
           ))}
         </span>
       )}
     </div>
   );
-};
-
-export default BasketBall;
+}
