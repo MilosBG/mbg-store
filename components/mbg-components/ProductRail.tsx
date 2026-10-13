@@ -114,7 +114,7 @@ const ProductRail = ({ products }: ProductRailProps) => {
   }
 
   return (
-    <div className="w-full bg-mbg-white/80 inset-shadow-sm/20 border-1 border-mbg-rgbalight p-2">
+    <div className="w-full bg-mbg-white/80 inset-shadow-sm/20 border-1 border-mbg-rgbalight p-'">
       {/* HEADER */}
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
