@@ -41,7 +41,7 @@ const ProductCard = ({ product, updateSignedInUser }: ProductCardProps) => {
             {product.tags}
           </p>
         </div>
-        <div className="mt-3 bg-mbg-green/7 border-1 border-mbg-rgbalight py-2 px-2 mbg-p-between">
+        <div className="mt-3 bg-mbg-green/7 border-t-1 border-mbg-rgbalight py-2 px-2 mbg-p-between">
           <p className="font-bold text-mbg-green">€ {product.price}</p>
           <BasketBall
             product={product}
