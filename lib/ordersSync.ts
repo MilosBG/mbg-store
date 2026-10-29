@@ -187,7 +187,7 @@ export async function persistCheckoutOrder(
     // re-reserve its stock, or turn a valid handmade request into a stock error.
     if (adminOrderId && ObjectId.isValid(adminOrderId)) {
       const existingAdminOrder = await ordersCollection.findOne(
-        { _id: new ObjectId(adminOrderId) } as any,
+        { _id: new ObjectId(adminOrderId) },
         { projection: { _id: 1 } },
       );
       if (existingAdminOrder) return;
