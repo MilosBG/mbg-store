@@ -517,6 +517,12 @@ export default function ClientPage() {
                               </p>
                             )}
 
+                            {item.productionType === "ON_REQUEST" && (
+                              <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-mbg-green">
+                                Made to order — production to be confirmed
+                              </p>
+                            )}
+
                             <p className="mt-2 text-[9px] uppercase tracking-[0.12em] text-mbg-black/40">
                               Qty{" "}
                               <span className="font-bold text-mbg-black">

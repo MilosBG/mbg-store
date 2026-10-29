@@ -5,6 +5,7 @@
 import Container from "@/components/mbg-components/Container";
 import { MBG } from "@/images";
 import { createCheckoutOrder } from "@/lib/checkoutClient";
+import { isMadeToOrderSize, MAX_ON_REQUEST_QUANTITY } from "@/lib/sizeProduction";
 import type { CheckoutLine } from "@/lib/checkoutClient";
 import useCart from "@/lib/hooks/useCart";
 import { useUser } from "@clerk/nextjs";
@@ -103,6 +104,7 @@ const Cart = () => {
   const finalTotal = Number((subtotal + shippingFee).toFixed(2));
   // Variant-aware stock check per line
   const lineStock = (ci: { item: any; color?: string; size?: string }) => {
+    if (isMadeToOrderSize(ci.item, ci.size)) return MAX_ON_REQUEST_QUANTITY;
     const vars = ci?.item?.variants ?? [];
     if (Array.isArray(vars) && vars.length > 0) {
       const match = vars.find(
@@ -330,6 +332,10 @@ const Cart = () => {
             color: line.color ?? null,
 
             size: line.size ?? null,
+            productionType: (() => {
+              const selected = cart.cartItems.find((item) => item.item._id === line.productId && item.size === line.size && item.color === line.color);
+              return selected && isMadeToOrderSize(selected.item, line.size) ? "ON_REQUEST" : "STANDARD";
+            })(),
 
             quantity: line.quantity,
 
@@ -488,6 +494,11 @@ const Cart = () => {
                         </Link>
                         <p className="text-[10px] text-mbg-black/60 uppercase">
                           {cartItem.color || ""} {cartItem.size || ""}
+                          {isMadeToOrderSize(cartItem.item, cartItem.size) && (
+                            <span className="ml-2 text-mbg-green font-bold uppercase text-[10px]">
+                              Made to order — production confirmation required
+                            </span>
+                          )}
                         </p>
                         <p className="uppercase text-[11px] font-semibold text-mbg-green">
                           € {price}

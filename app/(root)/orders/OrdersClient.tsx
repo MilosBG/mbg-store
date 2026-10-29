@@ -654,6 +654,9 @@ function OrderProduct({
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-mbg-black/65">
           {product.color && <span>{t.color}: {product.color}</span>}
           {product.size && <span>{t.size}: {product.size}</span>}
+          {product.productionType === "ON_REQUEST" && (
+            <span className="font-bold text-mbg-green">{language === "fr" ? "Fabrication sur demande" : "Made to order"}</span>
+          )}
           <span>{t.quantity}: {quantity}</span>
         </div>
       </div>

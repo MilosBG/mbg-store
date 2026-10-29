@@ -805,6 +805,10 @@ function OrderProduct({
               />
             )}
 
+            {orderItem.productionType === "ON_REQUEST" && (
+              <ProductAttribute label="Production" value="Made to order" />
+            )}
+
             <ProductAttribute
               label="Qty"
               value={String(

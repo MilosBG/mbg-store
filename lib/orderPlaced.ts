@@ -6,6 +6,7 @@ export type OrderPlacedItem = {
   image: string | null;
   color: string | null;
   size: string | null;
+  productionType?: "STANDARD" | "ON_REQUEST";
   quantity: number;
   unitPrice: number;
   lineTotal: number;

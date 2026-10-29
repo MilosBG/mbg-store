@@ -72,6 +72,7 @@ type OrderItemType = {
   product: ProductType;
   color: string;
   size: string;
+  productionType?: "STANDARD" | "ON_REQUEST";
   quantity: number;
   _id: string;
 };

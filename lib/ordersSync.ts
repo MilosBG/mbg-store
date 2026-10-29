@@ -3,6 +3,7 @@ import "server-only";
 import { createHash } from "crypto";
 import { getAdminDb, getAdminMongoClient } from "./adminDb";
 import { ObjectId, type ClientSession, type Db } from "mongodb";
+import { isMadeToOrderSize, type ProductionType, MAX_ON_REQUEST_QUANTITY } from "./sizeProduction";
 
 type RawCartItem = {
   productId?: unknown;
@@ -97,6 +98,9 @@ type ProductDocument = {
   price?: unknown;
   countInStock?: unknown;
   media?: unknown;
+  category?: string;
+  sizes?: string[];
+  colors?: string[];
   variants?: Array<{
     color?: unknown;
     size?: unknown;
@@ -111,6 +115,7 @@ type OrderProductDocument = {
   unitPrice: number;
   color?: string;
   size?: string;
+  productionType?: ProductionType;
   titleSnapshot?: string;
   imageSnapshot?: string | null;
 };
@@ -178,6 +183,15 @@ export async function persistCheckoutOrder(
   const session = client.startSession();
 
   try {
+    // mbg-admin already writes the order to Mbg_Admin. Do not duplicate it,
+    // re-reserve its stock, or turn a valid handmade request into a stock error.
+    if (adminOrderId && ObjectId.isValid(adminOrderId)) {
+      const existingAdminOrder = await ordersCollection.findOne(
+        { _id: new ObjectId(adminOrderId) } as any,
+        { projection: { _id: 1 } },
+      );
+      if (existingAdminOrder) return;
+    }
     await session.withTransaction(async () => {
       const productIds = normalized.items.map((item) => item.productId);
       const uniqueProductIds = Array.from(
@@ -210,8 +224,22 @@ export async function persistCheckoutOrder(
         }
 
         const unitPrice = resolveUnitPrice(item.unitPrice, product.price);
-        const variantMatch = resolveVariant(product, item.color, item.size);
-        const availableStock = resolveAvailableStock(product, variantMatch);
+        const madeToOrder = isMadeToOrderSize(product, item.size);
+        // Optional sizes must be explicitly listed by the couturier.
+        const configuredSize = item.size?.trim().toUpperCase().startsWith("OTHER:")
+          ? "OTHER" : item.size?.trim().toUpperCase();
+        if (item.size &&
+          !(product.sizes ?? []).some((s) => s.trim().toUpperCase() === configuredSize)) {
+          throw new Error(`Size ${item.size} is not offered for product ${item.rawProductId}.`);
+        }
+        if (item.size?.trim().toUpperCase().startsWith("OTHER:") && !madeToOrder) {
+          throw new Error("Invalid custom size request.");
+        }
+        if (madeToOrder && item.quantity > MAX_ON_REQUEST_QUANTITY) {
+          throw new Error("Maximum 10 made-to-order units per line.");
+        }
+        const variantMatch = madeToOrder ? null : resolveVariant(product, item.color, item.size);
+        const availableStock = madeToOrder ? MAX_ON_REQUEST_QUANTITY : resolveAvailableStock(product, variantMatch);
 
         if (availableStock < item.quantity) {
           throw new Error(
@@ -226,16 +254,17 @@ export async function persistCheckoutOrder(
           product: product._id,
           quantity: item.quantity,
           unitPrice,
-          color: variantMatch?.color ?? undefined,
-          size: variantMatch?.size ?? undefined,
+          color: madeToOrder ? (item.color ?? undefined) : (variantMatch?.color ?? undefined),
+          size: madeToOrder ? (item.size ?? undefined) : (variantMatch?.size ?? undefined),
+          productionType: madeToOrder ? "ON_REQUEST" : "STANDARD",
           titleSnapshot: coerceString(item.title) ?? coerceString(product.title) ?? undefined,
           imageSnapshot: coerceString(item.image) ?? resolvePrimaryImage(product),
         });
 
         dedupeItems.push({
           productId: product._id.toHexString(),
-          color: variantMatch?.color ?? "",
-          size: variantMatch?.size ?? "",
+          color: madeToOrder ? (item.color ?? "") : (variantMatch?.color ?? ""),
+          size: madeToOrder ? (item.size ?? "") : (variantMatch?.size ?? ""),
           unitPrice,
           quantity: item.quantity,
         });
@@ -283,6 +312,8 @@ export async function persistCheckoutOrder(
         const product = productMap.get(item.productId.toHexString());
         if (!product) continue;
 
+        // Optional artisan size is a production request, not stock on hand.
+        if (isMadeToOrderSize(product, item.size)) continue;
         const variantMatch = resolveVariant(product, item.color, item.size);
         await decrementInventory({
           db,

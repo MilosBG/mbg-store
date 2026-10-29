@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { toast } from "react-hot-toast";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { Product } from "@/lib/types";
+import { isMadeToOrderSize, MAX_ON_REQUEST_QUANTITY } from "@/lib/sizeProduction";
 
 // Cart uses store Product shape but requires price to be present
 export type CartProduct = Product & { price: number };
@@ -55,6 +56,7 @@ const useCart = create(
 
         // Determine stock available for this selected variant/line
         const stock = (() => {
+          if (isMadeToOrderSize(itemWithPrice, size)) return MAX_ON_REQUEST_QUANTITY;
           const vars = itemWithPrice.variants ?? [];
           if (Array.isArray(vars) && vars.length > 0) {
             const match = vars.find((v) =>
@@ -77,7 +79,9 @@ const useCart = create(
           // update quantity
           const desired = existing.quantity + quantity;
           if (desired > stock) {
-            toast.error(`Only ${stock} left in stock`);
+            toast.error(isMadeToOrderSize(itemWithPrice, size)
+              ? `Maximum ${MAX_ON_REQUEST_QUANTITY} units for made-to-order sizes`
+              : `Only ${stock} left in stock`);
             return;
           }
           const next = currentItems.map((ci) =>
@@ -114,6 +118,7 @@ const useCart = create(
           if (!isSameLine(ci, productId, color, size)) return ci;
           const vars = ci.item.variants ?? [];
           const stock = (() => {
+            if (isMadeToOrderSize(ci.item, size)) return MAX_ON_REQUEST_QUANTITY;
             if (Array.isArray(vars) && vars.length > 0) {
               const match = vars.find((v) =>
                 (v.color ?? "") === (color ?? "") && (v.size ?? "") === (size ?? "")
@@ -123,7 +128,9 @@ const useCart = create(
             return typeof ci.item.countInStock === "number" ? ci.item.countInStock : Infinity;
           })();
           if (ci.quantity >= stock) {
-            toast.error(`Only ${stock} left in stock`);
+            toast.error(isMadeToOrderSize(ci.item, size)
+              ? `Maximum ${MAX_ON_REQUEST_QUANTITY} units for made-to-order sizes`
+              : `Only ${stock} left in stock`);
             return ci;
           }
           return { ...ci, quantity: ci.quantity + 1 };

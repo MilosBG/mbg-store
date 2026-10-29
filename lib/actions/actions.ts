@@ -140,6 +140,7 @@ export type StorefrontOrderProduct = {
   quantity: number;
   color?: string;
   size?: string;
+  productionType?: "STANDARD" | "ON_REQUEST";
   unitPrice?: number;
   product?: {
     _id?: string;
@@ -475,6 +476,7 @@ function normalizeOrderProduct(entry: unknown): StorefrontOrderProduct {
     quantity: numberFromUnknown(source.quantity),
     color: toStringSafe(source.color),
     size: toStringSafe(source.size),
+    productionType: source.productionType === "ON_REQUEST" ? "ON_REQUEST" : "STANDARD",
     unitPrice: resolvedUnitPrice,
     product: productSource
       ? {
