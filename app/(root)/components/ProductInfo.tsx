@@ -7,7 +7,7 @@ import Button from "@/components/mbg-components/Button";
 import useCart from "@/lib/hooks/useCart";
 import type { StoreLanguage } from "@/lib/store-language";
 import type { Product } from "@/lib/types";
-import { isMadeToOrderSize, MAX_ON_REQUEST_QUANTITY } from "@/lib/sizeProduction";
+import { getOnRequestSizeOptions, isMadeToOrderSize, MAX_ON_REQUEST_QUANTITY, supportsArtisanSizes } from "@/lib/sizeProduction";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -36,6 +36,8 @@ const COPY = {
     totalStock: "Total items stock",
     variantStock: "Variant stock",
     outOfStock: "Out of stock",
+    standardOutOfStock: "Standard sizes out of stock — optional sizes on request",
+    chooseOptions: "Select color and size",
     quantity: "Quantity",
     shoot: "Shoot",
     emptyStock: "Empty stock",
@@ -55,6 +57,8 @@ const COPY = {
     totalStock: "Stock total",
     variantStock: "Stock de la variante",
     outOfStock: "Rupture de stock",
+    standardOutOfStock: "Tailles standards épuisées — tailles optionnelles sur demande",
+    chooseOptions: "Choisissez une couleur et une taille",
     quantity: "Quantité",
     shoot: "Shooter",
     emptyStock: "Stock épuisé",
@@ -216,9 +220,10 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
   const customSizeValid = !isCustomSize || (customSize.trim().length > 0 && customSize.trim().length <= 24 && /^[a-zA-Z0-9 .+\-]+$/.test(customSize.trim()));
 
   const madeToOrder = isMadeToOrderSize(product, selectedSize);
-  const isHandmadeTop = ["TOP", "TOPS", "T-SHIRT", "T-SHIRTS", "TEE", "TEES"].includes(
-    String(product.category ?? "").trim().toUpperCase(),
-  );
+  const isHandmadeTop = supportsArtisanSizes(product);
+  const optionalSizes = getOnRequestSizeOptions(product);
+  const hasSizeOptions = sizesArr.length > 0 || optionalSizes.length > 0;
+  const missingSelection = (colorsArr.length > 0 && !selectedColor) || (hasSizeOptions && !selectedSize);
 
   // Helpers to compute stock for color/size choices
   const stockForColor = (color: string): number => {
@@ -405,7 +410,7 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
           <div className="flex gap-2 flex-wrap">
             {colorsArr.map((color) => {
               const colorStock = stockForColor(color);
-              const disabled = colorStock <= 0;
+              const disabled = colorStock <= 0 && optionalSizes.length === 0;
 
               return (
                 <button
@@ -442,7 +447,7 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
         </div>
       )}
 
-      {sizesArr.length > 0 && (
+      {hasSizeOptions && (
         <div className="flex flex-col gap-2">
           <p className="uppercase text-[11px] font-semibold">{t.sizes}</p>
           {isHandmadeTop && <p className="text-[10px] font-medium text-mbg-black/60 uppercase">{t.standard}</p>}
@@ -484,11 +489,11 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
             })}
           </div>
 
-          {sizesArr.some((size) => isMadeToOrderSize(product, size)) && (
+          {optionalSizes.length > 0 && (
             <>
               <p className="text-[10px] font-semibold uppercase text-mbg-green">{t.madeToOrder}</p>
               <div className="flex flex-wrap gap-2">
-                {sizesArr.filter((size) => isMadeToOrderSize(product, size)).map((size) => (
+                {optionalSizes.map((size) => (
                   <button key={size} type="button" onClick={() => handleSelectSize(size)}
                     aria-pressed={selectedSize === size}
                     className={`rounded-sm border px-3 py-1 text-[10px] font-bold uppercase transition ${selectedSize === size
@@ -536,7 +541,7 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
             )}
           </>
         ) : (
-          <span className="text-red-600">{t.outOfStock}</span>
+          <span className="text-red-600">{isHandmadeTop ? t.standardOutOfStock : t.outOfStock}</span>
         )}
       </p>
 
@@ -572,8 +577,8 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
         ref={shootBtnRef}
         mbg="primefull"
         type="button"
-        disabled={currentStock <= 0 || quantity <= 0 || !customSizeValid || (colorsArr.length > 0 && !selectedColor) || (sizesArr.length > 0 && !selectedSize)}
-        aria-disabled={currentStock <= 0 || quantity <= 0 || !customSizeValid || (colorsArr.length > 0 && !selectedColor) || (sizesArr.length > 0 && !selectedSize)}
+        disabled={currentStock <= 0 || quantity <= 0 || !customSizeValid || missingSelection}
+        aria-disabled={currentStock <= 0 || quantity <= 0 || !customSizeValid || missingSelection}
         onClick={() => {
           const start = shootBtnRef.current?.getBoundingClientRect();
           const end = document
@@ -595,7 +600,7 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
           }
         }}
       >
-        {currentStock > 0 ? t.shoot : t.emptyStock}
+        {missingSelection ? t.chooseOptions : currentStock > 0 ? t.shoot : t.emptyStock}
       </Button>
 
       {!madeToOrder && currentStock > 0 && currentStock <= 5 && (

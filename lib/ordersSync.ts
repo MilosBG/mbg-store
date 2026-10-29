@@ -3,7 +3,7 @@ import "server-only";
 import { createHash } from "crypto";
 import { getAdminDb, getAdminMongoClient } from "./adminDb";
 import { ObjectId, type ClientSession, type Db } from "mongodb";
-import { isMadeToOrderSize, type ProductionType, MAX_ON_REQUEST_QUANTITY } from "./sizeProduction";
+import { isMadeToOrderSize, isOfferedProductSize, supportsArtisanSizes, type ProductionType, MAX_ON_REQUEST_QUANTITY } from "./sizeProduction";
 
 type RawCartItem = {
   productId?: unknown;
@@ -225,12 +225,11 @@ export async function persistCheckoutOrder(
 
         const unitPrice = resolveUnitPrice(item.unitPrice, product.price);
         const madeToOrder = isMadeToOrderSize(product, item.size);
-        // Optional sizes must be explicitly listed by the couturier.
-        const configuredSize = item.size?.trim().toUpperCase().startsWith("OTHER:")
-          ? "OTHER" : item.size?.trim().toUpperCase();
-        if (item.size &&
-          !(product.sizes ?? []).some((s) => s.trim().toUpperCase() === configuredSize)) {
-          throw new Error(`Size ${item.size} is not offered for product ${item.rawProductId}.`);
+        // Guard against forged sizes even if the administration falls back to
+        // the local checkout sync. Top sizes use a bounded predefined list plus OTHER.
+        if ((supportsArtisanSizes(product) || (product.sizes ?? []).length > 0) &&
+          !isOfferedProductSize(product, item.size)) {
+          throw new Error(`Size ${item.size ?? "(missing)"} is not offered for product ${item.rawProductId}.`);
         }
         if (item.size?.trim().toUpperCase().startsWith("OTHER:") && !madeToOrder) {
           throw new Error("Invalid custom size request.");
