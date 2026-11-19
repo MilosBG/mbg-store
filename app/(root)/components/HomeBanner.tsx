@@ -3,13 +3,34 @@ import Image from "next/image";
 import Link from "next/link";
 import { GrindUntilAchieve } from "@/images";
 import { getHomeBannerSettings } from "@/lib/homeBanner";
+import HomeBannerVideo from "./HomeBannerVideo";
 
 const HomeBanner = async () => {
-  const { imageUrl, imageAlt, cta } = await getHomeBannerSettings();
+  const { imageUrl, imageAlt, videoUrl, cta } = await getHomeBannerSettings();
 
   return (
     <div className="relative mt-5 h-[400px] overflow-hidden bg-mbg-black p-4 mbg-p-center md:h-[500px] lg:h-[680px] 2xl:h-[600px]">
-      {imageUrl ? (
+      {videoUrl ? (
+        <HomeBannerVideo src={videoUrl}>
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={imageAlt}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 1200px"
+              className="object-cover object-center"
+            />
+          ) : (
+            <Image
+              src={GrindUntilAchieve}
+              alt="Grind Until Achieve"
+              priority
+              className="max-h-[200px] w-auto object-contain md:max-h-[260px] lg:max-h-[340px] 2xl:max-h-[400px]"
+            />
+          )}
+        </HomeBannerVideo>
+      ) : imageUrl ? (
         <Image
           src={imageUrl}
           alt={imageAlt}

@@ -9,6 +9,8 @@ type HomeBannerDocument = {
   key: string;
   imageUrl?: string;
   imageAlt?: string;
+  mediaType?: "image" | "video";
+  videoUrl?: string;
   ctaType?: "none" | "product" | "link";
   ctaLabel?: string;
   ctaProductId?: string;
@@ -18,12 +20,14 @@ type HomeBannerDocument = {
 export type HomeBannerSettings = {
   imageUrl: string | null;
   imageAlt: string;
+  videoUrl: string | null;
   cta: { label: string; href: string } | null;
 };
 
 const DEFAULT_BANNER: HomeBannerSettings = {
   imageUrl: null,
   imageAlt: "Grind Until Achieve",
+  videoUrl: null,
   cta: null,
 };
 
@@ -34,6 +38,20 @@ function cloudinaryImage(value: unknown): string | null {
     return url.protocol === "https:" &&
       url.hostname === "res.cloudinary.com" &&
       /^\/[^/]+\/image\/upload\/.+/.test(url.pathname)
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function cloudinaryVideo(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" &&
+      url.hostname === "res.cloudinary.com" &&
+      /^\/[^/]+\/video\/upload\/.+/.test(url.pathname)
       ? url.toString()
       : null;
   } catch {
@@ -85,7 +103,11 @@ export async function getHomeBannerSettings(): Promise<HomeBannerSettings> {
       }
     }
 
-    return { imageUrl, imageAlt, cta };
+    const videoUrl = document.mediaType === "video"
+      ? cloudinaryVideo(document.videoUrl)
+      : null;
+
+    return { imageUrl, imageAlt, videoUrl, cta };
   } catch (error) {
     console.error("Failed to load the home banner", error);
     return DEFAULT_BANNER;
