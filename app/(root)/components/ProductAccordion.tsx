@@ -3,15 +3,12 @@
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { StoreLanguage } from "@/lib/store-language";
-import type { CommerceInfo, Product } from "@/lib/types";
+import type { Product } from "@/lib/types";
+import { getLocalizedCommerceInfo } from "@/lib/product-localization";
 
 type ProductAccordionProps = {
   product: Product;
   lang?: StoreLanguage;
-};
-
-type LocalizedProduct = Product & {
-  commerceInfoFr?: Partial<CommerceInfo>;
 };
 
 type AccordionItem = {
@@ -110,21 +107,6 @@ const toPositiveNumber = (value: unknown): number => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
-const getCommerceInfo = (
-  product: Product,
-  lang: StoreLanguage,
-): CommerceInfo => {
-  const localizedProduct = product as LocalizedProduct;
-  const baseInfo = product.commerceInfo ?? {};
-
-  if (lang !== "fr") return baseInfo;
-
-  return {
-    ...baseInfo,
-    ...(localizedProduct.commerceInfoFr ?? {}),
-  };
-};
-
 const MultilineText = ({ value }: { value?: string }) => {
   if (!hasText(value)) return null;
 
@@ -175,7 +157,7 @@ const ProductAccordion = ({
 }: ProductAccordionProps) => {
   const [openId, setOpenId] = useState<string | null>(null);
   const t = COPY[lang];
-  const info = getCommerceInfo(product, lang);
+  const info = getLocalizedCommerceInfo(product, lang);
 
   const fabricWeight = toPositiveNumber(info.fabricWeight);
   const withdrawalDays = toPositiveNumber(info.withdrawalDays);

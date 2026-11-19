@@ -48,10 +48,14 @@ export type Product = {
   slug: string;
 
   title: string;
+  // Independently authored French copy. English lives in the existing fields.
+  titleFr?: string;
   description?: string;
+  descriptionFr?: string;
   media?: string[];
 
   category?: string;
+  categoryFr?: string;
   chapters?: string[];
   tags?: string[];
 
@@ -78,6 +82,7 @@ export type Product = {
   // Product technical/commercial information
   // displayed in ProductAccordion.
   commerceInfo?: CommerceInfo;
+  commerceInfoFr?: Partial<CommerceInfo>;
 };
 
 export type Chapter = {

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import type { StoreLanguage } from "@/lib/store-language";
+import { getLocalizedProductText } from "@/lib/product-localization";
 
 type ProductVariant = {
   _id?: string;
@@ -178,22 +179,13 @@ const formatPrice = (price: number, lang: StoreLanguage) =>
   }).format(price);
 
 const getLocalizedTitle = (product: MBGProduct, lang: StoreLanguage) =>
-  lang === "fr" ? product.titleFr?.trim() || product.title : product.title;
+  getLocalizedProductText(product, "title", lang);
 
 const getCategoryKey = (product: MBGProduct) =>
   normalize(product.category || "OTHER");
 
-const getLocalizedCategory = (product: MBGProduct, lang: StoreLanguage) => {
-  if (lang === "fr") {
-    return (
-      product.categoryFr?.trim() ||
-      product.category?.trim() ||
-      COPY.fr.other
-    );
-  }
-
-  return product.category?.trim() || COPY.en.other;
-};
+const getLocalizedCategory = (product: MBGProduct, lang: StoreLanguage) =>
+  getLocalizedProductText(product, "category", lang)?.trim() || COPY[lang].other;
 
 const getProductSizes = (product: MBGProduct) => {
   const sizes = new Set<string>();

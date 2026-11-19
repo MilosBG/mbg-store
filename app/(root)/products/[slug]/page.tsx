@@ -12,12 +12,14 @@ import {
   type StoreLanguage,
 } from "@/lib/store-language";
 import type { Product } from "@/lib/types";
+import { getLocalizedProductText } from "@/lib/product-localization";
 
 import Gallery from "../../components/Gallery";
 import ProductAccordion from "../../components/ProductAccordion";
 import ProductInfo from "../../components/ProductInfo";
 
-export const revalidate = 3600;
+// Editorial updates must be visible as soon as EN / FR is selected.
+export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{
@@ -29,36 +31,15 @@ type PageProps = {
   }>;
 };
 
-type LocalizedProduct = Product & {
-  titleFr?: string;
-  descriptionFr?: string;
-  categoryFr?: string;
-};
-
 /* -------------------------------------------------------------------------- */
 /*                              LOCALIZED CONTENT                             */
 /* -------------------------------------------------------------------------- */
 
-const getLocalizedProductContent = (product: Product, lang: StoreLanguage) => {
-  const localizedProduct = product as LocalizedProduct;
-
-  if (lang === "fr") {
-    return {
-      title: localizedProduct.titleFr?.trim() || product.title || "Produit",
-
-      description:
-        localizedProduct.descriptionFr?.trim() || product.description || "",
-
-      category: localizedProduct.categoryFr?.trim() || product.category || "",
-    };
-  }
-
-  return {
-    title: product.title || "Product",
-    description: product.description || "",
-    category: product.category || "",
-  };
-};
+const getLocalizedProductContent = (product: Product, lang: StoreLanguage) => ({
+  title: getLocalizedProductText(product, "title", lang) || (lang === "fr" ? "Produit" : "Product"),
+  description: getLocalizedProductText(product, "description", lang),
+  category: getLocalizedProductText(product, "category", lang),
+});
 
 /* -------------------------------------------------------------------------- */
 /*                                  METADATA                                  */

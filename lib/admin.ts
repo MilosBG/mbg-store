@@ -51,11 +51,14 @@ type ProductDocument = {
   slug?: string;
 
   title: string;
+  titleFr?: unknown;
   description?: string;
+  descriptionFr?: unknown;
 
   media?: string[];
 
   category?: string;
+  categoryFr?: unknown;
 
   chapters?: Array<ObjectId | string>;
 
@@ -78,6 +81,7 @@ type ProductDocument = {
   fetchToStore?: boolean;
 
   commerceInfo?: CommerceInfoDocument;
+  commerceInfoFr?: CommerceInfoDocument;
 
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -313,16 +317,19 @@ function serializeProduct(
       createProductSlug(doc.title),
 
     title: doc.title,
+    titleFr: toOptionalString(doc.titleFr),
 
     description:
       typeof doc.description === "string"
         ? doc.description
         : undefined,
+    descriptionFr: toOptionalString(doc.descriptionFr),
 
     media: doc.media ?? undefined,
 
     category:
       doc.category ?? undefined,
+    categoryFr: toOptionalString(doc.categoryFr),
 
     chapters: doc.chapters
       ?.map((id) => ensureStringId(id))
@@ -381,6 +388,10 @@ function serializeProduct(
     commerceInfo:
       serializeCommerceInfo(
         doc.commerceInfo,
+      ),
+    commerceInfoFr:
+      serializeCommerceInfo(
+        doc.commerceInfoFr,
       ),
   };
 }
