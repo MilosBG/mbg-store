@@ -10,12 +10,14 @@ import {
   ChevronDown,
   CircleHelp,
   Globe2,
+  Calculator,
+  RotateCcw,
   MoveHorizontal,
   Ruler,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 
 type Props = {
   lang: StoreLanguage;
@@ -42,11 +44,7 @@ type Measurement = {
   >;
 };
 
-const SIZE_ORDER: SizeKey[] = [
-  "S",
-  "M",
-  "L",
-];
+const SIZE_ORDER: SizeKey[] = ["M", "L", "S"];
 
 const MEASUREMENTS: Measurement[] = [
   {
@@ -277,6 +275,10 @@ const COPY = {
         q: "What if I am between two sizes?",
         a: "Choose the smaller size for a closer fit or the larger size for a more relaxed silhouette.",
       },
+      {
+        q: "Can I request a size outside M, L or S?",
+        a: "Other sizes are considered custom orders. Our simulator offers an approximate reference based on body measurements; we confirm feasibility and the final fit individually.",
+      },
     ],
 
     supportEyebrow:
@@ -397,6 +399,10 @@ const COPY = {
         q: "Que faire si je suis entre deux tailles ?",
         a: "Choisissez la taille inférieure pour une coupe plus ajustée ou la taille supérieure pour une silhouette plus ample.",
       },
+      {
+        q: "Puis-je demander une taille différente de M, L ou S ?",
+        a: "Les autres tailles relèvent d'une commande personnalisée. Le simulateur fournit un repère indicatif à partir de vos mensurations ; la faisabilité et la coupe finale sont confirmées individuellement.",
+      },
     ],
 
     supportEyebrow:
@@ -416,64 +422,165 @@ const COPY = {
   },
 } as const;
 
+/**
+ * Only M, L and S are regular production sizes.
+ * Other bands are a simple linear extrapolation from the nearest standard size.
+ * They are indicative body measurements, NOT official garment patterns/sizes.
+ */
+type ExtendedSize =
+  | "XXS"
+  | "XS"
+  | SizeKey
+  | "XL"
+  | "2XL"
+  | "3XL"
+  | "4XL";
+type SimField = "chest" | "waist" | "hip";
+type SimValues = Record<SimField, string>;
+type SimResult = ExtendedSize | "custom";
+type Band = Record<SimField, readonly [number, number]>;
+
+const EXTENDED_ORDER: ExtendedSize[] = [
+  "XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL",
+];
+const BODY_BANDS: Record<ExtendedSize, Band> = {
+  XXS: { chest: [80, 86], waist: [64, 69], hip: [80, 86] },
+  XS: { chest: [86, 92], waist: [69, 74], hip: [86, 92] },
+  S: { chest: [92, 96], waist: [74, 79], hip: [92, 96] },
+  M: { chest: [96, 102], waist: [79, 84], hip: [96, 102] },
+  L: { chest: [102, 106], waist: [84, 89], hip: [102, 106] },
+  XL: { chest: [106, 112], waist: [89, 94], hip: [106, 112] },
+  "2XL": { chest: [112, 118], waist: [94, 99], hip: [112, 118] },
+  "3XL": { chest: [118, 124], waist: [99, 104], hip: [118, 124] },
+  "4XL": { chest: [124, 130], waist: [104, 109], hip: [124, 130] },
+};
+
+const FIELDS: SimField[] = ["chest", "waist", "hip"];
+const STANDARDS: ExtendedSize[] = ["M", "L", "S"];
+
+function estimateFit(valuesCm: Partial<Record<SimField, number>>): SimResult {
+  const matches = FIELDS.filter((field) => valuesCm[field] !== undefined).map((field) => {
+    const value = valuesCm[field] as number;
+    return EXTENDED_ORDER.findIndex((size, i) => {
+      const [min, max] = BODY_BANDS[size][field];
+      // A shared boundary belongs to the larger size; include the last upper bound.
+      return value >= min && (value < max || (i === EXTENDED_ORDER.length - 1 && value <= max));
+    });
+  });
+
+  if (!matches.length || matches.some((index) => index < 0)) return "custom";
+  const smallest = Math.min(...matches);
+  const largest = Math.max(...matches);
+  // Different proportions can require individual pattern making.
+  if (largest - smallest > 1) return "custom";
+  return EXTENDED_ORDER[largest];
+}
+
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00821A] focus-visible:ring-offset-2";
-
-const solidButton =
-  `group inline-flex min-h-12 items-center justify-center gap-3 rounded-sm bg-[#00821A] px-6 py-3 text-center text-[11px] font-bold uppercase tracking-[0.13em] text-white shadow-[0_12px_28px_-13px_rgba(0,130,26,0.85)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#006b16] hover:shadow-[0_16px_34px_-13px_rgba(0,130,26,0.75)] active:translate-y-0 ${focusRing}`;
-
-const outlineButton =
-  `group inline-flex min-h-12 items-center justify-center gap-3 rounded-sm border border-black/20 bg-white px-6 py-3 text-center text-[11px] font-bold uppercase tracking-[0.13em] text-black transition-all duration-200 hover:-translate-y-0.5 hover:border-black hover:bg-black hover:text-white active:translate-y-0 ${focusRing}`;
+const primaryButton =
+  `inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-[#00821A] px-[21px] py-2.5 text-center text-[11px] font-semibold uppercase tracking-[0.07em] text-white transition-colors duration-200 hover:bg-[#006a17] active:bg-[#005b12] ${focusRing}`;
+const secondaryButton =
+  `inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-black/20 bg-white px-[21px] py-2.5 text-center text-[11px] font-semibold uppercase tracking-[0.07em] text-black transition-colors duration-200 hover:border-[#00821A] hover:text-[#00821A] ${focusRing}`;
+const sectionSpace = "py-[34px] sm:py-[55px] lg:py-[89px]";
 
 export default function ClientPage({ lang }: Props) {
   const copy = COPY[lang];
+  const fr = lang === "fr";
   const [unit, setUnit] = useState<Unit>("cm");
-  const [selectedSize, setSelectedSize] = useState<SizeKey | null>(null);
+  const [selectedSize, setSelectedSize] = useState<SizeKey>("M");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [simValues, setSimValues] = useState<SimValues>({ chest: "", waist: "", hip: "" });
+  const [simResult, setSimResult] = useState<SimResult | null>(null);
+  const [simError, setSimError] = useState("");
 
-  const ui =
-    lang === "fr"
-      ? {
-          language: "Langue",
-          explore: "Explorer le guide",
-          viewChart: "Voir le tableau des tailles",
-          learnMeasure: "Prendre mes mesures",
-          sizeRange: "Tailles standards : S · M · L",
-          guideIndex: "Navigation rapide",
-          selectSize: "Mettre une taille en évidence",
-          sizeInstruction: "Sélectionnez une taille pour comparer plus facilement les mensurations.",
-          unitLabel: "Unité de mesure",
-          artisan: "Coupe & fabrication artisanales",
-          details: "Détails du guide",
-          inchesNote: "La stature est affichée en pieds et pouces ; les autres valeurs sont en pouces.",
-          standardSizes: "Tailles standards",
-          support: "Conseil personnalisé",
-          fitHeading: "L'essentiel pour choisir",
-          measureTag: "4 étapes simples",
-          faqTag: "Vos questions, nos réponses",
-          helpTag: "Nous sommes à votre écoute",
-        }
-      : {
-          language: "Language",
-          explore: "Explore the guide",
-          viewChart: "View size chart",
-          learnMeasure: "How to measure",
-          sizeRange: "Standard sizes: S · M · L",
-          guideIndex: "Quick navigation",
-          selectSize: "Highlight a size",
-          sizeInstruction: "Select a size to compare its measurements more easily.",
-          unitLabel: "Measurement unit",
-          artisan: "Artisan-made fit & construction",
-          details: "Guide details",
-          inchesNote: "Height is shown in feet and inches; all other measurements are in inches.",
-          standardSizes: "Standard sizes",
-          support: "Personalized guidance",
-          fitHeading: "Find your preferred fit",
-          measureTag: "4 simple steps",
-          faqTag: "Your questions, answered",
-          helpTag: "We are here to help",
-        };
+  const ui = fr
+    ? {
+        language: "Langue",
+        sizeRange: "Tailles standards : M · L · S",
+        chartLink: "Voir les tailles",
+        simulatorLink: "Simuler ma taille",
+        navigation: "Navigation du guide",
+        unitLabel: "Unité",
+        selectSize: "Comparer les tailles",
+        customShort: "Autres tailles : sur demande",
+        standardLabel: "Standard",
+        sizeInstruction: "Sélectionnez M, L ou S pour voir ses mesures.",
+        measureTag: "4 gestes simples",
+        inchesNote: "La stature est indiquée en pieds et pouces ; les autres valeurs en pouces.",
+        simulatorEyebrow: "TAILLES PERSONNALISÉES",
+        simulatorTitle: "Une autre taille ?",
+        simulatorIntro: "Indiquez votre tour de poitrine et, si vous le souhaitez, votre taille et vos hanches. Nous estimons le repère le plus proche, même hors des tailles standards.",
+        simulatorStep: "Vos mensurations",
+        chestRequired: "Poitrine *",
+        optional: "Facultatif",
+        example: "Ex.",
+        calc: "Estimer ma taille",
+        reset: "Effacer",
+        resultsTitle: "Votre estimation",
+        initial: "Votre résultat apparaîtra ici.",
+        resultStandard: "Taille standard",
+        resultCustom: "Taille personnalisée — sur demande",
+        resultBespoke: "Coupe personnalisée à étudier",
+        standardDescription: "Cette taille fait partie des trois tailles standards Milos BG. Vérifiez la coupe sur la fiche produit.",
+        customDescription: "Repère théorique extrapolé des tailles standards : cette taille n'est pas une taille de série et doit être confirmée avant confection.",
+        bespokeDescription: "Vos proportions sortent des repères simulés ou correspondent à plusieurs tailles éloignées. Une étude personnalisée sera plus fiable.",
+        indicative: "Estimation indicative, pas une garantie d'ajustement. Les autres tailles ne sont pas des tailles standards : leur faisabilité et leurs dimensions sont à confirmer.",
+        contact: "Demander conseil",
+        error: "Saisissez un tour de poitrine valide (50 à 230 cm, ou équivalent en pouces). Vérifiez également les mesures facultatives.",
+        approx: "Fourchettes théoriques du corps",
+        detailUnit: "en",
+        tips: "Mesurez-vous sans serrer le mètre. Les champs taille et hanches sont facultatifs.",
+        fitHeading: "Bien choisir sa coupe",
+      }
+    : {
+        language: "Language",
+        sizeRange: "Standard sizes: M · L · S",
+        chartLink: "View size chart",
+        simulatorLink: "Find my size",
+        navigation: "Guide navigation",
+        unitLabel: "Unit",
+        selectSize: "Compare sizes",
+        customShort: "Other sizes: by request",
+        standardLabel: "Standard",
+        sizeInstruction: "Select M, L or S to view its measurements.",
+        measureTag: "4 simple steps",
+        inchesNote: "Height is displayed in feet and inches; all other measurements are in inches.",
+        simulatorEyebrow: "CUSTOM SIZING",
+        simulatorTitle: "Need another size?",
+        simulatorIntro: "Enter your chest measurement and, if you like, your waist and hips. We'll estimate the nearest reference, including sizes outside our standard range.",
+        simulatorStep: "Your body measurements",
+        chestRequired: "Chest *",
+        optional: "Optional",
+        example: "E.g.",
+        calc: "Estimate my size",
+        reset: "Clear",
+        resultsTitle: "Your estimate",
+        initial: "Your result will appear here.",
+        resultStandard: "Standard size",
+        resultCustom: "Custom size — by request",
+        resultBespoke: "Individual sizing advised",
+        standardDescription: "This is one of the three Milos BG standard sizes. Check each product's intended fit before ordering.",
+        customDescription: "A theoretical reference extrapolated from the standard sizes: not an off-the-rack size, and subject to confirmation before production.",
+        bespokeDescription: "Your proportions extend beyond the simulated bands or span distant size categories. Individual guidance is more reliable.",
+        indicative: "Indicative estimate, not a fit guarantee. Other sizes are non-standard; feasibility and final dimensions must be confirmed.",
+        contact: "Ask for guidance",
+        error: "Enter a valid chest measurement (50–230 cm, or the equivalent in inches). Check optional measurements too.",
+        approx: "Estimated body ranges",
+        detailUnit: "in",
+        tips: "Measure without tightening the tape. Waist and hips are optional.",
+        fitHeading: "Choosing your fit",
+      };
 
+  const localizedHref = (href: string) =>
+    fr ? `${href}${href.includes("?") ? "&" : "?"}lang=fr` : href;
+
+  const nav = [
+    { number: "01", label: copy.measurementsLink, href: "#measurements" },
+    { number: "02", label: copy.measureLink, href: "#how-to-measure" },
+    { number: "03", label: fr ? "Simulateur" : "Size finder", href: "#size-simulator" },
+    { number: "04", label: copy.fitLink, href: "#fit-advice" },
+  ];
   const measurementTips = [
     { title: copy.chest, description: copy.chestDescription, icon: MoveHorizontal },
     { title: copy.waist, description: copy.waistDescription, icon: Ruler },
@@ -481,222 +588,182 @@ export default function ClientPage({ lang }: Props) {
     { title: copy.inseam, description: copy.inseamDescription, icon: ArrowDown },
   ];
 
-  const localizedHref = (href: string) =>
-    lang === "fr" ? `${href}${href.includes("?") ? "&" : "?"}lang=fr` : href;
+  const updateSimValue = (field: SimField, value: string) => {
+    setSimValues((current) => ({ ...current, [field]: value }));
+    setSimResult(null);
+    setSimError("");
+  };
 
-  const quickLinks = [
-    { number: "01", label: copy.measurementsLink, href: "#measurements" },
-    { number: "02", label: copy.measureLink, href: "#how-to-measure" },
-    { number: "03", label: copy.fitLink, href: "#fit-advice" },
-  ];
+  const changeUnit = (next: Unit) => {
+    if (next === unit) return;
+    const converted = { ...simValues };
+    FIELDS.forEach((field) => {
+      const current = simValues[field].trim();
+      if (!current) return;
+      const value = Number(current.replace(",", "."));
+      if (!Number.isFinite(value)) return;
+      converted[field] = String(Math.round((next === "cm" ? value * 2.54 : value / 2.54) * 10) / 10);
+    });
+    setSimValues(converted);
+    setUnit(next);
+    setSimResult(null);
+    setSimError("");
+  };
+
+  const runSimulation = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const parsed: Partial<Record<SimField, number>> = {};
+    let invalid = !simValues.chest.trim();
+    FIELDS.forEach((field) => {
+      if (!simValues[field].trim()) return;
+      const number = Number(simValues[field].trim().replace(",", "."));
+      const cm = unit === "in" ? number * 2.54 : number;
+      if (!Number.isFinite(cm) || cm < 50 || cm > 230) {
+        invalid = true;
+      } else {
+        parsed[field] = cm;
+      }
+    });
+    if (invalid) {
+      setSimError(ui.error);
+      setSimResult(null);
+      return;
+    }
+    setSimError("");
+    const size = estimateFit(parsed);
+    setSimResult(size);
+    if (size === "S" || size === "M" || size === "L") setSelectedSize(size);
+  };
+
+  const resetSimulation = () => {
+    setSimValues({ chest: "", waist: "", hip: "" });
+    setSimResult(null);
+    setSimError("");
+  };
+  const isStandardResult = simResult !== null && simResult !== "custom" && STANDARDS.includes(simResult);
+  const isExtendedResult = simResult !== null && simResult !== "custom" && !isStandardResult;
+  const valueDisplay = (cm: number) => unit === "cm" ? String(cm) : String(Math.round((cm / 2.54) * 10) / 10);
 
   return (
     <main className="min-h-screen overflow-x-clip bg-white font-kanit text-black">
-      {/* HERO: premium editorial layout + visible primary action */}
-      <section className="relative isolate overflow-hidden border-b border-black/10 bg-[#F8F9F8]">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-44 h-[400px] w-[400px] rounded-full bg-[#00821A]/[0.045] blur-3xl lg:h-[650px] lg:w-[650px]"
-        />
+      {/* Compact editorial hero: image does not dominate the mobile viewport. */}
+      <section className="border-b border-black/10 bg-[#F8F9F8]">
         <Container>
-          <div className="grid gap-9 py-8 sm:py-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-14 lg:py-20 xl:gap-20">
+          <div className="grid min-w-0 gap-[21px] py-[21px] sm:gap-[34px] sm:py-[34px] lg:grid-cols-[minmax(0,1.04fr)_minmax(0,.96fr)] lg:items-center lg:gap-[55px] lg:py-[55px]">
             <div className="min-w-0">
-              <nav
-                aria-label={lang === "fr" ? "Fil d’Ariane" : "Breadcrumb"}
-                className="mb-9 flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em]"
-              >
-                <Link
-                  href={localizedHref("/")}
-                  className={`text-black/50 transition-colors hover:text-[#00821A] ${focusRing}`}
-                >
-                  MILOS BG
-                </Link>
-                <span aria-hidden="true" className="text-black/25">/</span>
-                <span className="text-black">{copy.breadcrumb}</span>
+              <nav aria-label={fr ? "Fil d'Ariane" : "Breadcrumb"} className="mb-[21px] flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.08em] sm:mb-[34px]">
+                <Link className={`text-black/55 hover:text-[#00821A] ${focusRing}`} href={localizedHref("/")}>MILOS BG</Link>
+                <span className="text-black/25">/</span>
+                <span className="text-black/85">{copy.breadcrumb}</span>
               </nav>
-
-              <div className="mb-5 flex flex-wrap items-center gap-3">
-                <span className="h-1.5 w-7 bg-[#00821A]" aria-hidden="true" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.26em] text-[#00821A]">
-                  {copy.eyebrow}
-                </span>
-              </div>
-
-              <h1 className="max-w-[740px] text-[clamp(2.55rem,5.5vw,5.4rem)] font-semibold leading-[0.96] tracking-[-0.052em]">
-                {copy.title}
-                <span className="text-[#00821A]">.</span>
-              </h1>
-              <p className="mt-7 max-w-xl text-sm leading-[1.9] text-[#404040] sm:text-base">
-                {copy.description}
+              <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#00821A]">
+                <span className="h-0.5 w-[21px] bg-[#00821A]" />{copy.eyebrow}
               </p>
-
-              <div className="mt-8 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-sm border border-[#00821A]/20 bg-[#00821A]/[0.06] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[#00821A]">
-                  <Check size={13} strokeWidth={2.5} aria-hidden="true" />
-                  {ui.sizeRange}
+              <h1 className="mt-[13px] max-w-[690px] text-[clamp(2.05rem,8.25vw,3.45rem)] font-semibold leading-[1.04] tracking-[-0.045em] lg:text-[clamp(3.25rem,5vw,5.1rem)]">
+                {copy.title}<span className="text-[#00821A]">.</span>
+              </h1>
+              <p className="mt-[13px] max-w-[530px] text-[13px] leading-[1.7] text-[#404040] sm:mt-[21px] sm:text-sm sm:leading-7">{copy.description}</p>
+              <div className="mt-[21px] flex flex-wrap items-center gap-2 text-[10px] font-medium text-[#404040] sm:mt-[34px]">
+                <span className="inline-flex items-center gap-1.5 rounded-sm border border-[#00821A]/20 bg-[#00821A]/[0.05] px-2.5 py-1.5 text-[#006b16]">
+                  <Check size={13} aria-hidden="true" />{ui.sizeRange}
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-sm border border-black/10 bg-white px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#404040]">
-                  <Ruler size={13} aria-hidden="true" />
-                  {ui.artisan}
-                </span>
+                <span className="inline-flex items-center gap-1.5 px-1 py-1.5"><Ruler size={13} aria-hidden="true" />{ui.customShort}</span>
               </div>
-
-              <div className="mt-9 grid gap-3 sm:flex sm:flex-wrap">
-                <a href="#measurements" className={solidButton}>
-                  {ui.viewChart}
-                  <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
-                </a>
-                <a href="#how-to-measure" className={outlineButton}>
-                  <Ruler size={17} aria-hidden="true" />
-                  {ui.learnMeasure}
-                </a>
+              <div className="mt-[21px] grid grid-cols-2 gap-2 sm:mt-[34px] sm:flex sm:flex-wrap sm:gap-3">
+                <a href="#measurements" className={`${primaryButton} min-w-0 px-2.5 sm:px-[21px]`}>{ui.chartLink}<ArrowRight size={14} aria-hidden="true" /></a>
+                <a href="#size-simulator" className={`${secondaryButton} min-w-0 px-2.5 sm:px-[21px]`}>{ui.simulatorLink}</a>
               </div>
-
-              <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-black/10 pt-5">
-                <Globe2 size={16} aria-hidden="true" className="text-[#00821A]" />
-                <span className="mr-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#404040]">
-                  {ui.language}
-                </span>
-                <div className="inline-flex gap-1 rounded-sm border border-black/10 bg-white p-1" role="group" aria-label={ui.language}>
+              <div className="mt-[21px] flex items-center gap-2 border-t border-black/10 pt-[13px] sm:mt-[34px] sm:pt-[21px]">
+                <Globe2 size={14} aria-hidden="true" className="text-[#00821A]" />
+                <span className="mr-1 text-[10px] font-medium text-black/60">{ui.language}</span>
+                <div className="inline-flex gap-1 rounded-sm border border-black/10 bg-white p-[3px]" role="group" aria-label={ui.language}>
                   {(["en", "fr"] as const).map((value) => (
                     <Link
                       key={value}
                       href={value === "en" ? "/size-guide" : "/size-guide?lang=fr"}
                       hrefLang={value}
                       aria-current={lang === value ? "page" : undefined}
-                      className={`inline-flex min-h-10 min-w-14 items-center justify-center rounded-sm px-3 text-xs font-bold tracking-[0.12em] transition-colors ${focusRing} ${
-                        lang === value
-                          ? "bg-black text-white shadow-sm"
-                          : "text-[#404040] hover:bg-[#00821A]/10 hover:text-[#00821A]"
-                      }`}
-                    >
-                      {value.toUpperCase()}
-                    </Link>
+                      className={`flex min-h-9 min-w-11 items-center justify-center rounded-sm px-2 text-[10px] font-semibold tracking-[0.08em] transition-colors ${focusRing} ${lang === value ? "bg-black text-white" : "text-black/65 hover:text-[#00821A]"}`}
+                    >{value.toUpperCase()}</Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="relative min-w-0 overflow-hidden rounded-sm border border-black/10 bg-[#ECEFEB]">
+              <div className="relative flex aspect-[1.82/1] items-center justify-center sm:aspect-[1.65/1] lg:aspect-[.94/1]">
+                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-[#00821A]" />
+                <span className="absolute left-[13px] top-[13px] text-[9px] font-medium uppercase tracking-[0.12em] text-black/45 sm:left-[21px] sm:top-[21px]">MILOS BG / SIZE & FIT</span>
+                <Image
+                  src={Grinder}
+                  alt=""
+                  priority
+                  sizes="(max-width: 1023px) 100vw, 46vw"
+                  className="h-[75%] w-auto max-w-[80%] object-contain drop-shadow-[0_14px_18px_rgba(0,0,0,0.08)]"
+                />
+                <span className="absolute bottom-[13px] right-[13px] text-[11px] font-semibold tracking-[0.17em] text-[#00821A] sm:bottom-[21px] sm:right-[21px]">M / L / S</span>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <nav aria-label={ui.navigation} className="border-b border-black/10 bg-white">
+        <Container>
+          <div className="grid grid-cols-2 gap-2 py-[13px] sm:grid-cols-4 sm:gap-3 sm:py-[21px]">
+            {nav.map((item) => (
+              <a key={item.number} href={item.href} className={`group flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-sm border border-black/10 bg-[#FAFAFA] px-3 py-2 text-[10px] font-semibold transition-colors hover:border-[#00821A]/50 hover:bg-[#00821A]/[0.04] ${focusRing}`}>
+                <span className="flex min-w-0 items-center gap-2"><span className="text-[#00821A]">{item.number}</span><span className="truncate">{item.label}</span></span>
+                <ArrowRight size={13} className="shrink-0 text-[#00821A]" aria-hidden="true" />
+              </a>
+            ))}
+          </div>
+        </Container>
+      </nav>
+
+      <section id="measurements" className="scroll-mt-20 bg-white">
+        <Container>
+          <div className={sectionSpace}>
+            <SectionHeading number="01" eyebrow={copy.tableEyebrow} title={copy.bodyMeasurements} description={copy.tableDescription} />
+            <div className="mt-[21px] flex flex-wrap items-end justify-between gap-3 rounded-sm border border-black/10 bg-[#F8F9F8] p-[13px] sm:mt-[34px] sm:p-[21px]">
+              <div>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.09em] text-[#404040]">{ui.selectSize}</p>
+                <div role="group" aria-label={ui.selectSize} className="flex gap-1.5">
+                  {SIZE_ORDER.map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      aria-pressed={selectedSize === size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`flex h-11 w-11 items-center justify-center rounded-sm border text-[13px] font-semibold transition-colors sm:h-12 sm:w-12 ${focusRing} ${selectedSize === size ? "border-[#00821A] bg-[#00821A] text-white" : "border-black/15 bg-white hover:border-[#00821A] hover:text-[#00821A]"}`}
+                    >{size}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.09em] text-[#404040]">{ui.unitLabel}</p>
+                <div role="group" aria-label={ui.unitLabel} className="flex gap-1 rounded-sm border border-black/15 bg-white p-[3px]">
+                  {(["cm", "in"] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={unit === value}
+                      onClick={() => changeUnit(value)}
+                      className={`min-h-10 min-w-12 rounded-sm px-2 text-[11px] font-semibold uppercase transition-colors ${focusRing} ${unit === value ? "bg-black text-white" : "text-black/65 hover:text-[#00821A]"}`}
+                    >{value}</button>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="relative min-w-0">
-              <div className="relative isolate flex aspect-[5/4] items-center justify-center overflow-hidden rounded-sm border border-black/10 bg-[#EFEFEC] sm:aspect-[5/4] lg:aspect-[4/5]">
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-[radial-gradient(circle_at_60%_38%,rgba(255,255,255,0.95),rgba(255,255,255,0)_60%)]"
-                />
-                <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[#00821A]" />
-                <span className="absolute left-5 top-6 z-10 text-[10px] font-bold uppercase tracking-[0.25em] text-black/40 sm:left-8">
-                  MILOS BG / FIT GUIDE
-                </span>
-                <Image
-                  src={Grinder}
-                  alt=""
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 45vw"
-                  className="relative z-[1] h-[80%] w-auto max-w-[90%] object-contain drop-shadow-[0_25px_25px_rgba(0,0,0,0.08)]"
-                />
-                <div className="absolute bottom-5 left-5 right-5 z-10 flex items-end justify-between gap-4 border-t border-black/10 pt-4 sm:bottom-8 sm:left-8 sm:right-8">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.19em] text-black/45">
-                    {ui.standardSizes}
-                  </span>
-                  <span className="text-base font-bold tracking-[0.22em] text-[#00821A]">S / M / L</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      {/* Section navigation: clearly tappable, not text-only links */}
-      <section aria-label={ui.guideIndex} className="border-b border-black/10 bg-white">
-        <Container>
-          <div className="grid gap-2 py-4 sm:grid-cols-3 sm:gap-3">
-            {quickLinks.map((item) => (
-              <a
-                key={item.number}
-                href={item.href}
-                className={`group flex min-h-14 items-center justify-between gap-3 rounded-sm border border-black/10 bg-white px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#00821A]/45 hover:bg-[#00821A]/[0.04] hover:shadow-[0_10px_22px_-15px_rgba(0,0,0,0.35)] ${focusRing}`}
-              >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="text-[10px] font-bold tracking-[0.15em] text-[#00821A]">{item.number}</span>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.1em] sm:text-[11px]">{item.label}</span>
-                </span>
-                <ArrowRight size={16} className="shrink-0 text-[#00821A] transition-transform group-hover:translate-x-1" aria-hidden="true" />
-              </a>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      {/* SIZE CHART */}
-      <section id="measurements" className="scroll-mt-24 bg-white">
-        <Container>
-          <div className="py-16 md:py-24">
-            <SectionHeading number="01" eyebrow={copy.tableEyebrow} title={copy.bodyMeasurements} description={copy.tableDescription} />
-
-            <div className="mt-9 rounded-sm border border-black/10 bg-[#F8F9F8] p-4 sm:p-6">
-              <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-                <div>
-                  <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[#404040]">{ui.selectSize}</p>
-                  <div className="flex flex-wrap items-center gap-2" role="group" aria-label={ui.selectSize}>
-                    {SIZE_ORDER.map((size) => {
-                      const active = selectedSize === size;
-                      return (
-                        <button
-                          key={size}
-                          type="button"
-                          aria-pressed={active}
-                          onClick={() => setSelectedSize(active ? null : size)}
-                          className={`inline-flex h-12 w-14 items-center justify-center rounded-sm border text-sm font-bold transition-all duration-200 sm:h-14 sm:w-16 ${focusRing} ${
-                            active
-                              ? "border-[#00821A] bg-[#00821A] text-white shadow-[0_10px_18px_-12px_rgba(0,130,26,0.9)]"
-                              : "border-black/15 bg-white text-black hover:border-[#00821A] hover:text-[#00821A]"
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="mt-3 text-[11px] leading-5 text-[#404040]">{ui.sizeInstruction}</p>
-                </div>
-                <div>
-                  <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[#404040]">{ui.unitLabel}</p>
-                  <div className="inline-flex rounded-sm border border-black/15 bg-white p-1" role="group" aria-label={ui.unitLabel}>
-                    {(["cm", "in"] as const).map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        aria-pressed={unit === value}
-                        onClick={() => setUnit(value)}
-                        className={`min-h-11 min-w-20 rounded-sm px-4 text-xs font-bold uppercase tracking-[0.14em] transition-colors ${focusRing} ${
-                          unit === value
-                            ? "bg-black text-white shadow-sm"
-                            : "text-[#404040] hover:bg-[#00821A]/10 hover:text-[#00821A]"
-                        }`}
-                      >
-                        {value}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop: readable table + highlighted size */}
-            <div className="mt-4 hidden overflow-hidden rounded-sm border border-black/10 shadow-[0_16px_40px_-34px_rgba(0,0,0,0.45)] md:block">
+            {/* Full table: M, L, S left-to-right, with the chosen column highlighted. */}
+            <div className="mt-[13px] hidden overflow-hidden rounded-sm border border-black/10 md:block">
               <table className="w-full table-fixed border-collapse">
                 <caption className="sr-only">{copy.bodyMeasurements} ({unit})</caption>
                 <thead>
                   <tr className="bg-black text-white">
-                    <th scope="col" className="w-[34%] px-6 py-6 text-left text-[11px] font-semibold uppercase tracking-[0.16em]">
-                      {copy.measurement}
-                    </th>
+                    <th scope="col" className="w-[34%] px-[21px] py-[21px] text-left text-[11px] font-semibold uppercase tracking-[0.08em]">{copy.measurement}</th>
                     {SIZE_ORDER.map((size) => (
-                      <th
-                        key={size}
-                        scope="col"
-                        className={`border-l border-white/15 px-4 py-5 text-center text-2xl font-semibold transition-colors ${selectedSize === size ? "bg-[#00821A] text-white" : ""}`}
-                      >
+                      <th key={size} scope="col" className={`border-l border-white/15 px-[13px] py-[13px] text-center text-xl font-semibold ${selectedSize === size ? "bg-[#00821A]" : ""}`}>
                         {size}
                       </th>
                     ))}
@@ -704,17 +771,10 @@ export default function ClientPage({ lang }: Props) {
                 </thead>
                 <tbody>
                   {MEASUREMENTS.map((measurement, index) => (
-                    <tr key={measurement.key} className={`${index % 2 ? "bg-[#F8F8F7]" : "bg-white"} border-t border-black/10 hover:bg-[#F3F7F3]`}>
-                      <th scope="row" className="px-6 py-6 text-left text-[12px] font-semibold uppercase tracking-[0.08em]">
-                        {measurement.label[lang]}
-                      </th>
+                    <tr key={measurement.key} className={`border-t border-black/10 ${index % 2 ? "bg-[#FAFAFA]" : "bg-white"}`}>
+                      <th scope="row" className="px-[21px] py-[21px] text-left text-[12px] font-medium">{measurement.label[lang]}</th>
                       {SIZE_ORDER.map((size) => (
-                        <td
-                          key={size}
-                          className={`border-l border-black/10 px-4 py-6 text-center text-sm font-semibold tabular-nums transition-colors ${
-                            selectedSize === size ? "bg-[#00821A]/[0.10] text-[#006b16]" : ""
-                          }`}
-                        >
+                        <td key={size} className={`border-l border-black/10 px-[13px] py-[21px] text-center text-[13px] font-semibold tabular-nums ${selectedSize === size ? "bg-[#00821A]/[0.07] text-[#006b16]" : ""}`}>
                           {measurement.values[size][unit]}
                         </td>
                       ))}
@@ -724,65 +784,47 @@ export default function ClientPage({ lang }: Props) {
               </table>
             </div>
 
-            {/* Mobile: stacked cards without horizontal scrolling */}
-            <div className="mt-4 grid gap-4 md:hidden">
-              {SIZE_ORDER.map((size) => (
-                <article
-                  key={size}
-                  className={`overflow-hidden rounded-sm border bg-white transition-all ${
-                    selectedSize === size ? "border-[#00821A] shadow-[0_14px_28px_-20px_rgba(0,130,26,0.55)]" : "border-black/10"
-                  }`}
-                >
-                  <header className={`flex items-center justify-between px-5 py-4 text-white ${selectedSize === size ? "bg-[#00821A]" : "bg-black"}`}>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.17em] text-white/80">{copy.recommended}</span>
-                    <strong className="text-2xl font-semibold tracking-[0.07em]">{size}</strong>
-                  </header>
-                  <dl>
-                    {MEASUREMENTS.map((measurement, index) => (
-                      <div key={measurement.key} className={`flex items-center justify-between gap-5 border-t border-black/10 px-5 py-3.5 ${index % 2 ? "bg-[#F8F8F7]" : "bg-white"}`}>
-                        <dt className="text-[11px] font-medium uppercase tracking-[0.06em] text-[#404040]">
-                          {measurement.label[lang]}
-                        </dt>
-                        <dd className="shrink-0 text-right text-sm font-semibold tabular-nums">
-                          {measurement.values[size][unit]}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </article>
-              ))}
+            {/* Only one size sheet at once on phones, no tall stack of repeated cards. */}
+            <div className="mt-[13px] md:hidden">
+              <article key={selectedSize} className="overflow-hidden rounded-sm border border-black/10 bg-white">
+                <header className="flex items-center justify-between bg-black px-[13px] py-[13px] text-white">
+                  <span className="text-[10px] font-medium tracking-[0.07em] text-white/75">{copy.recommended} · {ui.standardLabel}</span>
+                  <strong className="text-[21px] font-semibold leading-none text-white">{selectedSize}</strong>
+                </header>
+                <dl>
+                  {MEASUREMENTS.map((measurement, index) => (
+                    <div key={measurement.key} className={`flex items-center justify-between gap-[13px] border-t border-black/10 px-[13px] py-[13px] ${index % 2 ? "bg-[#FAFAFA]" : "bg-white"}`}>
+                      <dt className="min-w-0 text-[11px] font-medium text-[#404040]">{measurement.label[lang]}</dt>
+                      <dd className="shrink-0 text-right text-[13px] font-semibold tabular-nums">{measurement.values[selectedSize][unit]}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+              <p className="mt-2 text-[11px] leading-5 text-[#404040]">{ui.sizeInstruction}</p>
             </div>
-
-            <div className="mt-6 flex max-w-4xl items-start gap-3 rounded-sm border border-[#00821A]/20 bg-[#00821A]/[0.045] px-5 py-4">
-              <CircleHelp size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-[#00821A]" />
-              <div className="text-xs leading-6 text-[#404040]">
-                <p>{copy.note}</p>
-                {unit === "in" && <p className="mt-1">{ui.inchesNote}</p>}
-              </div>
+            <div className="mt-[21px] flex items-start gap-[13px] border-l-[3px] border-[#00821A] bg-[#F8F9F8] px-[13px] py-[13px]">
+              <CircleHelp size={16} className="mt-0.5 shrink-0 text-[#00821A]" aria-hidden="true" />
+              <p className="text-[11px] leading-[1.7] text-[#404040]">{copy.note}{unit === "in" && ` ${ui.inchesNote}`}</p>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* HOW TO MEASURE */}
-      <section id="how-to-measure" className="scroll-mt-24 border-y border-black/10 bg-[#F8F9F8]">
+      <section id="how-to-measure" className="scroll-mt-20 border-y border-black/10 bg-[#F8F9F8]">
         <Container>
-          <div className="py-16 md:py-24">
+          <div className={sectionSpace}>
             <SectionHeading number="02" eyebrow={ui.measureTag} title={copy.howToMeasure} description={copy.howToMeasureDescription} />
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-[21px] grid grid-cols-2 gap-2 sm:mt-[34px] sm:gap-[13px] lg:grid-cols-4">
               {measurementTips.map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <article key={item.title} className="group relative overflow-hidden rounded-sm border border-black/10 bg-white p-6 transition-all duration-200 hover:-translate-y-1 hover:border-[#00821A]/45 hover:shadow-[0_20px_40px_-30px_rgba(0,0,0,0.35)] lg:min-h-[250px]">
-                    <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-[#00821A] transition-transform duration-200 group-hover:scale-x-100" />
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-sm border border-[#00821A]/20 bg-[#00821A]/[0.06] text-[#00821A]">
-                        <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
-                      </span>
-                      <span className="text-[11px] font-bold tracking-[0.12em] text-black/30">0{index + 1}</span>
+                  <article key={item.title} className="min-w-0 rounded-sm border border-black/10 bg-white p-[13px] sm:p-[21px]">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-sm bg-[#00821A]/[0.07] text-[#00821A] sm:h-11 sm:w-11"><Icon size={17} strokeWidth={1.8} aria-hidden="true" /></span>
+                      <span className="text-[10px] font-semibold text-black/30">0{index + 1}</span>
                     </div>
-                    <h3 className="mt-8 text-base font-semibold uppercase tracking-[0.06em]">{item.title}</h3>
-                    <p className="mt-3 text-[13px] leading-6 text-[#404040]">{item.description}</p>
+                    <h3 className="mt-[13px] text-[12px] font-semibold sm:mt-[21px] sm:text-sm">{item.title}</h3>
+                    <p className="mt-2 text-[11px] leading-[1.65] text-[#404040] sm:text-[13px]">{item.description}</p>
                   </article>
                 );
               })}
@@ -791,50 +833,138 @@ export default function ClientPage({ lang }: Props) {
         </Container>
       </section>
 
-      {/* FIT ADVICE */}
-      <section id="fit-advice" className="scroll-mt-24 bg-white">
+      {/* Custom size finder uses actual standard BODY ranges and extrapolates only as a guide. */}
+      <section id="size-simulator" className="scroll-mt-20 bg-white">
         <Container>
-          <div className="py-16 md:py-24">
-            <SectionHeading number="03" eyebrow={ui.fitHeading} title={copy.fitLink} />
-            <div className="mt-10 grid gap-4 md:grid-cols-2">
-              <article className="relative overflow-hidden rounded-sm bg-black p-7 text-white sm:p-10">
-                <div aria-hidden="true" className="absolute right-0 top-0 h-full w-1 bg-[#00821A]" />
-                <span className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#00821A] text-white">
-                  <Check size={22} aria-hidden="true" />
-                </span>
-                <h3 className="mt-9 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">{copy.choosingTitle}</h3>
-                <p className="mt-4 max-w-lg text-sm leading-7 text-white/75">{copy.choosingDescription}</p>
+          <div className={sectionSpace}>
+            <SectionHeading number="03" eyebrow={ui.simulatorEyebrow} title={ui.simulatorTitle} description={ui.simulatorIntro} />
+            <div className="mt-[21px] grid overflow-hidden rounded-sm border border-black/10 sm:mt-[34px] lg:grid-cols-[1.08fr_.92fr]">
+              <form onSubmit={runSimulation} noValidate className="min-w-0 p-[21px] sm:p-[34px]">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="flex items-center gap-2 text-[12px] font-semibold"><Calculator size={17} className="text-[#00821A]" aria-hidden="true" />{ui.simulatorStep}</p>
+                  <span className="text-[10px] font-medium text-black/50">{unit.toUpperCase()}</span>
+                </div>
+                <p className="mt-[13px] max-w-lg text-[12px] leading-[1.65] text-[#404040]">{ui.tips}</p>
+                <div className="mt-[21px] grid gap-[13px] sm:grid-cols-3">
+                  {FIELDS.map((field) => (
+                    <div key={field} className="min-w-0">
+                      <label htmlFor={`sim-${field}`} className="mb-2 block text-[11px] font-semibold">
+                        {field === "chest" ? ui.chestRequired : field === "waist" ? copy.waist : copy.hips}
+                        {field !== "chest" && <span className="ml-1 text-[10px] font-normal text-black/55">({ui.optional})</span>}
+                      </label>
+                      <div className="relative">
+                        <input
+                          id={`sim-${field}`}
+                          name={field}
+                          type="number"
+                          inputMode="decimal"
+                          min={unit === "cm" ? 50 : 19.7}
+                          max={unit === "cm" ? 230 : 90.6}
+                          step="any"
+                          placeholder={unit === "cm" ? field === "chest" ? "99" : field === "waist" ? "82" : "100" : field === "chest" ? "39" : field === "waist" ? "32" : "39.4"}
+                          required={field === "chest"}
+                          aria-invalid={!!simError && field === "chest"}
+                          aria-describedby={simError && field === "chest" ? "sim-error" : undefined}
+                          value={simValues[field]}
+                          onChange={(event) => updateSimValue(field, event.target.value)}
+                          className={`h-11 w-full min-w-0 rounded-sm border border-black/20 bg-white px-[13px] pr-9 text-[13px] tabular-nums outline-none transition-colors placeholder:text-black/25 focus:border-[#00821A] focus:ring-1 focus:ring-[#00821A] ${simError && field === "chest" ? "border-red-600" : ""}`}
+                        />
+                        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[10px] text-black/40">{unit}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {simError && <p id="sim-error" role="alert" className="mt-[13px] text-[11px] leading-5 text-red-700">{simError}</p>}
+                <div className="mt-[21px] flex flex-wrap items-center gap-2">
+                  <button type="submit" className={`${primaryButton} flex-1 sm:flex-none`}>
+                    {ui.calc}<ArrowRight size={15} aria-hidden="true" />
+                  </button>
+                  <button type="button" onClick={resetSimulation} className={`${secondaryButton} px-[13px]`}>
+                    <RotateCcw size={14} aria-hidden="true" />{ui.reset}
+                  </button>
+                </div>
+              </form>
+
+              <div aria-live="polite" aria-atomic="true" className="flex min-w-0 flex-col justify-between gap-[21px] border-t border-black/10 bg-[#F8F9F8] p-[21px] sm:p-[34px] lg:border-l lg:border-t-0">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#00821A]">{ui.resultsTitle}</p>
+                  {simResult === null ? (
+                    <div className="mt-[21px] flex min-h-[89px] items-center gap-[13px] border-l-2 border-black/15 pl-[13px]">
+                      <Ruler size={23} className="shrink-0 text-black/30" aria-hidden="true" />
+                      <p className="text-[13px] leading-6 text-[#404040]">{ui.initial}</p>
+                    </div>
+                  ) : (
+                    <div className="mt-[13px]">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-black/55">
+                        {isStandardResult ? ui.resultStandard : isExtendedResult ? ui.resultCustom : ui.resultBespoke}
+                      </p>
+                      <p className="mt-1 text-[clamp(2.4rem,6vw,3.45rem)] font-semibold leading-none tracking-[-0.04em] text-[#00821A]">
+                        {simResult === "custom" ? (fr ? "Sur mesure" : "Custom") : simResult}
+                      </p>
+                      <p className="mt-[13px] text-[12px] leading-[1.7] text-[#404040]">
+                        {isStandardResult ? ui.standardDescription : isExtendedResult ? ui.customDescription : ui.bespokeDescription}
+                      </p>
+                      {isExtendedResult && (
+                        <div className="mt-[13px] border-t border-black/10 pt-[13px]">
+                          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.07em] text-black/50">{ui.approx} ({unit})</p>
+                          <dl className="space-y-1.5 text-[11px]">
+                            {FIELDS.map((field) => (
+                              <div key={field} className="flex justify-between gap-3">
+                                <dt className="text-[#404040]">{field === "chest" ? copy.chest : field === "waist" ? copy.waist : copy.hips}</dt>
+                                <dd className="font-semibold tabular-nums">{valueDisplay(BODY_BANDS[simResult][field][0])}–{valueDisplay(BODY_BANDS[simResult][field][1])}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="border-t border-black/10 pt-[13px]">
+                  <p className="text-[11px] leading-[1.7] text-[#404040]">{ui.indicative}</p>
+                  <Link href={localizedHref("/contact")} className={`mt-[13px] inline-flex min-h-10 items-center gap-2 text-[11px] font-semibold text-[#006b16] underline decoration-[#00821A]/30 underline-offset-4 hover:decoration-[#00821A] ${focusRing}`}>
+                    {ui.contact}<ArrowRight size={14} aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <section id="fit-advice" className="scroll-mt-20 border-t border-black/10 bg-[#F8F9F8]">
+        <Container>
+          <div className={sectionSpace}>
+            <SectionHeading number="04" eyebrow={ui.fitHeading} title={copy.fitLink} />
+            <div className="mt-[21px] grid gap-[13px] sm:mt-[34px] md:grid-cols-2">
+              <article className="rounded-sm bg-black p-[21px] text-white sm:p-[34px]">
+                <span className="flex h-[34px] w-[34px] items-center justify-center rounded-sm bg-[#00821A]"><Check size={18} aria-hidden="true" /></span>
+                <h3 className="mt-[21px] text-[21px] font-semibold leading-tight">{copy.choosingTitle}</h3>
+                <p className="mt-[13px] text-[13px] leading-[1.7] text-white/75">{copy.choosingDescription}</p>
               </article>
-              <article className="rounded-sm border border-black/10 bg-[#F8F9F8] p-7 sm:p-10">
-                <span className="flex h-12 w-12 items-center justify-center rounded-sm border border-black/10 bg-white text-[#00821A]">
-                  <Ruler size={22} aria-hidden="true" />
-                </span>
-                <h3 className="mt-9 text-xl font-semibold tracking-[-0.02em] sm:text-2xl">{copy.productFitTitle}</h3>
-                <p className="mt-4 max-w-lg text-sm leading-7 text-[#404040]">{copy.productFitDescription}</p>
-                <Link href={localizedHref("/products")} className={`${solidButton} mt-7 w-full sm:w-auto`}>
-                  {copy.products}
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
-                </Link>
+              <article className="rounded-sm border border-black/10 bg-white p-[21px] sm:p-[34px]">
+                <span className="flex h-[34px] w-[34px] items-center justify-center rounded-sm bg-[#00821A]/[0.07] text-[#00821A]"><Ruler size={18} aria-hidden="true" /></span>
+                <h3 className="mt-[21px] text-[21px] font-semibold leading-tight">{copy.productFitTitle}</h3>
+                <p className="mt-[13px] text-[13px] leading-[1.7] text-[#404040]">{copy.productFitDescription}</p>
+                <Link href={localizedHref("/products")} className={`${secondaryButton} mt-[21px]`}>{copy.products}<ArrowRight size={14} aria-hidden="true" /></Link>
               </article>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* FAQ */}
-      <section className="border-t border-black/10 bg-[#F8F9F8]">
+      <section className="border-t border-black/10 bg-white">
         <Container>
-          <div className="grid gap-10 py-16 md:grid-cols-[0.8fr_1.2fr] md:py-24 lg:gap-16">
+          <div className={`${sectionSpace} grid gap-[21px] lg:grid-cols-[.75fr_1.25fr] lg:gap-[55px]`}>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.26em] text-[#00821A]">{copy.faqEyebrow}</span>
-              <h2 className="mt-4 max-w-sm text-3xl font-semibold leading-[1.06] tracking-[-0.035em] md:text-4xl">{copy.faqTitle}</h2>
-              <p className="mt-5 text-sm text-[#404040]">{ui.faqTag}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#00821A]">{copy.faqEyebrow}</p>
+              <h2 className="mt-[13px] text-[clamp(1.55rem,5vw,2.4rem)] font-semibold leading-[1.1] tracking-[-0.03em]">{copy.faqTitle}</h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {copy.faq.map((item, index) => {
                 const isOpen = openFaq === index;
                 return (
-                  <article key={item.q} className={`overflow-hidden rounded-sm border bg-white transition-colors ${isOpen ? "border-[#00821A]/40" : "border-black/10"}`}>
+                  <article key={item.q} className="overflow-hidden rounded-sm border border-black/10 bg-white">
                     <h3>
                       <button
                         type="button"
@@ -842,22 +972,17 @@ export default function ClientPage({ lang }: Props) {
                         aria-controls={`size-faq-answer-${index}`}
                         aria-expanded={isOpen}
                         onClick={() => setOpenFaq(isOpen ? null : index)}
-                        className={`flex min-h-[70px] w-full items-center justify-between gap-5 px-5 py-5 text-left transition-colors hover:bg-[#00821A]/[0.035] sm:px-6 ${focusRing}`}
+                        className={`flex min-h-12 w-full items-center justify-between gap-[13px] px-[13px] py-[13px] text-left hover:bg-[#F8F9F8] sm:px-[21px] ${focusRing}`}
                       >
-                        <span className="text-[13px] font-semibold leading-6 sm:text-sm">{item.q}</span>
-                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border transition-all ${isOpen ? "rotate-180 border-[#00821A] bg-[#00821A] text-white" : "border-black/10 bg-[#F8F9F8] text-black"}`}>
-                          <ChevronDown size={17} aria-hidden="true" />
+                        <span className="text-[12px] font-semibold leading-[1.6] sm:text-[13px]">{item.q}</span>
+                        <span className={`flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-sm transition-colors ${isOpen ? "bg-[#00821A] text-white" : "bg-[#F8F9F8] text-black"}`}>
+                          <ChevronDown size={15} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden="true" />
                         </span>
                       </button>
                     </h3>
                     {isOpen && (
-                      <div
-                        id={`size-faq-answer-${index}`}
-                        role="region"
-                        aria-labelledby={`size-faq-question-${index}`}
-                        className="border-t border-black/10 px-5 py-5 sm:px-6"
-                      >
-                        <p className="text-[13px] leading-7 text-[#404040] sm:text-sm">{item.a}</p>
+                      <div id={`size-faq-answer-${index}`} role="region" aria-labelledby={`size-faq-question-${index}`} className="border-t border-black/10 px-[13px] py-[13px] sm:px-[21px]">
+                        <p className="text-[12px] leading-[1.7] text-[#404040] sm:text-[13px]">{item.a}</p>
                       </div>
                     )}
                   </article>
@@ -868,31 +993,17 @@ export default function ClientPage({ lang }: Props) {
         </Container>
       </section>
 
-      {/* Final CTA: clear primary and secondary buttons */}
-      <section className="relative isolate overflow-hidden bg-black text-white">
-        <div aria-hidden="true" className="absolute -right-40 -top-60 h-[500px] w-[500px] rounded-full bg-[#00821A]/15 blur-[100px]" />
+      <section className="bg-black text-white">
         <Container>
-          <div className="relative grid gap-10 py-16 md:grid-cols-[1.3fr_0.7fr] md:items-end md:py-24">
+          <div className={`${sectionSpace} grid gap-[21px] lg:grid-cols-[1.1fr_.9fr] lg:items-end lg:gap-[55px]`}>
             <div className="max-w-2xl">
-              <span className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#66D17B]">
-                <span className="h-1.5 w-7 bg-[#00821A]" aria-hidden="true" />
-                {copy.supportEyebrow}
-              </span>
-              <h2 className="mt-5 text-3xl font-semibold leading-[1.04] tracking-[-0.035em] sm:text-4xl lg:text-5xl">{copy.supportTitle}</h2>
-              <p className="mt-5 max-w-xl text-sm leading-7 text-white/70">{copy.supportDescription}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#60d178]">{copy.supportEyebrow}</p>
+              <h2 className="mt-[13px] text-[clamp(1.75rem,6vw,3.35rem)] font-semibold leading-[1.08] tracking-[-0.035em]">{copy.supportTitle}</h2>
+              <p className="mt-[13px] text-[13px] leading-[1.7] text-white/70">{copy.supportDescription}</p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2">
-              <Link href={localizedHref("/contact")} className={`${solidButton} min-h-14`}>
-                {copy.contact}
-                <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
-              </Link>
-              <Link
-                href={localizedHref("/products")}
-                className={`group inline-flex min-h-14 items-center justify-center gap-3 rounded-sm border border-white/35 bg-white/10 px-6 py-3 text-center text-[11px] font-bold uppercase tracking-[0.13em] text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-black active:translate-y-0 ${focusRing}`}
-              >
-                {copy.products}
-                <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
-              </Link>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
+              <Link href={localizedHref("/contact")} className={`${primaryButton} min-w-0 px-2 sm:px-[21px]`}>{copy.contact}<ArrowRight size={14} aria-hidden="true" /></Link>
+              <Link href={localizedHref("/products")} className={`inline-flex min-h-11 min-w-0 items-center justify-center rounded-sm border border-white/35 px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-[0.07em] text-white transition-colors hover:bg-white hover:text-black sm:px-[21px] ${focusRing}`}>{copy.products}</Link>
             </div>
           </div>
         </Container>
@@ -913,15 +1024,14 @@ function SectionHeading({
   description?: string;
 }) {
   return (
-    <header className="grid gap-5 md:grid-cols-[96px_minmax(0,1fr)] lg:grid-cols-[120px_minmax(0,1fr)]">
-      <div className="flex items-center gap-3 self-start pt-1">
-        <span className="text-[13px] font-bold tracking-[0.16em] text-[#00821A]">{number}</span>
-        <span aria-hidden="true" className="h-px w-8 bg-[#00821A]/50" />
+    <header className="grid gap-[13px] sm:grid-cols-[55px_minmax(0,1fr)] sm:gap-[21px]">
+      <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] text-[#00821A]">
+        {number}<span aria-hidden="true" className="h-px w-[21px] bg-[#00821A]/50" />
       </div>
       <div className="max-w-3xl">
-        {eyebrow && <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.21em] text-[#404040]">{eyebrow}</p>}
-        <h2 className="text-[clamp(1.8rem,3vw,2.85rem)] font-semibold leading-[1.08] tracking-[-0.035em]">{title}</h2>
-        {description && <p className="mt-5 max-w-2xl text-sm leading-7 text-[#404040]">{description}</p>}
+        {eyebrow && <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55">{eyebrow}</p>}
+        <h2 className="text-[clamp(1.55rem,5vw,2.8rem)] font-semibold leading-[1.1] tracking-[-0.035em]">{title}</h2>
+        {description && <p className="mt-[13px] max-w-2xl text-[13px] leading-[1.7] text-[#404040] sm:text-sm">{description}</p>}
       </div>
     </header>
   );

@@ -17,13 +17,13 @@ const META = {
   en: {
     title: "Men's Size Guide & Fit Guide",
     description:
-      "Find your Milos BG size with men's body measurements, size charts and fit advice for S, M and L clothing.",
+      "Find your Milos BG size with men's body measurements, size charts for M, L and S and an indicative custom-size finder.",
     breadcrumb: "Size Guide",
   },
   fr: {
     title: "Guide des tailles homme & conseils de coupe",
     description:
-      "Trouvez votre taille Milos BG grâce au tableau de mensurations homme, aux tailles S, M et L et à nos conseils de coupe.",
+      "Trouvez votre taille Milos BG grâce au tableau de mensurations homme, aux tailles M, L et S et à un simulateur indicatif pour le sur-mesure.",
     breadcrumb: "Guide des tailles",
   },
 } satisfies Record<
@@ -57,8 +57,10 @@ export async function generateMetadata({
               "guide taille homme",
               "mensurations homme",
               "taille vêtement homme",
-              "taille S M L",
+              "taille M L S",
               "guide de coupe",
+              "simulateur de taille",
+              "taille sur mesure",
               "vêtement artisanal",
             ]
           : [
@@ -66,8 +68,9 @@ export async function generateMetadata({
               "men's size guide",
               "men's clothing size chart",
               "body measurements",
-              "size S M L",
+              "size M L S",
               "fit guide",
+              "custom size finder",
               "artisan clothing",
               "basketball clothing",
             ],
@@ -102,34 +105,44 @@ export default async function Page({ searchParams }: PageProps) {
           {
             question: "Comment choisir ma taille Milos BG ?",
             answer:
-              "Comparez vos mensurations de poitrine, taille et hanches avec notre tableau. Si vous êtes entre deux tailles, choisissez la taille supérieure pour une coupe plus ample.",
+              "Comparez vos mensurations de poitrine, taille et hanches avec le tableau. Si vous êtes entre deux tailles, tenez compte de la coupe recherchée.",
           },
           {
-            question: "Les vêtements Milos BG taillent-ils normalement ?",
+            question: "Ces mesures correspondent-elles au vêtement ?",
             answer:
-              "La coupe peut varier selon le produit, le tissu et sa construction. Consultez également les informations de coupe indiquées sur chaque fiche produit.",
+              "Non. Le tableau indique principalement les mensurations du corps. Des mesures spécifiques au vêtement peuvent être disponibles sur sa fiche produit.",
           },
           {
             question: "Que faire si je suis entre deux tailles ?",
             answer:
-              "Choisissez la taille inférieure pour une coupe plus ajustée et la taille supérieure pour une silhouette plus ample.",
+              "Choisissez la taille inférieure pour une coupe plus ajustée ou la taille supérieure pour une silhouette plus ample.",
+          },
+          {
+            question: "Puis-je demander une taille différente de M, L ou S ?",
+            answer:
+              "Les autres tailles relèvent d'une commande personnalisée. Le simulateur fournit un repère indicatif à partir de vos mensurations ; la faisabilité et la coupe finale sont confirmées individuellement.",
           },
         ]
       : [
           {
             question: "How do I choose my Milos BG size?",
             answer:
-              "Compare your chest, waist and hip measurements with our size chart. If you are between sizes, choose the larger size for a looser fit.",
+              "Compare your chest, waist and hip measurements with the size chart. If you are between two sizes, consider your preferred fit.",
           },
           {
-            question: "Does Milos BG clothing fit true to size?",
+            question: "Are these garment measurements?",
             answer:
-              "Fit may vary depending on the product, fabric and garment construction. Product-specific fit information is also available on each product page.",
+              "No. The chart primarily shows body measurements. Product-specific garment measurements may be available on individual product pages.",
           },
           {
-            question: "What should I do if I am between sizes?",
+            question: "What if I am between two sizes?",
             answer:
               "Choose the smaller size for a closer fit or the larger size for a more relaxed silhouette.",
+          },
+          {
+            question: "Can I request a size outside M, L or S?",
+            answer:
+              "Other sizes are considered custom orders. Our simulator offers an approximate reference based on body measurements; we confirm feasibility and the final fit individually.",
           },
         ];
 
