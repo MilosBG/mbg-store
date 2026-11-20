@@ -201,7 +201,7 @@ const Section: React.FC<SectionProps> = ({
   id,
   title,
   children,
-  defaultOpen = true,
+  defaultOpen = false,
   forceOpen,
 }) => {
   const [open, setOpen] = useState(defaultOpen);

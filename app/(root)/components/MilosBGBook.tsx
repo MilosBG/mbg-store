@@ -342,7 +342,6 @@ const MilosBGBook = ({
                       duration-300
                       hover:bg-mbg-white
                       hover:text-mbg-black
-                      focus-visible:outline
                       focus-visible:outline-2
                       focus-visible:outline-offset-2
                       focus-visible:outline-mbg-green
@@ -450,7 +449,6 @@ const MilosBGBook = ({
                       duration-300
                       hover:bg-mbg-white
                       hover:text-mbg-black
-                      focus-visible:outline
                       focus-visible:outline-2
                       focus-visible:outline-offset-2
                       focus-visible:outline-mbg-white
@@ -501,7 +499,6 @@ const MilosBGBook = ({
                   duration-300
                   ease-out
                   hover:bg-mbg-black/[0.025]
-                  focus-visible:outline
                   focus-visible:outline-2
                   focus-visible:outline-offset-[-2px]
                   focus-visible:outline-mbg-green
