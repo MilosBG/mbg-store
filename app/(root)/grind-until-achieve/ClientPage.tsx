@@ -362,7 +362,7 @@ const ContentEN: React.FC<{
         </p>
 
         <div
-          className="
+          className={`
             grid
             w-full
             gap-px
@@ -371,7 +371,7 @@ const ContentEN: React.FC<{
             border-mbg-white/10
             bg-mbg-white/[0.06]
             sm:grid-cols-2
-          "
+          `}
         >
           {[
             ["Basketball", "provides the mindset."],
@@ -388,22 +388,22 @@ const ContentEN: React.FC<{
         </div>
 
         <div
-          className="
+          className={`
             w-full
             border-l-4
             border-mbg-green
             bg-mbg-black
             p-5
             text-mbg-white
-          "
+          `}
         >
           <p
-            className="
+            className={`
               text-sm
               font-semibold
               uppercase
               tracking-wide
-            "
+            `}
           >
             GRIND UNTIL ACHIEVE provides the direction.
           </p>
@@ -430,7 +430,7 @@ const ContentEN: React.FC<{
           ].map(([number, label]) => (
             <div
               key={number}
-              className="
+              className={`
                 flex
                 min-h-28
                 flex-col
@@ -438,7 +438,7 @@ const ContentEN: React.FC<{
                 border
                 border-mbg-white/10
                 p-4
-              "
+              `}
             >
               <span className="text-2xl font-bold text-mbg-green">
                 {number}
@@ -491,24 +491,24 @@ const ContentEN: React.FC<{
 
       <Section id="book" expandCommand={expandCommand} title="4. Physical book">
         <div
-          className="
+          className={`
             grid
             w-full
             overflow-hidden
             border
             border-mbg-white/10
             lg:grid-cols-[220px_1fr]
-          "
+          `}
         >
           <div
-            className="
+            className={`
               flex
               min-h-[280px]
               items-center
               justify-center
               bg-mbg-black
               p-8
-            "
+            `}
           >
             <div className="text-center text-mbg-white">
               <FiBookOpen className="mx-auto mb-5 text-3xl text-mbg-green" />
@@ -518,13 +518,13 @@ const ContentEN: React.FC<{
               </p>
 
               <p
-                className="
+                className={`
                   mt-4
                   text-[10px]
                   uppercase
                   tracking-[0.3em]
                   text-mbg-white/65
-                "
+                `}
               >
                 Milos BG
               </p>
@@ -532,36 +532,36 @@ const ContentEN: React.FC<{
           </div>
 
           <div
-            className="
+            className={`
               flex
               flex-col
               justify-center
               gap-4
               bg-mbg-white/[0.045]
               p-6
-            "
+            `}
           >
             <div>
               <p
-                className="
+                className={`
                   text-[10px]
                   font-semibold
                   uppercase
                   tracking-[0.2em]
                   text-mbg-green
-                "
+                `}
               >
                 Physical edition
               </p>
 
               <h4
-                className="
+                className={`
                   mt-1
                   text-xl
                   font-bold
                   uppercase
                   text-mbg-white
-                "
+                `}
               >
                 GRIND UNTIL ACHIEVE
               </h4>
@@ -584,7 +584,7 @@ const ContentEN: React.FC<{
 
       <Section id="ebook" expandCommand={expandCommand} title="5. Ebook">
         <div
-          className="
+          className={`
             flex
             w-full
             flex-col
@@ -597,27 +597,27 @@ const ContentEN: React.FC<{
             text-mbg-white
             md:flex-row
             md:items-center
-          "
+          `}
         >
           <div className="max-w-2xl">
             <div
-              className="
+              className={`
                 mb-4
                 inline-flex
                 items-center
                 gap-2
                 text-mbg-green
-              "
+              `}
             >
               <FiDownload />
 
               <span
-                className="
+                className={`
                   text-[10px]
                   font-bold
                   uppercase
                   tracking-[0.2em]
-                "
+                `}
               >
                 Digital edition
               </span>
@@ -628,13 +628,13 @@ const ContentEN: React.FC<{
             </h4>
 
             <p
-              className="
+              className={`
                 mt-3
                 max-w-xl
                 text-xs
                 leading-6
                 text-mbg-white/65
-              "
+              `}
             >
               Access the philosophy, the five chapters and the progression model
               wherever you are.
@@ -669,7 +669,7 @@ const ContentFR: React.FC<{
         </p>
 
         <div
-          className="
+          className={`
             grid
             w-full
             gap-px
@@ -678,7 +678,7 @@ const ContentFR: React.FC<{
             border-mbg-white/10
             bg-mbg-white/[0.06]
             sm:grid-cols-2
-          "
+          `}
         >
           {[
             ["Le basketball", "fournit la mentalité."],
@@ -695,22 +695,22 @@ const ContentFR: React.FC<{
         </div>
 
         <div
-          className="
+          className={`
             w-full
             border-l-4
             border-mbg-green
             bg-mbg-black
             p-5
             text-mbg-white
-          "
+          `}
         >
           <p
-            className="
+            className={`
               text-sm
               font-semibold
               uppercase
               tracking-wide
-            "
+            `}
           >
             GRIND UNTIL ACHIEVE fournit la direction.
           </p>
@@ -737,7 +737,7 @@ const ContentFR: React.FC<{
           ].map(([number, label]) => (
             <div
               key={number}
-              className="
+              className={`
                 flex
                 min-h-28
                 flex-col
@@ -745,7 +745,7 @@ const ContentFR: React.FC<{
                 border
                 border-mbg-white/10
                 p-4
-              "
+              `}
             >
               <span className="text-2xl font-bold text-mbg-green">
                 {number}
@@ -806,24 +806,24 @@ const ContentFR: React.FC<{
         title="4. Livre physique"
       >
         <div
-          className="
+          className={`
             grid
             w-full
             overflow-hidden
             border
             border-mbg-white/10
             lg:grid-cols-[220px_1fr]
-          "
+          `}
         >
           <div
-            className="
+            className={`
               flex
               min-h-[280px]
               items-center
               justify-center
               bg-mbg-black
               p-8
-            "
+            `}
           >
             <div className="text-center text-mbg-white">
               <FiBookOpen className="mx-auto mb-5 text-3xl text-mbg-green" />
@@ -833,13 +833,13 @@ const ContentFR: React.FC<{
               </p>
 
               <p
-                className="
+                className={`
                   mt-4
                   text-[10px]
                   uppercase
                   tracking-[0.3em]
                   text-mbg-white/65
-                "
+                `}
               >
                 Milos BG
               </p>
@@ -847,36 +847,36 @@ const ContentFR: React.FC<{
           </div>
 
           <div
-            className="
+            className={`
               flex
               flex-col
               justify-center
               gap-4
               bg-mbg-white/[0.045]
               p-6
-            "
+            `}
           >
             <div>
               <p
-                className="
+                className={`
                   text-[10px]
                   font-semibold
                   uppercase
                   tracking-[0.2em]
                   text-mbg-green
-                "
+                `}
               >
                 Édition physique
               </p>
 
               <h4
-                className="
+                className={`
                   mt-1
                   text-xl
                   font-bold
                   uppercase
                   text-mbg-white
-                "
+                `}
               >
                 GRIND UNTIL ACHIEVE
               </h4>
@@ -899,7 +899,7 @@ const ContentFR: React.FC<{
 
       <Section id="ebook" expandCommand={expandCommand} title="5. Ebook">
         <div
-          className="
+          className={`
             flex
             w-full
             flex-col
@@ -912,27 +912,27 @@ const ContentFR: React.FC<{
             text-mbg-white
             md:flex-row
             md:items-center
-          "
+          `}
         >
           <div className="max-w-2xl">
             <div
-              className="
+              className={`
                 mb-4
                 inline-flex
                 items-center
                 gap-2
                 text-mbg-green
-              "
+              `}
             >
               <FiDownload />
 
               <span
-                className="
+                className={`
                   text-[10px]
                   font-bold
                   uppercase
                   tracking-[0.2em]
-                "
+                `}
               >
                 Édition numérique
               </span>
@@ -943,13 +943,13 @@ const ContentFR: React.FC<{
             </h4>
 
             <p
-              className="
+              className={`
                 mt-3
                 max-w-xl
                 text-xs
                 leading-6
                 text-mbg-white/65
-              "
+              `}
             >
               Retrouvez la philosophie, les cinq chapitres et la progression de
               1 à 5 où que vous soyez.
@@ -1121,30 +1121,30 @@ const ClientPage: React.FC = () => {
   {/* Dégradé de fond */}
   <div
     aria-hidden="true"
-    className="
+    className={`
       pointer-events-none
       absolute inset-0 z-0
       bg-[radial-gradient(ellipse_at_85%_20%,rgba(0,130,26,0.16),transparent_48%)]
-    "
+    `}
   />
 
   {/* Cercle supérieur */}
   <div
     aria-hidden="true"
-    className="
+    className={`
       pointer-events-none
       absolute -right-20 -top-28 z-0
       size-[310px]
       rounded-full
       border border-mbg-white/10
       sm:size-[420px]
-    "
+    `}
   />
 
   {/* Cercle inférieur + logo centré */}
   <div
     aria-hidden="true"
-    className="
+    className={`
       pointer-events-none
       absolute -bottom-56 -right-16 z-0
       flex size-[340px]
@@ -1152,31 +1152,31 @@ const ClientPage: React.FC = () => {
       rounded-full
       border border-mbg-green/10
       sm:size-[520px]
-    "
+    `}
   >
     <Image
       src={GrindUntilAchieve2}
       alt=""
       width={260}
       height={260}
-      className="
+      className={`
         mbg-float
         size-[180px]
         shrink-0
         object-contain
         opacity-70
         sm:size-[260px]
-      "
+      `}
     />
   </div>
 
   {/* Contenu principal */}
   <div
-    className="
+    className={`
       relative z-10
       w-full min-w-0 max-w-3xl
       [container-type:inline-size]
-    "
+    `}
   >
     {/* Label */}
     <div className="mb-7 flex items-center gap-3">
@@ -1186,12 +1186,12 @@ const ClientPage: React.FC = () => {
       />
 
       <span
-        className="
+        className={`
           text-[10px]
           font-bold uppercase
           tracking-[0.24em]
           text-mbg-white/70
-        "
+        `}
       >
         {ui.guide}
       </span>
@@ -1199,7 +1199,7 @@ const ClientPage: React.FC = () => {
 
     {/* Titre responsive sur une seule ligne */}
     <h1
-      className="
+      className={`
         w-full
         whitespace-nowrap
         text-[clamp(0.875rem,7cqw,3.75rem)]
@@ -1207,53 +1207,53 @@ const ClientPage: React.FC = () => {
         leading-none
         tracking-[-0.05em]
         text-mbg-white
-      "
+      `}
     >
       <GrindTitle />
     </h1>
 
     {/* Ligne décorative */}
     <div
-      className="
+      className={`
         mt-7 h-px w-full max-w-lg
         bg-gradient-to-r
         from-mbg-green
         via-mbg-white/20
         to-transparent
-      "
+      `}
     />
 
     {/* Introduction */}
     <p
-      className="
+      className={`
         mt-6 max-w-2xl
         text-sm font-semibold leading-6
         text-mbg-white
         sm:text-base sm:leading-7
-      "
+      `}
     >
       {ui.intro}
     </p>
 
     {/* Philosophie */}
     <p
-      className="
+      className={`
         mt-3 max-w-2xl
         text-xs leading-6
         text-mbg-white/60
         sm:text-sm sm:leading-7
-      "
+      `}
     >
       {ui.philosophy}
     </p>
 
     {/* Progression des cinq chapitres */}
     <div
-      className="
+      className={`
         mt-9 flex flex-wrap
         items-center gap-2
         sm:gap-3
-      "
+      `}
       aria-label={ui.chaptersCount}
     >
       {(["I", "II", "III", "IV", "V"] as const).map(
@@ -1282,10 +1282,10 @@ const ClientPage: React.FC = () => {
             {index < 4 && (
               <span
                 aria-hidden="true"
-                className="
+                className={`
                   h-px w-3 bg-mbg-white/20
                   sm:w-5
-                "
+                `}
               />
             )}
           </React.Fragment>
@@ -1297,11 +1297,11 @@ const ClientPage: React.FC = () => {
   {/* Barre inférieure verte */}
   <div
     aria-hidden="true"
-    className="
+    className={`
       absolute bottom-0 left-0
       h-[3px] w-1/5
       bg-mbg-green
-    "
+    `}
   />
 </header>
 
