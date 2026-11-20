@@ -1128,20 +1128,36 @@ const ClientPage: React.FC = () => {
     `}
   />
 
-  {/* Cercle supérieur */}
+  {/* CERCLE SUPÉRIEUR + GRINDUNTILACHIEVE2 CENTRÉ */}
   <div
     aria-hidden="true"
     className={`
       pointer-events-none
       absolute -right-20 -top-28 z-0
-      size-[310px]
+      flex size-[310px]
+      items-center justify-center
       rounded-full
       border border-mbg-white/10
       sm:size-[420px]
     `}
-  />
+  >
+    <Image
+      src={GrindUntilAchieve2}
+      alt=""
+      width={180}
+      height={180}
+      className={`
+        mbg-float
+        size-[100px]
+        shrink-0
+        object-contain
+        opacity-70
+        sm:size-[180px]
+      `}
+    />
+  </div>
 
-  {/* Cercle inférieur + logo parfaitement centré */}
+  {/* CERCLE INFÉRIEUR — DÉCORATIF UNIQUEMENT */}
   <div
     aria-hidden="true"
     className={`
@@ -1151,45 +1167,15 @@ const ClientPage: React.FC = () => {
       top-[92px]
       z-0
       size-[340px]
+      rounded-full
+      border border-mbg-green/10
       sm:right-[-72px]
       sm:top-[78px]
       sm:size-[520px]
     `}
-  >
-    {/* Cercle décoratif */}
-    <div
-      className={`
-        absolute inset-0
-        rounded-full
-        border border-mbg-green/10
-      `}
-    />
+  />
 
-    {/* Logo centré dans le cercle */}
-    <div
-      className={`
-        absolute inset-0
-        flex items-center justify-center
-      `}
-    >
-      <Image
-        src={GrindUntilAchieve2}
-        alt=""
-        width={260}
-        height={260}
-        className={`
-          mbg-float
-          size-[150px]
-          shrink-0
-          object-contain
-          opacity-70
-          sm:size-[220px]
-        `}
-      />
-    </div>
-  </div>
-
-  {/* Contenu principal */}
+  {/* CONTENU PRINCIPAL */}
   <div
     className={`
       relative z-10
@@ -1216,7 +1202,7 @@ const ClientPage: React.FC = () => {
       </span>
     </div>
 
-    {/* Titre responsive sur une seule ligne */}
+    {/* TITRE RESPONSIVE SUR UNE SEULE LIGNE */}
     <h1
       className={`
         w-full
@@ -1266,7 +1252,7 @@ const ClientPage: React.FC = () => {
       {ui.philosophy}
     </p>
 
-    {/* Progression des cinq chapitres */}
+    {/* PROGRESSION DES CINQ CHAPITRES */}
     <div
       className={`
         mt-9 flex flex-wrap
@@ -1313,7 +1299,7 @@ const ClientPage: React.FC = () => {
     </div>
   </div>
 
-  {/* Barre inférieure verte */}
+  {/* BARRE INFÉRIEURE VERTE */}
   <div
     aria-hidden="true"
     className={`
@@ -1323,6 +1309,7 @@ const ClientPage: React.FC = () => {
     `}
   />
 </header>
+
 
 
 
