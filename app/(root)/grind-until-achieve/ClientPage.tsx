@@ -2,6 +2,7 @@
 
 import Container from "@/components/mbg-components/Container";
 import { GrindUntilAchieve } from "@/images";
+import { GrindUntilAchieve2 } from "@/images";
 import Image from "next/image";
 
 import Link from "next/link";
@@ -1118,7 +1119,7 @@ const ClientPage: React.FC = () => {
             className="pointer-events-none absolute -bottom-56 -right-16 size-[340px] rounded-full border border-mbg-green/10 sm:size-[520px]"
           />
           <Image
-            src={GrindUntilAchieve}
+            src={GrindUntilAchieve2}
             alt=""
             aria-hidden="true"
             width={260}
