@@ -1,7 +1,7 @@
 "use client";
 
 import Container from "@/components/mbg-components/Container";
-import { GrindUntilAchieve2 } from "@/images";
+import { GrindUntilAchieve } from "@/images";
 import Image from "next/image";
 
 import Link from "next/link";
@@ -134,7 +134,10 @@ const Toc: React.FC<{
       aria-label={lang === "fr" ? "Sommaire" : "Table of contents"}
       className="relative overflow-hidden border border-mbg-white/10 bg-mbg-darkgrey/20 p-4 sm:p-5 lg:p-6"
     >
-      <div aria-hidden="true" className="absolute left-0 top-0 h-1 w-20 bg-mbg-green" />
+      <div
+        aria-hidden="true"
+        className="absolute left-0 top-0 h-1 w-20 bg-mbg-green"
+      />
       <div className="mb-5 flex items-center justify-between border-b border-mbg-white/10 pb-4">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-mbg-white/55">
@@ -144,7 +147,10 @@ const Toc: React.FC<{
             {lang === "fr" ? "Sommaire" : "Contents"}
           </p>
         </div>
-        <BiSolidBasketball aria-hidden="true" className="text-xl text-mbg-green" />
+        <BiSolidBasketball
+          aria-hidden="true"
+          className="text-xl text-mbg-green"
+        />
       </div>
 
       <ol className="space-y-1">
@@ -159,9 +165,14 @@ const Toc: React.FC<{
                   : "border-transparent text-mbg-white/65 hover:border-mbg-green/60 hover:bg-mbg-white/[0.05] hover:text-mbg-white"
               }`}
             >
-              <span className="w-6 shrink-0 font-black tabular-nums text-mbg-green">{number}</span>
+              <span className="w-6 shrink-0 font-black tabular-nums text-mbg-green">
+                {number}
+              </span>
               <span className="flex-1">{label}</span>
-              <FiArrowUpRight aria-hidden="true" className="text-sm opacity-0 transition-[transform,opacity] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-70" />
+              <FiArrowUpRight
+                aria-hidden="true"
+                className="text-sm opacity-0 transition-[transform,opacity] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-70"
+              />
             </a>
           </li>
         ))}
@@ -169,12 +180,14 @@ const Toc: React.FC<{
 
       <div className="mt-6 border-t border-mbg-white/10 pt-5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-mbg-white/45">
-          {["GRIND", "RESILIENCE", "CONSISTENCY", "FOCUS", "ACHIEVE"].map((word, index) => (
-            <React.Fragment key={word}>
-              {index > 0 && <span className="text-mbg-green">✿</span>}
-              <span>{word}</span>
-            </React.Fragment>
-          ))}
+          {["GRIND", "RESILIENCE", "CONSISTENCY", "FOCUS", "ACHIEVE"].map(
+            (word, index) => (
+              <React.Fragment key={word}>
+                {index > 0 && <span className="text-mbg-green">✿</span>}
+                <span>{word}</span>
+              </React.Fragment>
+            ),
+          )}
         </div>
       </div>
     </nav>
@@ -234,7 +247,10 @@ const Section: React.FC<SectionProps> = ({
             </h3>
           </span>
           <span className="flex size-9 shrink-0 items-center justify-center border border-mbg-white/20 text-mbg-white/75 transition-[background-color,border-color,color] duration-300 group-hover:border-mbg-green/70 group-open:border-mbg-green group-open:bg-mbg-green group-open:text-mbg-white sm:size-10">
-            <FiPlus aria-hidden="true" className="text-base transition-transform duration-300 group-open:rotate-45" />
+            <FiPlus
+              aria-hidden="true"
+              className="text-base transition-transform duration-300 group-open:rotate-45"
+            />
           </span>
         </summary>
 
@@ -260,12 +276,22 @@ type ChapterCardProps = {
 const ChapterCard = ({ number, name, sentence }: ChapterCardProps) => {
   return (
     <div className="group relative flex min-h-[165px] flex-col overflow-hidden border border-mbg-white/10 bg-mbg-white/[0.035] p-4 transition-[transform,border-color,background-color] duration-300 motion-safe:hover:-translate-y-1 hover:border-mbg-green/70 hover:bg-mbg-green/[0.07] sm:p-5">
-      <span aria-hidden="true" className="absolute left-0 top-0 h-[2px] w-0 bg-mbg-green transition-[width] duration-500 group-hover:w-full" />
+      <span
+        aria-hidden="true"
+        className="absolute left-0 top-0 h-[2px] w-0 bg-mbg-green transition-[width] duration-500 group-hover:w-full"
+      />
       <div className="mb-6 flex items-start justify-between gap-3">
-        <span className="text-3xl font-black leading-none tracking-tight text-mbg-green">{number}</span>
-        <BiSolidBasketball aria-hidden="true" className="text-xl text-mbg-white/20 transition-[color,transform] duration-500 group-hover:rotate-45 group-hover:text-mbg-green" />
+        <span className="text-3xl font-black leading-none tracking-tight text-mbg-green">
+          {number}
+        </span>
+        <BiSolidBasketball
+          aria-hidden="true"
+          className="text-xl text-mbg-white/20 transition-[color,transform] duration-500 group-hover:rotate-45 group-hover:text-mbg-green"
+        />
       </div>
-      <p className="mb-2 text-sm font-extrabold uppercase tracking-wide text-mbg-white">{name}</p>
+      <p className="mb-2 text-sm font-extrabold uppercase tracking-wide text-mbg-white">
+        {name}
+      </p>
       <p className="text-xs leading-5 text-mbg-white/60">{sentence}</p>
     </div>
   );
@@ -282,11 +308,15 @@ type PurchaseButtonProps = {
 };
 
 const PurchaseButton = ({ href, children, icon }: PurchaseButtonProps) => {
-  const styles = "group inline-flex min-h-11 items-center justify-center gap-3 border px-4 py-3 text-[11px] font-bold uppercase tracking-[0.07em] transition-[background-color,border-color,color,transform] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green";
+  const styles =
+    "group inline-flex min-h-11 items-center justify-center gap-3 border px-4 py-3 text-[11px] font-bold uppercase tracking-[0.07em] transition-[background-color,border-color,color,transform] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green";
 
   if (!href) {
     return (
-      <span aria-disabled="true" className={`${styles} cursor-not-allowed border-mbg-white/15 bg-mbg-white/[0.04] text-mbg-white/40`}>
+      <span
+        aria-disabled="true"
+        className={`${styles} cursor-not-allowed border-mbg-white/15 bg-mbg-white/[0.04] text-mbg-white/40`}
+      >
         {icon}
         {children}
       </span>
@@ -302,7 +332,10 @@ const PurchaseButton = ({ href, children, icon }: PurchaseButtonProps) => {
     >
       {icon}
       {children}
-      <FiExternalLink aria-hidden="true" className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      <FiExternalLink
+        aria-hidden="true"
+        className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+      />
     </a>
   );
 };
@@ -455,11 +488,7 @@ const ContentEN: React.FC<{
         </div>
       </Section>
 
-      <Section
-        id="book"
-        expandCommand={expandCommand}
-        title="4. Physical book"
-      >
+      <Section id="book" expandCommand={expandCommand} title="4. Physical book">
         <div
           className="
             grid
@@ -631,11 +660,7 @@ const ContentFR: React.FC<{
 }> = ({ expandCommand }) => {
   return (
     <>
-      <Section
-        id="story"
-        expandCommand={expandCommand}
-        title="1. La direction"
-      >
+      <Section id="story" expandCommand={expandCommand} title="1. La direction">
         <p className="max-w-2xl leading-6">
           <strong>GRIND UNTIL ACHIEVE</strong> représente la direction de Milos
           BG. C&apos;est une manière de comprendre la progression : commencer,
@@ -997,10 +1022,20 @@ const ClientPage: React.FC = () => {
         lang === "fr" ? "Dernière mise à jour :" : "Last update:",
       rights: lang === "fr" ? "Tous droits réservés" : "All rights reserved",
       breadcrumbAria: lang === "fr" ? "Fil d'Ariane" : "Breadcrumb",
-      sections: lang === "fr" ? "Explorer les chapitres" : "Explore the chapters",
-      chaptersCount: lang === "fr" ? "05 chapitres · 01 parcours" : "05 chapters · 01 journey",
-      guide: lang === "fr" ? "La mentalité derrière Milos BG" : "The mindset behind Milos BG",
-      conclusion: lang === "fr" ? "Cinq chapitres. Un parcours." : "Five chapters. One journey.",
+      sections:
+        lang === "fr" ? "Explorer les chapitres" : "Explore the chapters",
+      chaptersCount:
+        lang === "fr"
+          ? "05 chapitres · 01 parcours"
+          : "05 chapters · 01 journey",
+      guide:
+        lang === "fr"
+          ? "La mentalité derrière Milos BG"
+          : "The mindset behind Milos BG",
+      conclusion:
+        lang === "fr"
+          ? "Cinq chapitres. Un parcours."
+          : "Five chapters. One journey.",
     }),
     [lang],
   );
@@ -1017,20 +1052,31 @@ const ClientPage: React.FC = () => {
       <Container className="pb-16 pt-4 sm:pt-6">
         {/* UTILITY BAR */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-mbg-white/10 bg-mbg-darkgrey/15 px-3 py-3 sm:px-5">
-          <nav aria-label={ui.breadcrumbAria} className="min-w-0 text-[10px] font-semibold uppercase tracking-[0.08em] sm:text-xs">
+          <nav
+            aria-label={ui.breadcrumbAria}
+            className="min-w-0 text-[10px] font-semibold uppercase tracking-[0.08em] sm:text-xs"
+          >
             <ol className="flex items-center gap-2 sm:gap-3">
               <li>
-                <Link href="/" className="text-mbg-white/55 transition-colors hover:text-mbg-green focus-visible:outline-2 focus-visible:outline-mbg-green">
+                <Link
+                  href="/"
+                  className="text-mbg-white/55 transition-colors hover:text-mbg-green focus-visible:outline-2 focus-visible:outline-mbg-green"
+                >
                   {ui.breadcrumbHome}
                 </Link>
               </li>
-              <li aria-hidden className="text-mbg-green">/</li>
+              <li aria-hidden className="text-mbg-green">
+                /
+              </li>
               <li className="truncate text-mbg-white">GRIND UNTIL ACHIEVE</li>
             </ol>
           </nav>
 
           <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
-            <div aria-label="Language" className="inline-flex border border-mbg-white/15 bg-mbg-black p-0.5">
+            <div
+              aria-label="Language"
+              className="inline-flex border border-mbg-white/15 bg-mbg-black p-0.5"
+            >
               {(["en", "fr"] as const).map((language) => (
                 <button
                   key={language}
@@ -1047,7 +1093,10 @@ const ClientPage: React.FC = () => {
                 </button>
               ))}
             </div>
-            <Link href="/" className="inline-flex min-h-10 items-center gap-2 border border-mbg-white/15 px-3 text-[10px] font-bold uppercase tracking-[0.04em] text-mbg-white/80 transition-[background-color,border-color,color] duration-300 hover:border-mbg-green hover:bg-mbg-green/10 hover:text-mbg-white focus-visible:outline-2 focus-visible:outline-mbg-green sm:px-4">
+            <Link
+              href="/"
+              className="inline-flex min-h-10 items-center gap-2 border border-mbg-white/15 px-3 text-[10px] font-bold uppercase tracking-[0.04em] text-mbg-white/80 transition-[background-color,border-color,color] duration-300 hover:border-mbg-green hover:bg-mbg-green/10 hover:text-mbg-white focus-visible:outline-2 focus-visible:outline-mbg-green sm:px-4"
+            >
               {ui.backToShop}
               <FiArrowUpRight aria-hidden="true" />
             </Link>
@@ -1056,10 +1105,37 @@ const ClientPage: React.FC = () => {
 
         {/* HERO */}
         <header className="mbg-enter relative mb-7 overflow-hidden border border-mbg-white/10 bg-mbg-darkgrey/20 px-5 py-11 sm:px-8 sm:py-14 lg:px-12 lg:py-16">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_85%_20%,rgba(0,130,26,0.16),transparent_48%)]" />
-          <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-28 size-[310px] rounded-full border border-mbg-white/10 sm:size-[420px]" />
-          <div aria-hidden="true" className="pointer-events-none absolute -bottom-56 -right-16 size-[340px] rounded-full border border-mbg-green/10 sm:size-[520px]" />
-          <BiSolidBasketball aria-hidden="true" className="mbg-float pointer-events-none absolute -right-8 top-4 text-[180px] text-mbg-white/[0.035] sm:right-0 sm:text-[260px]" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_85%_20%,rgba(0,130,26,0.16),transparent_48%)]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-20 -top-28 size-[310px] rounded-full border border-mbg-white/10 sm:size-[420px]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-56 -right-16 size-[340px] rounded-full border border-mbg-green/10 sm:size-[520px]"
+          />
+          <Image
+            src={GrindUntilAchieve}
+            alt=""
+            aria-hidden="true"
+            width={260}
+            height={260}
+            className="
+    mbg-float
+    pointer-events-none
+    absolute
+    -right-8
+    top-4
+    size-[180px]
+    object-contain
+    opacity-[0.035]
+    sm:right-0
+    sm:size-[260px]
+  "
+          />
 
           <div className="relative z-10 max-w-3xl">
             <div className="mb-7 flex items-center gap-3">
@@ -1080,17 +1156,27 @@ const ClientPage: React.FC = () => {
               {ui.philosophy}
             </p>
 
-            <div className="mt-9 flex flex-wrap items-center gap-2 sm:gap-3" aria-label={ui.chaptersCount}>
+            <div
+              className="mt-9 flex flex-wrap items-center gap-2 sm:gap-3"
+              aria-label={ui.chaptersCount}
+            >
               {(["I", "II", "III", "IV", "V"] as const).map((number, index) => (
                 <React.Fragment key={number}>
-                  <span className={`flex size-9 items-center justify-center border text-xs font-black transition-[background-color,border-color,transform] duration-300 motion-safe:hover:-translate-y-0.5 sm:size-10 ${
-                    number === "I" || number === "V"
-                      ? "border-mbg-green bg-mbg-green text-mbg-white"
-                      : "border-mbg-white/20 bg-mbg-black/60 text-mbg-white/75 hover:border-mbg-green/60"
-                  }`}>
+                  <span
+                    className={`flex size-9 items-center justify-center border text-xs font-black transition-[background-color,border-color,transform] duration-300 motion-safe:hover:-translate-y-0.5 sm:size-10 ${
+                      number === "I" || number === "V"
+                        ? "border-mbg-green bg-mbg-green text-mbg-white"
+                        : "border-mbg-white/20 bg-mbg-black/60 text-mbg-white/75 hover:border-mbg-green/60"
+                    }`}
+                  >
                     {number}
                   </span>
-                  {index < 4 && <span aria-hidden="true" className="h-px w-3 bg-mbg-white/20 sm:w-5" />}
+                  {index < 4 && (
+                    <span
+                      aria-hidden="true"
+                      className="h-px w-3 bg-mbg-white/20 sm:w-5"
+                    />
+                  )}
                 </React.Fragment>
               ))}
             </div>
@@ -1101,15 +1187,22 @@ const ClientPage: React.FC = () => {
         {/* CONTENT ACTIONS */}
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-mbg-white/10 pb-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-mbg-green">{ui.chaptersCount}</p>
-            <h2 className="mt-1 text-base font-extrabold uppercase tracking-[0.03em] sm:text-lg">{ui.sections}</h2>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-mbg-green">
+              {ui.chaptersCount}
+            </p>
+            <h2 className="mt-1 text-base font-extrabold uppercase tracking-[0.03em] sm:text-lg">
+              {ui.sections}
+            </h2>
           </div>
           <button
             type="button"
             onClick={handleToggleAll}
             className="inline-flex min-h-10 items-center gap-2 border border-mbg-green/70 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.06em] text-mbg-white transition-[background-color,border-color,color] duration-300 hover:border-mbg-green hover:bg-mbg-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green sm:px-4"
           >
-            <FiPlus aria-hidden="true" className={`text-sm transition-transform duration-300 ${expandCommand.expanded ? "rotate-45" : ""}`} />
+            <FiPlus
+              aria-hidden="true"
+              className={`text-sm transition-transform duration-300 ${expandCommand.expanded ? "rotate-45" : ""}`}
+            />
             {expandCommand.expanded ? ui.collapseAll : ui.expandAll}
           </button>
         </div>
@@ -1128,10 +1221,13 @@ const ClientPage: React.FC = () => {
 
             {/* FINAL BRAND MESSAGE */}
             <div className="relative mt-8 overflow-hidden border border-mbg-green/40 bg-mbg-darkgrey/20 px-6 py-9 text-center sm:py-11">
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,130,26,0.09),transparent_65%)]" />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,130,26,0.09),transparent_65%)]"
+              />
               <div className="relative mx-auto flex max-w-xl flex-col items-center">
                 <Image
-                  src={GrindUntilAchieve2}
+                  src={GrindUntilAchieve}
                   alt="GRIND UNTIL ACHIEVE"
                   width={38}
                   height={38}
@@ -1149,7 +1245,9 @@ const ClientPage: React.FC = () => {
 
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-mbg-white/10 pt-5 text-[10px] font-medium text-mbg-white/50">
               <p>{ui.lastUpdateLabel}&nbsp;16/09/2026</p>
-              <p>&copy; {new Date().getFullYear()} Milos BG — {ui.rights}</p>
+              <p>
+                &copy; {new Date().getFullYear()} Milos BG — {ui.rights}
+              </p>
             </footer>
           </div>
         </div>
@@ -1168,18 +1266,39 @@ const ClientPage: React.FC = () => {
 
       <style jsx global>{`
         @keyframes mbg-enter {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         @keyframes mbg-float {
-          0%, 100% { transform: translateY(0) rotate(-10deg); }
-          50% { transform: translateY(8px) rotate(-7deg); }
+          0%,
+          100% {
+            transform: translateY(0) rotate(-10deg);
+          }
+          50% {
+            transform: translateY(8px) rotate(-7deg);
+          }
         }
-        .mbg-enter { animation: mbg-enter 650ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-        .mbg-float { animation: mbg-float 9s ease-in-out infinite; }
-        .mbg-accordion[open] .mbg-accordion-body { animation: mbg-enter 340ms ease-out both; }
+        .mbg-enter {
+          animation: mbg-enter 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .mbg-float {
+          animation: mbg-float 9s ease-in-out infinite;
+        }
+        .mbg-accordion[open] .mbg-accordion-body {
+          animation: mbg-enter 340ms ease-out both;
+        }
         @media (prefers-reduced-motion: reduce) {
-          .mbg-enter, .mbg-float, .mbg-accordion[open] .mbg-accordion-body { animation: none; }
+          .mbg-enter,
+          .mbg-float,
+          .mbg-accordion[open] .mbg-accordion-body {
+            animation: none;
+          }
         }
       `}</style>
     </div>
