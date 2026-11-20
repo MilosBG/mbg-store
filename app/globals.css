@@ -55,6 +55,44 @@ body,
 }
 /* SELECTION */
 
+/* MILOS BG — only I (GRIND), UNTIL and V (ACHIEVE) flicker. */
+.neon {
+  color: #00821a;
+  text-shadow:
+    0 0 3px rgba(0, 130, 26, 0.75),
+    0 0 8px rgba(0, 130, 26, 0.65),
+    0 0 16px rgba(0, 130, 26, 0.5);
+  animation: neonAlternation 2.2s step-end infinite;
+}
+
+/* Hard switches between brand green and white, with two brief neon flickers. */
+@keyframes neonAlternation {
+  0%, 43%, 47%, 48%, 95%, 96%, 99%, 100% {
+    color: #00821a;
+    text-shadow:
+      0 0 3px rgba(0, 130, 26, 0.75),
+      0 0 8px rgba(0, 130, 26, 0.65),
+      0 0 16px rgba(0, 130, 26, 0.5);
+  }
+
+  44%, 46%, 49%, 94%, 97%, 98% {
+    color: #ffffff;
+    text-shadow:
+      0 0 3px rgba(255, 255, 255, 0.8),
+      0 0 8px rgba(255, 255, 255, 0.65),
+      0 0 16px rgba(255, 255, 255, 0.48);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neon {
+    animation: none;
+    color: #00821a;
+    text-shadow: none;
+  }
+}
+
+
 body {
   font-family: var(--font-kanit-base, "Kanit"), sans-serif;
 }

@@ -54,7 +54,7 @@ export function youtubeEmbedUrl(value: unknown, autoplay = true): string | null 
   if (!id) return null;
   const params = new URLSearchParams({
     autoplay: autoplay ? "1" : "0",
-    mute: "1",
+    mute: "0",
     loop: "1",
     playlist: id, // YouTube requires playlist=VIDEO_ID to loop a single video.
     playsinline: "1",

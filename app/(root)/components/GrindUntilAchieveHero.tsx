@@ -1,7 +1,6 @@
-// components/home/GrindUntilAchieveHero.tsx
-
 import Image from "next/image";
 import Link from "next/link";
+import styles from "./GrindUntilAchieveHero.module.css";
 
 import {
   normalizeStoreLanguage,
@@ -163,8 +162,21 @@ export default function GrindUntilAchieveHero({
               md:text-[56px]
               lg:text-[60px]
             "
+            aria-label={t.title}
           >
-            {t.title}
+            {/* Each word stays together on mobile; only the specified letters glow. */}
+            <span aria-hidden="true" className="inline-block whitespace-nowrap">
+              GR<span className={styles.neon}>I</span>ND
+            </span>{" "}
+            <span
+              aria-hidden="true"
+              className={`inline-block whitespace-nowrap ${styles.neon}`}
+            >
+              UNTIL
+            </span>{" "}
+            <span aria-hidden="true" className="inline-block whitespace-nowrap">
+              ACHIE<span className={styles.neon}>V</span>E
+            </span>
           </h2>
 
           {/* DESCRIPTION */}
