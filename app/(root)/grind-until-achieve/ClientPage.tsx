@@ -1132,7 +1132,7 @@ const ClientPage: React.FC = () => {
     top-4
     size-[180px]
     object-contain
-    opacity-[0.035]
+    opacity-[0.7]
     sm:right-0
     sm:size-[260px]
   "
