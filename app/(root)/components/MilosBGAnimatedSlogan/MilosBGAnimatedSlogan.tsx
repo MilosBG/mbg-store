@@ -8,8 +8,9 @@ const MilosBGAnimatedSlogan = () => {
       className="mt-10 flex min-h-[100px] w-full items-center justify-center bg-[#030303] px-3 py-4 font-kanit sm:min-h-[100px] sm:px-8 lg:min-h-[190px]"
     >
       <h2
+        aria-label="MAKE IT YOUR LIKED OUTFITS"
         className={`
-          ${styles.animatedGradientText}
+          ${styles.sloganText}
           w-full
           whitespace-nowrap
           text-center
@@ -22,7 +23,23 @@ const MilosBGAnimatedSlogan = () => {
           lg:text-[4.6rem]
         `}
       >
-        MAKE IT YOUR LIKED OUTFITS
+        {/* Only M · I · L · O · S flicker; keep all words intact. */}
+        <span aria-hidden="true" className="inline-block whitespace-nowrap">
+          <span className={styles.neon}>M</span>AKE
+        </span>{" "}
+        <span aria-hidden="true" className="inline-block whitespace-nowrap">
+          <span className={styles.neon}>I</span>T
+        </span>{" "}
+        <span aria-hidden="true" className="inline-block whitespace-nowrap">
+          YOUR
+        </span>{" "}
+        <span aria-hidden="true" className="inline-block whitespace-nowrap">
+          <span className={styles.neon}>L</span>IKED
+        </span>{" "}
+        <span aria-hidden="true" className="inline-block whitespace-nowrap">
+          <span className={styles.neon}>O</span>UTFIT
+          <span className={styles.neon}>S</span>
+        </span>
       </h2>
     </section>
   );
