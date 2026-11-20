@@ -3,68 +3,68 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 type Props = { src: string; children: ReactNode };
-type VideoStatus = "loading" | "ready" | "playing" | "blocked" | "reduced-motion" | "error";
+type VideoStatus = "loading" | "ready" | "playing" | "blocked" | "error";
 
 /**
- * A decorative silent video with a real, accessible manual-play fallback.
- * The first decoded frame is visible even if autoplay is blocked. The original
- * artwork is still displayed while the media is loading or if it fails.
+ * Decorative home hero. Native muted autoplay starts on initial HTML load,
+ * without waiting for the user's OS motion preference or React hydration.
+ * A readable fallback and manual button remain available when autoplay fails.
  */
 export default function HomeBannerVideo({ src, children }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const manualPlayRequested = useRef(false);
-  const [reducedMotion, setReducedMotion] = useState<boolean | null>(null);
   const [status, setStatus] = useState<VideoStatus>("loading");
   const [hasFrame, setHasFrame] = useState(false);
 
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") {
-      setReducedMotion(false);
-      return;
-    }
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReducedMotion(preference.matches);
-    update();
-    preference.addEventListener?.("change", update);
-    return () => preference.removeEventListener?.("change", update);
-  }, []);
-
-  const attemptPlay = useCallback((video: HTMLVideoElement) => {
+  const tryPlay = useCallback((video: HTMLVideoElement) => {
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
-    const attempt = video.play();
-    if (attempt) {
-      void attempt.catch((error: unknown) => {
-        // Aborted plays can happen when the component/source changes.
+
+    let promise: Promise<void> | undefined;
+    try {
+      promise = video.play();
+    } catch (error) {
+      console.warn("[MBG hero] Cannot start video playback.", error);
+      setStatus("blocked");
+      return;
+    }
+
+    if (promise) {
+      void promise.catch((error: unknown) => {
+        // A pending play() may be cancelled by navigation or a source change.
         if (error instanceof DOMException && error.name === "AbortError") return;
-        console.warn("[MBG hero] Video autoplay was not allowed.", error);
-        setStatus("blocked");
+        console.warn("[MBG hero] Muted video autoplay failed.", error);
+        setStatus(video.error ? "error" : "blocked");
       });
     }
   }, []);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || reducedMotion === null) return;
-    if (reducedMotion && !manualPlayRequested.current) {
-      video.pause();
-      setStatus("reduced-motion");
-      return;
-    }
-    attemptPlay(video);
-  }, [src, reducedMotion, attemptPlay]);
+    if (!video) return;
+
+    // Set the properties early and explicitly: browser autoplay requires mute.
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+
+    if (video.paused && !video.error) tryPlay(video);
+
+    // Tabs restored from the background may have been paused by the browser.
+    const onVisibilityChange = () => {
+      if (!document.hidden && video.paused && !video.error) tryPlay(video);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [src, tryPlay]);
 
   function playManually() {
     const video = videoRef.current;
     if (!video) return;
-    manualPlayRequested.current = true;
     setStatus("loading");
-    if (video.error) {
-      video.load();
-    }
-    // Must be invoked in the user's click handler to satisfy autoplay policy.
-    attemptPlay(video);
+    if (video.error) video.load();
+    // Trigger play directly in the click handler, preserving user activation.
+    tryPlay(video);
   }
 
   function onVideoError() {
@@ -77,7 +77,7 @@ export default function HomeBannerVideo({ src, children }: Props) {
   }
 
   const showVideo = hasFrame && status !== "error";
-  const needsManualPlay = status === "blocked" || status === "reduced-motion" || status === "error";
+  const needsManualPlay = status === "blocked" || status === "error";
 
   return (
     <div
@@ -91,9 +91,9 @@ export default function HomeBannerVideo({ src, children }: Props) {
         ref={videoRef}
         src={src}
         muted
+        autoPlay
         loop
         playsInline
-        autoPlay={reducedMotion === false}
         preload="auto"
         aria-hidden="true"
         tabIndex={-1}
@@ -105,7 +105,11 @@ export default function HomeBannerVideo({ src, children }: Props) {
           setHasFrame(true);
           setStatus("playing");
         }}
-        onPause={() => setStatus((current) => current === "playing" ? "blocked" : current)}
+        onPause={() => {
+          if (!document.hidden) {
+            setStatus((current) => current === "playing" ? "blocked" : current);
+          }
+        }}
         onError={onVideoError}
         className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300 ${showVideo ? "opacity-100" : "pointer-events-none opacity-0"}`}
       />
@@ -114,7 +118,7 @@ export default function HomeBannerVideo({ src, children }: Props) {
           <button
             type="button"
             onClick={playManually}
-            className="pointer-events-auto border border-white/60 bg-black/80 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="pointer-events-auto rounded-sm border border-white/60 bg-black/80 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             aria-label={status === "error" ? "Réessayer la lecture de la vidéo" : "Lire la vidéo d’accueil"}
           >
             {status === "error" ? "RÉESSAYER LA VIDÉO" : "LIRE LA VIDÉO"}
