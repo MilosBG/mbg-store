@@ -1032,7 +1032,7 @@ const ClientPage: React.FC = () => {
       guide:
         lang === "fr"
           ? "La mentalité derrière Milos BG"
-          : "The mindset behind Milos BG",
+          : "The mentality behind Milos BG",
       conclusion:
         lang === "fr"
           ? "Cinq chapitres. Un parcours."
@@ -1146,9 +1146,20 @@ const ClientPage: React.FC = () => {
               </span>
             </div>
 
-            <h1 className="max-w-3xl text-[clamp(2.1rem,6vw,4.75rem)] font-black uppercase leading-[0.99] tracking-[-0.045em] text-mbg-white">
-              <GrindTitle />
-            </h1>
+           <h1
+    className="
+      w-full
+      whitespace-nowrap
+      text-[clamp(0.875rem,7cqw,3.75rem)]
+      font-black
+      uppercase
+      leading-none
+      tracking-[-0.05em]
+      text-mbg-white
+    "
+  >
+    <GrindTitle />
+  </h1>
             <div className="mt-7 h-px w-full max-w-lg bg-gradient-to-r from-mbg-green via-mbg-white/20 to-transparent" />
             <p className="mt-6 max-w-2xl text-sm font-semibold leading-6 text-mbg-white sm:text-base sm:leading-7">
               {ui.intro}
