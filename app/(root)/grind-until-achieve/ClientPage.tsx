@@ -1104,97 +1104,207 @@ const ClientPage: React.FC = () => {
           </div>
         </div>
 
-        {/* HERO */}
-        <header className="mbg-enter relative mb-7 overflow-hidden border border-mbg-white/10 bg-mbg-darkgrey/20 px-5 py-11 sm:px-8 sm:py-14 lg:px-12 lg:py-16">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_85%_20%,rgba(0,130,26,0.16),transparent_48%)]"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-20 -top-28 size-[310px] rounded-full border border-mbg-white/10 sm:size-[420px]"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -bottom-56 -right-16 size-[340px] rounded-full border border-mbg-green/10 sm:size-[520px]"
-          />
-          <Image
-            src={GrindUntilAchieve2}
-            alt=""
-            aria-hidden="true"
-            width={260}
-            height={260}
-            className="
-    mbg-float
-    pointer-events-none
-    absolute
-    -right-8
-    top-4
-    size-[180px]
-    object-contain
-    opacity-[0.7]
-    sm:right-0
-    sm:size-[260px]
+
+{/* HERO */}
+<header
+  className="
+    mbg-enter
+    relative isolate mb-7
+    overflow-hidden
+    border border-mbg-white/10
+    bg-mbg-darkgrey/20
+    px-5 py-11
+    sm:px-8 sm:py-14
+    lg:px-12 lg:py-16
   "
-          />
-
-          <div className="relative z-10 max-w-3xl">
-            <div className="mb-7 flex items-center gap-3">
-              <span className="h-[3px] w-9 bg-mbg-green" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-mbg-white/70">
-                {ui.guide}
-              </span>
-            </div>
-
-           <h1
+>
+  {/* Dégradé de fond */}
+  <div
+    aria-hidden="true"
     className="
-      w-full
-      whitespace-nowrap
-      text-[clamp(0.875rem,7cqw,3.75rem)]
-      font-black
-      uppercase
-      leading-none
-      tracking-[-0.05em]
-      text-mbg-white
+      pointer-events-none
+      absolute inset-0 z-0
+      bg-[radial-gradient(ellipse_at_85%_20%,rgba(0,130,26,0.16),transparent_48%)]
+    "
+  />
+
+  {/* Cercle supérieur */}
+  <div
+    aria-hidden="true"
+    className="
+      pointer-events-none
+      absolute -right-20 -top-28 z-0
+      size-[310px]
+      rounded-full
+      border border-mbg-white/10
+      sm:size-[420px]
+    "
+  />
+
+  {/* Cercle inférieur + logo centré */}
+  <div
+    aria-hidden="true"
+    className="
+      pointer-events-none
+      absolute -bottom-56 -right-16 z-0
+      flex size-[340px]
+      items-center justify-center
+      rounded-full
+      border border-mbg-green/10
+      sm:size-[520px]
     "
   >
-    <GrindTitle />
-  </h1>
-            <div className="mt-7 h-px w-full max-w-lg bg-gradient-to-r from-mbg-green via-mbg-white/20 to-transparent" />
-            <p className="mt-6 max-w-2xl text-sm font-semibold leading-6 text-mbg-white sm:text-base sm:leading-7">
-              {ui.intro}
-            </p>
-            <p className="mt-3 max-w-2xl text-xs leading-6 text-mbg-white/60 sm:text-sm sm:leading-7">
-              {ui.philosophy}
-            </p>
+    <Image
+      src={GrindUntilAchieve2}
+      alt=""
+      width={260}
+      height={260}
+      className="
+        mbg-float
+        size-[180px]
+        shrink-0
+        object-contain
+        opacity-70
+        sm:size-[260px]
+      "
+    />
+  </div>
 
-            <div
-              className="mt-9 flex flex-wrap items-center gap-2 sm:gap-3"
-              aria-label={ui.chaptersCount}
+  {/* Contenu principal */}
+  <div
+    className="
+      relative z-10
+      w-full min-w-0 max-w-3xl
+      [container-type:inline-size]
+    "
+  >
+    {/* Label */}
+    <div className="mb-7 flex items-center gap-3">
+      <span
+        aria-hidden="true"
+        className="h-[3px] w-9 shrink-0 bg-mbg-green"
+      />
+
+      <span
+        className="
+          text-[10px]
+          font-bold uppercase
+          tracking-[0.24em]
+          text-mbg-white/70
+        "
+      >
+        {ui.guide}
+      </span>
+    </div>
+
+    {/* Titre responsive sur une seule ligne */}
+    <h1
+      className="
+        w-full
+        whitespace-nowrap
+        text-[clamp(0.875rem,7cqw,3.75rem)]
+        font-black uppercase
+        leading-none
+        tracking-[-0.05em]
+        text-mbg-white
+      "
+    >
+      <GrindTitle />
+    </h1>
+
+    {/* Ligne décorative */}
+    <div
+      className="
+        mt-7 h-px w-full max-w-lg
+        bg-gradient-to-r
+        from-mbg-green
+        via-mbg-white/20
+        to-transparent
+      "
+    />
+
+    {/* Introduction */}
+    <p
+      className="
+        mt-6 max-w-2xl
+        text-sm font-semibold leading-6
+        text-mbg-white
+        sm:text-base sm:leading-7
+      "
+    >
+      {ui.intro}
+    </p>
+
+    {/* Philosophie */}
+    <p
+      className="
+        mt-3 max-w-2xl
+        text-xs leading-6
+        text-mbg-white/60
+        sm:text-sm sm:leading-7
+      "
+    >
+      {ui.philosophy}
+    </p>
+
+    {/* Progression des cinq chapitres */}
+    <div
+      className="
+        mt-9 flex flex-wrap
+        items-center gap-2
+        sm:gap-3
+      "
+      aria-label={ui.chaptersCount}
+    >
+      {(["I", "II", "III", "IV", "V"] as const).map(
+        (number, index) => (
+          <React.Fragment key={number}>
+            <span
+              className={`
+                flex size-9
+                items-center justify-center
+                border
+                text-xs font-black
+                transition-[background-color,border-color,transform]
+                duration-300
+                motion-safe:hover:-translate-y-0.5
+                sm:size-10
+                ${
+                  number === "I" || number === "V"
+                    ? "border-mbg-green bg-mbg-green text-mbg-white"
+                    : "border-mbg-white/20 bg-mbg-black/60 text-mbg-white/75 hover:border-mbg-green/60"
+                }
+              `}
             >
-              {(["I", "II", "III", "IV", "V"] as const).map((number, index) => (
-                <React.Fragment key={number}>
-                  <span
-                    className={`flex size-9 items-center justify-center border text-xs font-black transition-[background-color,border-color,transform] duration-300 motion-safe:hover:-translate-y-0.5 sm:size-10 ${
-                      number === "I" || number === "V"
-                        ? "border-mbg-green bg-mbg-green text-mbg-white"
-                        : "border-mbg-white/20 bg-mbg-black/60 text-mbg-white/75 hover:border-mbg-green/60"
-                    }`}
-                  >
-                    {number}
-                  </span>
-                  {index < 4 && (
-                    <span
-                      aria-hidden="true"
-                      className="h-px w-3 bg-mbg-white/20 sm:w-5"
-                    />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-          <div className="absolute bottom-0 left-0 h-[3px] w-1/5 bg-mbg-green" />
-        </header>
+              {number}
+            </span>
+
+            {index < 4 && (
+              <span
+                aria-hidden="true"
+                className="
+                  h-px w-3 bg-mbg-white/20
+                  sm:w-5
+                "
+              />
+            )}
+          </React.Fragment>
+        )
+      )}
+    </div>
+  </div>
+
+  {/* Barre inférieure verte */}
+  <div
+    aria-hidden="true"
+    className="
+      absolute bottom-0 left-0
+      h-[3px] w-1/5
+      bg-mbg-green
+    "
+  />
+</header>
+
 
         {/* CONTENT ACTIONS */}
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-mbg-white/10 pb-4">
