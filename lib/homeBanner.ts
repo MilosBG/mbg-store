@@ -100,16 +100,28 @@ export async function getHomeBannerSettings(): Promise<HomeBannerSettings> {
       if (href) cta = { label, href };
     }
 
+    // A problem with the product CTA must not hide a successfully saved video.
     if (label && document.ctaType === "product" && document.ctaProductId) {
-      const [product] = await getProductsByIds([document.ctaProductId]);
-      if (product?.slug) {
-        cta = { label, href: `/products/${encodeURIComponent(product.slug)}` };
+      try {
+        const [product] = await getProductsByIds([document.ctaProductId]);
+        if (product?.slug) {
+          cta = { label, href: `/products/${encodeURIComponent(product.slug)}` };
+        }
+      } catch (error) {
+        console.warn("[MBG hero] CTA product lookup failed; banner media preserved.", error);
       }
     }
 
     const videoUrl = document.mediaType === "video"
       ? cloudinaryVideo(document.videoUrl)
       : null;
+    if (document.mediaType === "video" && !videoUrl) {
+      // Do not log the URL; the values are enough to troubleshoot Vercel logs.
+      console.warn("[MBG hero] Video selected but no valid Cloudinary URL was read.", {
+        videoUrlPresent: Boolean(document.videoUrl),
+        videoUrlType: typeof document.videoUrl,
+      });
+    }
 
     return { imageUrl, imageAlt, videoUrl, cta };
   } catch (error) {

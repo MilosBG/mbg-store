@@ -9,7 +9,10 @@ const HomeBanner = async () => {
   const { imageUrl, imageAlt, videoUrl, cta } = await getHomeBannerSettings();
 
   return (
-    <div className="relative mt-5 h-[400px] overflow-hidden bg-mbg-black p-4 mbg-p-center md:h-[500px] lg:h-[680px] 2xl:h-[600px]">
+    <div
+      data-mbg-hero-media={videoUrl ? "video" : imageUrl ? "image" : "default"}
+      className="relative mt-5 h-[400px] overflow-hidden bg-mbg-black p-4 mbg-p-center md:h-[500px] lg:h-[680px] 2xl:h-[600px]"
+    >
       {videoUrl ? (
         <HomeBannerVideo src={videoUrl}>
           {imageUrl ? (
