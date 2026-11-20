@@ -1141,33 +1141,52 @@ const ClientPage: React.FC = () => {
     `}
   />
 
-  {/* Cercle inférieur + logo centré */}
+  {/* Cercle inférieur + logo parfaitement centré */}
   <div
     aria-hidden="true"
     className={`
       pointer-events-none
-      absolute -bottom-56 -right-16 z-0
-      flex size-[340px]
-      items-center justify-center
-      rounded-full
-      border border-mbg-green/10
+      absolute
+      right-[-42px]
+      top-[92px]
+      z-0
+      size-[340px]
+      sm:right-[-72px]
+      sm:top-[78px]
       sm:size-[520px]
     `}
   >
-    <Image
-      src={GrindUntilAchieve2}
-      alt=""
-      width={260}
-      height={260}
+    {/* Cercle décoratif */}
+    <div
       className={`
-        mbg-float
-        size-[180px]
-        shrink-0
-        object-contain
-        opacity-70
-        sm:size-[260px]
+        absolute inset-0
+        rounded-full
+        border border-mbg-green/10
       `}
     />
+
+    {/* Logo centré dans le cercle */}
+    <div
+      className={`
+        absolute inset-0
+        flex items-center justify-center
+      `}
+    >
+      <Image
+        src={GrindUntilAchieve2}
+        alt=""
+        width={260}
+        height={260}
+        className={`
+          mbg-float
+          size-[150px]
+          shrink-0
+          object-contain
+          opacity-70
+          sm:size-[220px]
+        `}
+      />
+    </div>
   </div>
 
   {/* Contenu principal */}
@@ -1304,6 +1323,7 @@ const ClientPage: React.FC = () => {
     `}
   />
 </header>
+
 
 
         {/* CONTENT ACTIONS */}
