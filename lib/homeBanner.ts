@@ -9,7 +9,7 @@ type HomeBannerDocument = {
   key: string;
   imageUrl?: string;
   imageAlt?: string;
-  mediaType?: "image" | "video";
+  mediaType?: "default" | "image" | "video";
   videoUrl?: string;
   ctaType?: "none" | "product" | "link";
   ctaLabel?: string;
@@ -82,7 +82,11 @@ export async function getHomeBannerSettings(): Promise<HomeBannerSettings> {
 
     if (!document) return DEFAULT_BANNER;
 
-    const imageUrl = cloudinaryImage(document.imageUrl);
+    // Explicit default mode retains stored assets but hides them on the store.
+    // Older documents (image/video only) continue to work unchanged.
+    const imageUrl = document.mediaType === "default"
+      ? null
+      : cloudinaryImage(document.imageUrl);
     const imageAlt =
       imageUrl && typeof document.imageAlt === "string"
         ? document.imageAlt.trim().slice(0, 140) || "Milos BG"
