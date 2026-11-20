@@ -3,18 +3,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { GrindUntilAchieve } from "@/images";
 import { getHomeBannerSettings } from "@/lib/homeBanner";
-import HomeBannerVideo from "./HomeBannerVideo";
+import HomeBannerYouTube from "./HomeBannerYouTube";
 
 const HomeBanner = async () => {
-  const { imageUrl, imageAlt, videoUrl, cta } = await getHomeBannerSettings();
+  const { imageUrl, imageAlt, videoId, cta } = await getHomeBannerSettings();
 
   return (
     <div
-      data-mbg-hero-media={videoUrl ? "video" : imageUrl ? "image" : "default"}
+      data-mbg-hero-media={videoId ? "youtube" : imageUrl ? "image" : "default"}
       className="relative mt-5 h-[400px] overflow-hidden bg-mbg-black p-4 mbg-p-center md:h-[500px] lg:h-[680px] 2xl:h-[600px]"
     >
-      {videoUrl ? (
-        <HomeBannerVideo src={videoUrl}>
+      {videoId ? (
+        <HomeBannerYouTube videoId={videoId}>
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -32,7 +32,7 @@ const HomeBanner = async () => {
               className="max-h-[200px] w-auto object-contain md:max-h-[260px] lg:max-h-[340px] 2xl:max-h-[400px]"
             />
           )}
-        </HomeBannerVideo>
+        </HomeBannerYouTube>
       ) : imageUrl ? (
         <Image
           src={imageUrl}

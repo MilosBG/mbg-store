@@ -4,6 +4,7 @@ import { unstable_noStore as noStore } from "next/cache";
 
 import { getAdminDb } from "@/lib/adminDb";
 import { getProductsByIds } from "@/lib/admin";
+import { getYouTubeVideoId } from "@/lib/youtubeHero";
 
 type HomeBannerDocument = {
   key: string;
@@ -20,14 +21,14 @@ type HomeBannerDocument = {
 export type HomeBannerSettings = {
   imageUrl: string | null;
   imageAlt: string;
-  videoUrl: string | null;
+  videoId: string | null;
   cta: { label: string; href: string } | null;
 };
 
 const DEFAULT_BANNER: HomeBannerSettings = {
   imageUrl: null,
   imageAlt: "Grind Until Achieve",
-  videoUrl: null,
+  videoId: null,
   cta: null,
 };
 
@@ -45,19 +46,6 @@ function cloudinaryImage(value: unknown): string | null {
   }
 }
 
-function cloudinaryVideo(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  try {
-    const url = new URL(value.trim());
-    return url.protocol === "https:" &&
-      url.hostname === "res.cloudinary.com" &&
-      /^\/[^/]+\/video\/upload\/.+/.test(url.pathname)
-      ? url.toString()
-      : null;
-  } catch {
-    return null;
-  }
-}
 
 function safeLink(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -112,18 +100,16 @@ export async function getHomeBannerSettings(): Promise<HomeBannerSettings> {
       }
     }
 
-    const videoUrl = document.mediaType === "video"
-      ? cloudinaryVideo(document.videoUrl)
+    const videoId = document.mediaType === "video"
+      ? getYouTubeVideoId(document.videoUrl)
       : null;
-    if (document.mediaType === "video" && !videoUrl) {
-      // Do not log the URL; the values are enough to troubleshoot Vercel logs.
-      console.warn("[MBG hero] Video selected but no valid Cloudinary URL was read.", {
+    if (document.mediaType === "video" && !videoId) {
+      console.warn("[MBG hero] YouTube mode selected but no valid YouTube URL was found.", {
         videoUrlPresent: Boolean(document.videoUrl),
-        videoUrlType: typeof document.videoUrl,
       });
     }
 
-    return { imageUrl, imageAlt, videoUrl, cta };
+    return { imageUrl, imageAlt, videoId, cta };
   } catch (error) {
     console.error("Failed to load the home banner", error);
     return DEFAULT_BANNER;
