@@ -81,7 +81,7 @@ const chapters = [
     passage: "THE ASCENT",
     color: "#FFFFFF",
     emblem: ACHIEVE,
-    short: "The outcome — and the beginning of more.",
+    short: "The outcome and the beginning of more.",
     description:
       "Not the end of the journey, but the consequence of everything that came before it. What you learn becomes the foundation of the next chapter.",
     challenge: "Who will you become on the way there?",
@@ -180,16 +180,16 @@ const AboutUs = () => {
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.23em] text-mbg-green">
                 An invitation to go beyond yourself
               </p>
-              <h1 className="max-w-4xl text-[clamp(2.8rem,8.7vw,7.5rem)] font-black uppercase leading-[0.9] tracking-[-0.065em]">
+              <h1 className="max-w-4xl text-[clamp(2.8rem,8.7vw,7.5rem)] text-mbg-black font-black uppercase leading-[0.9] tracking-[-0.065em]">
                 THE JOURNEY
                 <span className="mt-2 block text-mbg-green">IS THE TEST.</span>
               </h1>
               <div className="mt-8 h-px w-full max-w-xl bg-gradient-to-r from-mbg-green via-mbg-white/20 to-transparent" />
               <p className="mt-7 max-w-xl text-sm font-medium leading-7 text-mbg-white/80 sm:text-base sm:leading-8">
-                Not every journey leads through mountains or across oceans. Some begin with a choice: to keep going when the path becomes difficult.
+                Not every journey leads through mountains or across oceans. Some begin with a choice to keep going when the path becomes difficult.
               </p>
               <p className="mt-3 max-w-xl text-xs leading-6 text-mbg-white/55 sm:text-sm sm:leading-7">
-                This is the world of Milos BG. Five chapters, countless unseen hours, and one mentality: <strong className="font-bold text-mbg-white">GRIND UNTIL ACHIEVE.</strong>
+                This is the world of Milos BG. Five chapters, countless unseen hours, and one mentality <strong className="font-bold text-mbg-white">GRIND UNTIL ACHIEVE</strong>
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <a
@@ -208,8 +208,8 @@ const AboutUs = () => {
             </div>
             <div className="hidden self-end justify-self-end pb-7 text-right lg:block" aria-hidden="true">
               <p className="text-[112px] font-black leading-none tracking-[-0.1em] text-mbg-white/[0.07]">05</p>
-              <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">Chapters</p>
-              <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.18em] text-mbg-white/45">One journey</p>
+              <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">Five Chapters</p>
+              <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.18em] text-mbg-white/45">One Journey</p>
             </div>
           </div>
 
@@ -250,10 +250,12 @@ const AboutUs = () => {
                 Every piece is thoughtfully designed, tested, refined and handcrafted with purpose before being released in limited editions. Nothing exists simply to fill a collection.
               </p>
               <p>
-                Inspired by basketball and the discipline behind it, the brand tells a story about effort — the part of achievement that rarely appears in the spotlight.
+                Inspired by basketball and the discipline behind it, the brand tells a story about effort, the part of achievement that rarely appears in the spotlight.
               </p>
               <blockquote className="border-l-[3px] border-mbg-green bg-mbg-white/[0.035] px-5 py-5 text-base font-semibold leading-8 text-mbg-white sm:text-lg">
                 “Achievement is not a single moment. It is the result of what we repeatedly choose to do when nobody is watching.”
+
+                <text className="text-mbg-darkgrey">Gamil BEN. A</text>
               </blockquote>
             </div>
           </div>
@@ -297,7 +299,7 @@ const AboutUs = () => {
             </div>
             <div className="max-w-md lg:pb-2">
               <p className="text-sm leading-7 text-mbg-white/65">
-                Every new chapter asks something of you. Each stage builds on the one before it. These are not simply words to read — they are principles to live.
+                Every new chapter asks something of you. Each stage builds on the one before it. These are not simply words to read, they are principles to live.
               </p>
               <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-mbg-green">Open a chapter to discover its challenge ↓</p>
             </div>
@@ -316,8 +318,8 @@ const AboutUs = () => {
                     <span className="mt-2 block break-words text-[clamp(1.35rem,4.2vw,3.5rem)] font-black uppercase leading-none tracking-[-0.045em] text-mbg-white transition-colors duration-300 group-hover:text-mbg-green">{chapter.title}</span>
                     <span className="mt-2 block text-[10px] leading-5 text-mbg-white/55 sm:text-xs">{chapter.short}</span>
                   </span>
-                  <span className={`relative flex h-14 w-14 items-center justify-center border border-mbg-white/10 p-2 sm:h-20 sm:w-20 sm:p-3 ${chapter.title === "ACHIEVE" ? "bg-mbg-black" : "bg-mbg-white/90"}`}>
-                    <Image src={chapter.emblem} alt="" className="max-h-full w-full object-contain transition-transform duration-500 motion-safe:group-hover:scale-110" sizes="(max-width: 639px) 56px, 80px" />
+                  <span className={`relative flex h-14 w-14 items-center rounded-full justify-center border border-mbg-green/10 p-2 sm:h-20 sm:w-20 sm:p-3 ${chapter.title === "GRIND" ? "bg-mbg-green/70" : "bg-mbg-black"}`}>
+                    <Image src={chapter.emblem} alt="" className="max-h-full w-full object-contain transition-transform duration-500 motion-safe:group-hover:scale-110" sizes="(max-width: 600px) 56px, 80px" />
                   </span>
                   <span aria-hidden="true" className="hidden size-9 items-center justify-center border border-mbg-white/20 text-lg font-light text-mbg-green transition-transform duration-300 group-open:rotate-45 sm:flex">+</span>
                 </summary>
@@ -397,11 +399,11 @@ const AboutUs = () => {
               <h3 className="mt-3 text-xl font-black uppercase tracking-[-0.03em] text-mbg-white">Crafted with purpose.</h3>
             </div>
             <div className="py-6 sm:pl-7">
-              <p className="text-sm leading-7 text-mbg-white/65">Milos BG&apos;s main production is handmade. Quality is checked, details matter, and every piece is intended to offer a considered customer experience — not just another item of clothing.</p>
+              <p className="text-sm leading-7 text-mbg-white/65">Milos BG&apos;s main production is handmade. Quality is checked, details matter, and every piece is intended to offer a considered customer experience, not just another item of clothing.</p>
             </div>
           </div>
           <p className="mt-12 max-w-3xl border-l-[3px] border-mbg-green pl-5 text-sm leading-8 text-mbg-white/75 sm:text-base">
-            From craftsmanship and sport to basketball, movement and Japanese philosophy, the influences may be different — but they lead to one belief: <strong className="text-mbg-white">progress is not defined by perfection. It is built through persistence.</strong>
+            From craftsmanship and sport to basketball, movement and Japanese philosophy, the influences may be different but they lead to one belief, <strong className="text-mbg-white">progress is not defined by perfection. It is built through persistence.</strong>
           </p>
         </section>
 
@@ -416,7 +418,7 @@ const AboutUs = () => {
                 <span className="block text-mbg-green">NOBODY SEES.</span>
               </h2>
               <p className="mt-7 max-w-lg text-sm leading-8 text-mbg-white/65">
-                ACHIEVE means very little without everything required to reach it. Every piece is meant to accompany the person doing that work — from the quiet hours to the moment dedication speaks for itself.
+                ACHIEVE means very little without everything required to reach it. Every piece is meant to accompany the person doing that work, from the quiet hours to the moment dedication speaks for itself.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-px border border-mbg-white/10 bg-mbg-white/10 sm:grid-cols-3">
@@ -475,7 +477,7 @@ const AboutUs = () => {
                 Contact Milos BG
               </Link>
             </div>
-            <p className="mt-12 text-xs font-black uppercase tracking-[0.16em] text-mbg-white/60">
+            <p className="mt-12 text-xs font-black uppercase tracking-[0.16em] text-mbg-black">
               Grind Until <span className="text-mbg-green">You</span> Achieve.
             </p>
             <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-mbg-green">Make It Your Liked Outfits.</p>
@@ -498,7 +500,7 @@ const AboutUs = () => {
         </section>
 
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-mbg-white/10 py-7 text-[10px] font-medium text-mbg-white/45">
-          <p>Last update: 01/09/2026</p>
+          <p>Last update: 21/11/2026</p>
           <p>&copy; {new Date().getFullYear()} Milos BG — All rights reserved</p>
         </footer>
       </Container>
