@@ -13,7 +13,7 @@ import { IoMdBasketball } from "react-icons/io";
 
 import { UserButton, useUser } from "@clerk/nextjs";
 
-import { GrindUntilAchieve2, MilosBG } from "@/images";
+import { GrindUntilAchieve, MilosBG } from "@/images";
 import Container from "@/components/mbg-components/Container";
 import Input from "@/components/mbg-components/Input";
 import useCart from "@/lib/hooks/useCart";
@@ -149,7 +149,7 @@ const Header = () => {
               <div className="flex w-auto items-center justify-start gap-2.5 md:gap-0">
                 <Link href="/grind-until-achieve" aria-label="Home">
                   <Image
-                    src={GrindUntilAchieve2}
+                    src={GrindUntilAchieve}
                     alt="GRIND UNTIL ACHIEVE"
                     width={32}
                     height={32}
