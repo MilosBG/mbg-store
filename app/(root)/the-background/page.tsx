@@ -2,6 +2,7 @@ import Container from "@/components/mbg-components/Container";
 import Link from "next/link";
 import Image from "next/image";
 import { buildMetadata } from "@/lib/seo";
+
 import {
   ACHIEVE,
   BG,
