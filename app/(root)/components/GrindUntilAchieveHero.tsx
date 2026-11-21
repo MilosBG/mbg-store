@@ -152,7 +152,7 @@ export default function GrindUntilAchieveHero({
             id="grind-until-achieve-hero-title"
             className="
               max-w-[700px]
-              text-[32px]
+              text-[28px]
               font-black
               uppercase
               leading-[0.92]
