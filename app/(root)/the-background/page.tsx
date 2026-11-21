@@ -1,10 +1,7 @@
 import Container from "@/components/mbg-components/Container";
-import { H2 } from "@/components/mbg-components/H2";
-import { H3 } from "@/components/mbg-components/H3";
-import Separator from "@/components/mbg-components/Separator";
 import Link from "next/link";
-import { buildMetadata } from "@/lib/seo";
 import Image from "next/image";
+import { buildMetadata } from "@/lib/seo";
 import {
   ACHIEVE,
   BG,
@@ -18,710 +15,520 @@ import {
 export const metadata = buildMetadata({
   title: "The Background",
   description:
-    "Discover the inspiration and commitment driving Milos BG's basketball culture collections.",
+    "Enter the world of Milos BG: five chapters, one journey, and the craftsmanship behind the GRIND UNTIL ACHIEVE mentality.",
   path: "/the-background",
   image: "/Grinder.png",
-  keywords: ["brand story", "Milos BG", "basketball culture"],
+  keywords: [
+    "brand story",
+    "Milos BG",
+    "basketball culture",
+    "Grind Until Achieve",
+    "craftsmanship",
+  ],
 });
 
 const VIDEO_ID = "dadrxcC8HOw";
 
+const chapters = [
+  {
+    number: "I",
+    title: "GRIND",
+    passage: "THE CALL",
+    color: "#000000",
+    emblem: GRIND,
+    short: "The moment you decide to begin.",
+    description:
+      "The decision to begin. To work when motivation fades. To embrace the process and keep moving forward.",
+    challenge: "Will you begin even before you feel ready?",
+  },
+  {
+    number: "II",
+    title: "RESILIENCE",
+    passage: "THE FALL",
+    color: "#404040",
+    emblem: RESILIENCE,
+    short: "The courage to rise after impact.",
+    description:
+      "The strength to get back up. To turn failure, pressure and adversity into fuel — not a reason to stop.",
+    challenge: "What will you learn from what tried to break you?",
+  },
+  {
+    number: "III",
+    title: "CONSISTENCY",
+    passage: "THE RETURN",
+    color: "#BFBFBF",
+    emblem: CONSISTENCY,
+    short: "The quiet discipline of showing up again.",
+    description:
+      "The discipline to return every day. Small actions, repeated with intention, becoming progress that may remain invisible for a long time.",
+    challenge: "Can you continue when there is no applause?",
+  },
+  {
+    number: "IV",
+    title: "FOCUS",
+    passage: "THE AIM",
+    color: "#00821A",
+    emblem: FOCUS,
+    short: "The choice to give your effort direction.",
+    description:
+      "The ability to silence distractions, trust the path and keep your eyes on what matters. Energy becomes meaningful when it has a direction.",
+    challenge: "What deserves your undivided attention?",
+  },
+  {
+    number: "V",
+    title: "ACHIEVE",
+    passage: "THE ASCENT",
+    color: "#FFFFFF",
+    emblem: ACHIEVE,
+    short: "The outcome — and the beginning of more.",
+    description:
+      "Not the end of the journey, but the consequence of everything that came before it. What you learn becomes the foundation of the next chapter.",
+    challenge: "Who will you become on the way there?",
+  },
+] as const;
+
+const unseenWork = [
+  "The setbacks",
+  "The repetitions",
+  "The discipline",
+  "The sacrifices",
+  "The unseen hours",
+  "The invisible progress",
+] as const;
+
+const progression = [
+  {
+    number: "01",
+    title: "A CHAPTER",
+    text: "Every chapter tells a story.",
+  },
+  {
+    number: "02",
+    title: "A COLLECTION",
+    text: "Every collection represents a step forward.",
+  },
+  {
+    number: "03",
+    title: "A PIECE",
+    text: "Every piece carries a message.",
+  },
+  {
+    number: "04",
+    title: "YOUR JOURNEY",
+    text: "Every person continues the journey.",
+  },
+] as const;
+
+const Mantra = ({ className = "" }: { className?: string }) => (
+  <span className={className}>
+    GR<span className="text-mbg-green">I</span>ND{" "}
+    <span className="text-mbg-green">UNTIL</span> ACHIE
+    <span className="text-mbg-green">V</span>E
+  </span>
+);
+
 const AboutUs = () => {
   return (
-    <Container className="mt-4">
-      {/* Breadcrumb + Back */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 bg-mbg-black/7 px-4 py-2">
-        <nav
-          aria-label="Fil d'Ariane"
-          className="text-[11px] text-mbg-darkgrey"
-        >
-          <ol className="flex items-center gap-2">
-            <li>
-              <Link href="/" className="text-mbg-green uppercase font-medium">
-                Home
-              </Link>
-            </li>
+    <main className="min-h-screen bg-mbg-black font-kanit text-mbg-white selection:bg-mbg-green selection:text-mbg-white">
+      <Container className="pb-12 pt-4 sm:pt-6">
+        {/* BREADCRUMBS */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-mbg-white/10 bg-mbg-darkgrey/20 px-4 py-3 sm:px-5">
+          <nav aria-label="Breadcrumb" className="text-[10px] font-bold uppercase tracking-[0.12em] sm:text-xs">
+            <ol className="flex items-center gap-3">
+              <li>
+                <Link href="/" className="text-mbg-white/55 transition-colors hover:text-mbg-green">
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true" className="text-mbg-green">/</li>
+              <li className="text-mbg-white">The Background</li>
+            </ol>
+          </nav>
+          <Link
+            href="/products"
+            className="inline-flex min-h-9 items-center border border-mbg-green/60 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.09em] text-mbg-white transition-colors hover:bg-mbg-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green"
+          >
+            Back to the outfits <span aria-hidden="true" className="ml-2">↗</span>
+          </Link>
+        </div>
 
-            <li aria-hidden className="text-mbg-black bg-mbg-black">
-              |
-            </li>
+        {/* ACT I: THE THRESHOLD */}
+        <header className="relative isolate overflow-hidden border border-mbg-white/10 bg-[#070b08]">
+          <div aria-hidden="true" className="mbg-ambient pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_78%_28%,rgba(0,130,26,0.18),transparent_57%)]" />
+          <div aria-hidden="true" className="pointer-events-none absolute -right-28 -top-40 size-[400px] rounded-full border border-mbg-white/10 sm:size-[640px]" />
+          <div aria-hidden="true" className="pointer-events-none absolute -right-32 top-24 size-[340px] rounded-full border border-mbg-green/15 sm:size-[580px]" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 hidden w-[57%] opacity-30 lg:block">
+            <Image
+              src={BG}
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1024px) 45vw, 1px"
+              className="object-contain object-right [mask-image:linear-gradient(to_right,transparent,black_40%)]"
+            />
+          </div>
 
-            <li className="font-semibold uppercase text-mbg-black">
-              The Background
-            </li>
-          </ol>
-        </nav>
+          <div className="relative z-10 grid min-h-[575px] items-center gap-10 px-5 pb-20 pt-16 sm:px-9 sm:pb-24 sm:pt-20 lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_220px] lg:px-14">
+            <div className="mbg-entrance max-w-4xl">
+              <div className="mb-8 flex items-center gap-3">
+                <span aria-hidden="true" className="h-[3px] w-10 shrink-0 bg-mbg-green" />
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-mbg-white/70 sm:text-xs">
+                  Milos BG <span className="mx-2 text-mbg-green">/</span> The Background
+                </p>
+              </div>
+              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.23em] text-mbg-green">
+                An invitation to go beyond yourself
+              </p>
+              <h1 className="max-w-4xl text-[clamp(2.8rem,8.7vw,7.5rem)] font-black uppercase leading-[0.9] tracking-[-0.065em]">
+                THE JOURNEY
+                <span className="mt-2 block text-mbg-green">IS THE TEST.</span>
+              </h1>
+              <div className="mt-8 h-px w-full max-w-xl bg-gradient-to-r from-mbg-green via-mbg-white/20 to-transparent" />
+              <p className="mt-7 max-w-xl text-sm font-medium leading-7 text-mbg-white/80 sm:text-base sm:leading-8">
+                Not every journey leads through mountains or across oceans. Some begin with a choice: to keep going when the path becomes difficult.
+              </p>
+              <p className="mt-3 max-w-xl text-xs leading-6 text-mbg-white/55 sm:text-sm sm:leading-7">
+                This is the world of Milos BG. Five chapters, countless unseen hours, and one mentality: <strong className="font-bold text-mbg-white">GRIND UNTIL ACHIEVE.</strong>
+              </p>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <a
+                  href="#the-origin"
+                  className="inline-flex min-h-12 items-center justify-center gap-3 border border-mbg-green bg-mbg-green px-5 py-3 text-[11px] font-extrabold uppercase tracking-[0.12em] text-mbg-white transition-[background-color,border-color,transform] duration-300 hover:border-mbg-white hover:bg-mbg-black motion-safe:hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-white"
+                >
+                  Enter the journey <span aria-hidden="true">↓</span>
+                </a>
+                <a
+                  href="#the-film"
+                  className="inline-flex min-h-12 items-center justify-center border border-mbg-white/25 bg-mbg-white/[0.04] px-5 py-3 text-[11px] font-extrabold uppercase tracking-[0.12em] text-mbg-white transition-colors duration-300 hover:border-mbg-green hover:bg-mbg-green/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green"
+                >
+                  Watch the story ↗
+                </a>
+              </div>
+            </div>
+            <div className="hidden self-end justify-self-end pb-7 text-right lg:block" aria-hidden="true">
+              <p className="text-[112px] font-black leading-none tracking-[-0.1em] text-mbg-white/[0.07]">05</p>
+              <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">Chapters</p>
+              <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.18em] text-mbg-white/45">One journey</p>
+            </div>
+          </div>
 
-        <Link
-          href="/products"
-          className="inline-flex bg-mbg-rgbablank items-center rounded-xs border border-mbg-green px-3 py-1.5 text-[12px] font-semibold text-mbg-green hover:bg-mbg-green hover:text-mbg-white hoverEffect uppercase transition"
-        >
-          ← Back to shop
-        </Link>
-      </div>
+          <div className="relative z-10 grid grid-cols-5 border-t border-mbg-white/10 bg-mbg-black/45">
+            {chapters.map((chapter) => (
+              <a
+                key={chapter.number}
+                href="#five-chapters"
+                className="group flex min-h-[68px] min-w-0 flex-col items-center justify-center gap-1 border-r border-mbg-white/10 px-1 py-3 text-center transition-colors hover:bg-mbg-green/10 last:border-r-0 sm:min-h-[78px]"
+                aria-label={`Explore ${chapter.title}`}
+              >
+                <span className="text-xs font-black text-mbg-green sm:text-sm">{chapter.number}</span>
+                <span className="text-[8px] font-black uppercase tracking-[-0.01em] text-mbg-white/65 transition-colors group-hover:text-mbg-white sm:text-[10px] sm:tracking-[0.06em]">
+                  {chapter.title}
+                </span>
+              </a>
+            ))}
+          </div>
+          <div aria-hidden="true" className="absolute bottom-0 left-0 z-20 h-[3px] w-1/5 bg-mbg-green" />
+        </header>
 
-      <H2>The Background</H2>
+        {/* ACT II: THE ORIGIN */}
+        <section id="the-origin" aria-labelledby="origin-title" className="scroll-mt-16 border-x border-b border-mbg-white/10 px-5 py-16 sm:px-9 sm:py-20 lg:px-14 lg:py-28">
+          <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">01 / The origin</p>
+              <h2 id="origin-title" className="mt-5 text-[clamp(2.3rem,5.5vw,5.5rem)] font-black uppercase leading-[0.96] tracking-[-0.055em]">
+                GREAT THINGS
+                <span className="block text-mbg-green">BEGIN QUIETLY.</span>
+              </h2>
+              <div className="mt-7 h-[3px] w-14 bg-mbg-green" />
+            </div>
+            <div className="space-y-6 text-sm leading-8 text-mbg-white/70 sm:text-[15px]">
+              <p>
+                Born in a modest studio, Milos BG has always stood by one uncompromising principle: <strong className="font-semibold text-mbg-white">quality and craftsmanship above all else.</strong>
+              </p>
+              <p>
+                Every piece is thoughtfully designed, tested, refined and handcrafted with purpose before being released in limited editions. Nothing exists simply to fill a collection.
+              </p>
+              <p>
+                Inspired by basketball and the discipline behind it, the brand tells a story about effort — the part of achievement that rarely appears in the spotlight.
+              </p>
+              <blockquote className="border-l-[3px] border-mbg-green bg-mbg-white/[0.035] px-5 py-5 text-base font-semibold leading-8 text-mbg-white sm:text-lg">
+                “Achievement is not a single moment. It is the result of what we repeatedly choose to do when nobody is watching.”
+              </blockquote>
+            </div>
+          </div>
+        </section>
 
-      <Separator className="bg-mbg-black mt-2 mb-6" />
-
-      {/* Hero: Video + Intro copy */}
-      <section className="grid gap-6">
-        <div className="md:col-span-6">
-          <div className="rounded-xs border border-mbg-black/10 overflow-hidden shadow-sm bg-mbg-black/5">
+        {/* THE FILM */}
+        <section id="the-film" aria-labelledby="film-title" className="scroll-mt-16 border-x border-b border-mbg-white/10 bg-mbg-darkgrey/15 px-4 py-12 sm:px-8 sm:py-16 lg:px-14 lg:py-20">
+          <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">A closer look</p>
+              <h2 id="film-title" className="mt-3 text-2xl font-black uppercase tracking-[-0.045em] sm:text-4xl">THE STORY IN MOTION.</h2>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-mbg-white/45">Milos BG / Film</span>
+          </div>
+          <div className="relative overflow-hidden border border-mbg-white/15 bg-mbg-black shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
+            <div aria-hidden="true" className="h-[3px] w-28 bg-mbg-green" />
             <div className="aspect-video">
               <iframe
                 className="h-full w-full"
-                src={`https://www.youtube.com/embed/${VIDEO_ID}?rel=0&modestbranding=1`}
-                title="Présentation — Milos BG"
+                src={`https://www.youtube.com/embed/${VIDEO_ID}?rel=0`}
+                title="The Background — Milos BG"
+                loading="lazy"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               />
             </div>
           </div>
-        </div>
-      </section>
+          <p className="mt-4 text-xs leading-6 text-mbg-white/45">Before the outfit, there is an idea. Before the result, there is the work.</p>
+        </section>
 
-      {/* Our Story */}
-      <section className="mt-10 overflow-hidden border-y border-mbg-black/10">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 lg:px-10">
-          <div className="relative grid min-h-[620px] items-center gap-10 py-12 md:grid-cols-[1.05fr_0.95fr] md:py-0 lg:min-h-[700px]">
-            {/* LEFT — CONTENT */}
-            <div className="relative z-10 max-w-2xl py-8 md:py-20">
-              {/* Small label */}
-              <div className="mb-8 flex items-center gap-4">
-                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-mbg-green">
-                  Our Philosophy
-                </span>
-
-                <div className="h-px w-10 bg-mbg-green" />
-              </div>
-
-              {/* Main title */}
-              <h2 className="max-w-xl text-[clamp(2.4rem,5vw,5.5rem)] font-semibold leading-[0.95] tracking-[-0.045em] text-mbg-black">
-                A story of
-                <span className="block text-mbg-green">progression.</span>
+        {/* ACT III: THE FIVE TRIALS */}
+        <section id="five-chapters" aria-labelledby="chapters-title" className="scroll-mt-14 border-x border-b border-mbg-white/10 px-4 py-16 sm:px-8 sm:py-20 lg:px-14 lg:py-24">
+          <div className="mb-10 grid gap-6 lg:grid-cols-[1fr_0.75fr] lg:items-end lg:gap-14">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">02 / The five chapters</p>
+              <h2 id="chapters-title" className="mt-4 text-[clamp(2.7rem,6.6vw,6.5rem)] font-black uppercase leading-[0.92] tracking-[-0.055em]">
+                FIVE TRIALS.
+                <span className="block text-mbg-green">ONE JOURNEY.</span>
               </h2>
-
-              {/* Intro */}
-              <p className="mt-8 max-w-xl text-sm leading-7 text-mbg-darkgrey md:text-[15px]">
-                Born in a modest studio, Milos BG has always stood by one
-                uncompromising principle,
-                <strong className="font-semibold text-mbg-black">
-                  {" "}
-                  quality and craftsmanship above all else.
-                </strong>
-              </p>
-
-              <p className="mt-5 max-w-xl text-sm leading-7 text-mbg-darkgrey md:text-[15px]">
-                Every piece is thoughtfully designed, tested, refined and
-                handcrafted with purpose before being released in limited
-                editions. Nothing exists simply to fill a collection.
-              </p>
-
-              {/* Mentality */}
-              <div className="mt-10 max-w-xl border-l-2 border-mbg-green pl-5">
-                <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-mbg-green">
-                  The Mentality
-                </span>
-
-                <p className="mt-3 text-sm leading-7 text-mbg-black/75">
-                  Achievement is not a single moment. It is the result of what
-                  we repeatedly choose to do when nobody is watching.
-                </p>
-              </div>
             </div>
-
-            {/* RIGHT — IMAGE */}
-            <div className="relative flex h-[440px] items-center justify-center md:h-full">
-              {/* Green detail behind image */}
-              <div className="absolute bottom-[12%] right-[12%] h-36 w-36 rounded-full bg-mbg-green/[0.06] blur-3xl md:h-60 md:w-60" />
-
-              <div className="relative h-full w-full max-w-[520px]">
-                <Image
-                  src={BG}
-                  alt="Milos BG — Basketball Court"
-                  fill
-                  priority
-                  className="object-contain object-center"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </div>
-            </div>
-
-            {/* Bottom chapter marker */}
-            <div className="absolute bottom-7 left-0 hidden items-center gap-4 md:flex">
-              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
-                Grind
-              </span>
-
-              <span className="h-px w-8 bg-mbg-black/20" />
-
-              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
-                Resilience
-              </span>
-
-              <span className="h-px w-8 bg-mbg-black/20" />
-
-              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
-                Consistency
-              </span>
-
-              <span className="h-px w-8 bg-mbg-black/20" />
-
-              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
-                Focus
-              </span>
-
-              <span className="h-px w-8 bg-mbg-black/20" />
-
-              <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/35">
-                Achieve
-              </span>
+            <div className="max-w-md lg:pb-2">
+              <p className="text-sm leading-7 text-mbg-white/65">
+                Every new chapter asks something of you. Each stage builds on the one before it. These are not simply words to read — they are principles to live.
+              </p>
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-mbg-green">Open a chapter to discover its challenge ↓</p>
             </div>
           </div>
-        </div>
 
-        {/* Five Chapters */}
-        <div className="border-y border-mbg-black/10 bg-mbg-black/[0.025] py-14 md:py-20">
-          <div className="mx-auto max-w-5xl px-5 sm:px-8">
-            {/* Header */}
-            <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-[0.32em] text-mbg-green">
-                  The Guideline
-                </span>
-
-                <h3 className="mt-3 text-3xl font-bold uppercase leading-[0.95] tracking-[-0.04em] text-mbg-black md:text-5xl">
-                  Five Chapters.
-                  <br />
-                  One Journey.
-                </h3>
-              </div>
-
-              <p className="max-w-sm text-xs leading-6 text-mbg-darkgrey md:text-right">
-                Like the chapters of a book, each step builds upon the one
-                before it. Not simply meant to be read, but lived.
-              </p>
-            </div>
-
-            {/* Chapters */}
-            <div className="border-y border-mbg-black/10">
-              {[
-                {
-                  number: "I",
-                  title: "GRIND",
-                  color: "#000000",
-                  description:
-                    "The decision to begin. To work when motivation fades. To embrace the process and keep moving forward.",
-                },
-                {
-                  number: "II",
-                  title: "RESILIENCE",
-                  color: "#404040",
-                  description:
-                    "The strength to get back up. To turn failure, pressure and adversity into fuel.",
-                },
-                {
-                  number: "III",
-                  title: "CONSISTENCY",
-                  color: "#BFBFBF",
-                  description:
-                    "The discipline to return every day. Small actions, repeated relentlessly, becoming progress.",
-                },
-                {
-                  number: "IV",
-                  title: "FOCUS",
-                  color: "#00821A",
-                  description:
-                    "The ability to silence distractions, trust the path and keep your eyes on what matters.",
-                },
-                {
-                  number: "V",
-                  title: "ACHIEVE",
-                  color: "#FFFFFF",
-                  description:
-                    "Not the end of the journey, but the consequence of everything that came before it.",
-                },
-              ].map((chapter) => (
-                <div
-                  key={chapter.title}
-                  className="
-            group grid gap-6 border-b border-mbg-black/10
-            py-8 last:border-b-0
-            transition-all duration-500
-            md:grid-cols-[70px_220px_1fr]
-            md:items-center
-            md:gap-8
-          "
-                >
-                  {/* Number */}
+          <div className="border-t border-mbg-white/15">
+            {chapters.map((chapter) => (
+              <details
+                key={chapter.number}
+                className="group border-b border-mbg-white/15 bg-transparent transition-colors duration-300 open:bg-mbg-white/[0.035]"
+              >
+                <summary className="grid min-h-[128px] cursor-pointer list-none grid-cols-[44px_minmax(0,1fr)_54px] items-center gap-3 px-2 py-5 transition-colors hover:bg-mbg-green/[0.045] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-mbg-green sm:grid-cols-[65px_minmax(0,1fr)_100px_38px] sm:gap-5 sm:px-4 [&::-webkit-details-marker]:hidden">
+                  <span className="self-start pt-2 text-xs font-black tracking-[0.09em] text-mbg-green sm:self-center sm:pt-0 sm:text-sm">{chapter.number}</span>
+                  <span className="min-w-0">
+                    <span className="block text-[9px] font-bold uppercase tracking-[0.2em] text-mbg-white/40 sm:text-[10px]">{chapter.passage}</span>
+                    <span className="mt-2 block break-words text-[clamp(1.35rem,4.2vw,3.5rem)] font-black uppercase leading-none tracking-[-0.045em] text-mbg-white transition-colors duration-300 group-hover:text-mbg-green">{chapter.title}</span>
+                    <span className="mt-2 block text-[10px] leading-5 text-mbg-white/55 sm:text-xs">{chapter.short}</span>
+                  </span>
+                  <span className={`relative flex h-14 w-14 items-center justify-center border border-mbg-white/10 p-2 sm:h-20 sm:w-20 sm:p-3 ${chapter.title === "ACHIEVE" ? "bg-mbg-black" : "bg-mbg-white/90"}`}>
+                    <Image src={chapter.emblem} alt="" className="max-h-full w-full object-contain transition-transform duration-500 motion-safe:group-hover:scale-110" sizes="(max-width: 639px) 56px, 80px" />
+                  </span>
+                  <span aria-hidden="true" className="hidden size-9 items-center justify-center border border-mbg-white/20 text-lg font-light text-mbg-green transition-transform duration-300 group-open:rotate-45 sm:flex">+</span>
+                </summary>
+                <div className="mbg-chapter-content grid gap-5 border-t border-mbg-white/10 px-4 pb-8 pt-6 sm:grid-cols-[1fr_0.8fr] sm:gap-10 sm:px-8">
                   <div>
-                    <span className="text-[10px] font-bold tracking-[0.22em] text-mbg-green">
-                      {chapter.number}
-                    </span>
-                  </div>
-
-                  {/* Chapter identity */}
-                  <div>
-                    <h4 className="text-xl font-bold uppercase tracking-[-0.03em] text-mbg-black transition-transform duration-500 group-hover:translate-x-1 md:text-2xl">
-                      {chapter.title}
-                    </h4>
-
-                    {/* Color signature */}
-                    <div className="mt-3 flex items-center gap-3">
-                      <span
-                        className="h-[3px] w-10 shrink-0 border border-mbg-black/10 transition-all duration-500 group-hover:w-16"
-                        style={{
-                          backgroundColor: chapter.color,
-                        }}
-                      />
-
-                      <span className="font-mono text-[9px] font-medium uppercase tracking-[0.16em] text-mbg-black/40">
-                        {chapter.color}
-                      </span>
+                    <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.22em] text-mbg-green">The meaning</p>
+                    <p className="max-w-2xl text-sm leading-7 text-mbg-white/75">{chapter.description}</p>
+                    <div className="mt-5 flex items-center gap-3">
+                      <span className="h-[3px] w-11 border border-mbg-white/20" style={{ backgroundColor: chapter.color }} />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-mbg-white/45">Chapter signature: {chapter.color}</span>
                     </div>
                   </div>
+                  <div className="border-l-2 border-mbg-green bg-mbg-black/45 px-5 py-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-mbg-white/45">The question</p>
+                    <p className="mt-3 text-base font-semibold leading-7 text-mbg-white">{chapter.challenge}</p>
+                  </div>
+                </div>
+                <div aria-hidden="true" className="h-[2px] w-16 bg-mbg-green transition-all duration-500 group-open:w-1/4" />
+              </details>
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+            <span className="text-xs font-extrabold uppercase tracking-[0.1em] text-mbg-white/45">The fifth chapter is never the last step.</span>
+            <Link href="/grind-until-achieve" className="inline-flex min-h-11 items-center border border-mbg-green px-4 py-3 text-[11px] font-bold uppercase tracking-[0.1em] text-mbg-white transition-colors hover:bg-mbg-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green">
+              Explore the mantra <span aria-hidden="true" className="ml-3">↗</span>
+            </Link>
+          </div>
+        </section>
 
-                  {/* Description */}
-                  <p className="max-w-xl text-xs leading-6 text-mbg-darkgrey md:text-[13px]">
-                    {chapter.description}
-                  </p>
+        {/* ACT IV: WHAT WE CARRY */}
+        <section aria-labelledby="meaning-title" className="border-x border-b border-mbg-white/10 bg-mbg-darkgrey/10 px-5 py-16 sm:px-9 sm:py-20 lg:px-14 lg:py-24">
+          <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">03 / The inspiration</p>
+              <h2 id="meaning-title" className="mt-4 text-[clamp(2.35rem,5.2vw,5rem)] font-black uppercase leading-[0.94] tracking-[-0.05em]">
+                CARRY THE
+                <span className="block text-mbg-green">MEANING.</span>
+              </h2>
+              <p className="mt-7 max-w-md text-sm leading-8 text-mbg-white/65">
+                Each Milos BG collection represents another chapter of the story. The idea is to translate a mentality into garments with their own identity, purpose and message.
+              </p>
+              <div className="mt-8 max-w-[450px] border border-mbg-white/10 bg-mbg-black/60 px-7 py-8">
+                <Image src={MBG2} alt="Grind Until Achieve visual identity" className="mx-auto h-auto max-h-[240px] w-full object-contain" sizes="(max-width: 1023px) 75vw, 360px" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <article className="group border border-mbg-white/10 bg-mbg-black/45 p-5 transition-colors duration-300 hover:border-mbg-green/45 sm:p-7">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-black uppercase text-mbg-white">KAIZEN</h3>
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-mbg-green">01 / Improve</span>
+                </div>
+                <div className="my-4 h-px bg-mbg-white/10" />
+                <p className="text-sm leading-7 text-mbg-white/65">The pursuit of continuous improvement. Progress is shaped through patience, repetition and the decision to become a little better, one day at a time.</p>
+              </article>
+              <article className="group border border-mbg-white/10 bg-mbg-black/45 p-5 transition-colors duration-300 hover:border-mbg-green/45 sm:p-7">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-black uppercase text-mbg-white">KINTSUGI</h3>
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-mbg-green">02 / Rebuild</span>
+                </div>
+                <div className="my-4 h-px bg-mbg-white/10" />
+                <p className="text-sm leading-7 text-mbg-white/65">The Japanese art of repairing broken objects while acknowledging the marks of their history. A reminder that what has been endured can become part of our strength.</p>
+              </article>
+              <article className="group border border-mbg-white/10 bg-mbg-black/45 p-5 transition-colors duration-300 hover:border-mbg-green/45 sm:p-7">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-black uppercase text-mbg-white">MADAGASCAR PERIWINKLE</h3>
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-mbg-green">03 / Endure</span>
+                </div>
+                <div className="my-4 h-px bg-mbg-white/10" />
+                <p className="text-sm leading-7 text-mbg-white/65">A resilient flower that can thrive in challenging conditions. Its ability to adapt and keep growing echoes the mentality behind Milos BG.</p>
+              </article>
+            </div>
+          </div>
+          <div className="mt-12 grid gap-0 border-y border-mbg-white/10 sm:grid-cols-[0.8fr_1.2fr]">
+            <div className="border-b border-mbg-white/10 py-6 sm:border-b-0 sm:border-r sm:pr-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-mbg-green">Grind in production</p>
+              <h3 className="mt-3 text-xl font-black uppercase tracking-[-0.03em] text-mbg-white">Crafted with purpose.</h3>
+            </div>
+            <div className="py-6 sm:pl-7">
+              <p className="text-sm leading-7 text-mbg-white/65">Milos BG's main production is handmade. Quality is checked, details matter, and every piece is intended to offer a considered customer experience — not just another item of clothing.</p>
+            </div>
+          </div>
+          <p className="mt-12 max-w-3xl border-l-[3px] border-mbg-green pl-5 text-sm leading-8 text-mbg-white/75 sm:text-base">
+            From craftsmanship and sport to basketball, movement and Japanese philosophy, the influences may be different — but they lead to one belief: <strong className="text-mbg-white">progress is not defined by perfection. It is built through persistence.</strong>
+          </p>
+        </section>
+
+        {/* ACT V: THE WORK NOBODY SEES */}
+        <section aria-labelledby="unseen-title" className="relative isolate overflow-hidden border-x border-b border-mbg-white/10 bg-[#080b09] px-5 py-16 sm:px-9 sm:py-20 lg:px-14 lg:py-24">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-32 -top-32 size-[400px] rounded-full border border-mbg-green/10" />
+          <div className="relative z-10 grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center lg:gap-16">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">04 / Before achievement</p>
+              <h2 id="unseen-title" className="mt-5 text-[clamp(2.45rem,5.6vw,5.2rem)] font-black uppercase leading-[0.95] tracking-[-0.05em]">
+                THE WORK
+                <span className="block text-mbg-green">NOBODY SEES.</span>
+              </h2>
+              <p className="mt-7 max-w-lg text-sm leading-8 text-mbg-white/65">
+                ACHIEVE means very little without everything required to reach it. Every piece is meant to accompany the person doing that work — from the quiet hours to the moment dedication speaks for itself.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-px border border-mbg-white/10 bg-mbg-white/10 sm:grid-cols-3">
+              {unseenWork.map((item, index) => (
+                <div key={item} className="group min-h-[125px] bg-[#0c0f0d] p-5 transition-colors duration-300 hover:bg-mbg-green/[0.12] sm:p-6">
+                  <span className="text-xs font-black text-mbg-green">0{index + 1}</span>
+                  <p className="mt-6 text-xs font-bold uppercase leading-5 tracking-[0.04em] text-mbg-white/75 sm:text-sm">{item}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-8 flex w-full flex-nowrap items-center justify-between gap-2 px-1 sm:mt-10 sm:gap-4 sm:px-2 md:gap-7">
-              <Image
-                src={GRIND}
-                alt="GRIND"
-                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
-              />
-
-              <Image
-                src={RESILIENCE}
-                alt="RESILIENCE"
-                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
-              />
-
-              <Image
-                src={CONSISTENCY}
-                alt="CONSISTENCY"
-                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.10)] transition-transform duration-300 hover:-translate-y-1"
-              />
-
-              <Image
-                src={FOCUS}
-                alt="FOCUS"
-                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
-              />
-
-              <Image
-                src={ACHIEVE}
-                alt="ACHIEVE"
-                className="h-auto w-[clamp(26px,9.5vw,64px)] shrink-0 object-contain drop-shadow-[0_4px_5px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
-              />
-            </div>
           </div>
-        </div>
+        </section>
 
-        {/* Mantra */}
-        <div className="mx-auto max-w-full py-14 md:py-20">
-          <div className="relative overflow-hidden bg-mbg-black px-6 py-12 md:px-12 md:py-16">
-            <span className="absolute right-4 top-0 select-none text-[100px] font-black leading-none text-mbg-white/[0.03] md:text-[180px]">
-              05
-            </span>
-
-            <div className="relative z-10 max-w-3xl">
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-mbg-green">
-                The Mantra
-              </span>
-
-              <h3 className="mt-5 text-2xl font-bold uppercase leading-[0.95] tracking-[-0.04em] text-mbg-white sm:text-5xl md:text-7xl">
-                Gr<text className="text-mbg-green">i</text>nd{" "}
-                <text className="text-mbg-green">Until</text> Achie
-                <text className="text-mbg-green">v</text>e
-              </h3>
-
-              <p className="mt-7 max-w-xl text-xs leading-6 text-mbg-white/60 md:text-sm">
-                Once the mentality becomes part of who you are, you don&apos;t
-                simply believe in it, you wear it.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Clothing + Philosophy */}
-        <div className="mx-auto max-w-5xl pb-14 md:pb-20">
-          <div className="grid gap-10 md:grid-cols-2 md:gap-16">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-mbg-green">
-                Wear The Mentality
-              </span>
-
-              <h3 className="mt-3 text-2xl font-bold uppercase leading-tight tracking-tight text-mbg-black md:text-3xl">
-                Where clothing
-                <br />
-                and philosophy
-                <br />
-                become one.
-              </h3>
-            </div>
-
-            <div className="space-y-6 text-[13px] leading-7 text-mbg-darkgrey">
-              <p>
-                Each Milos BG collection represents a new{" "}
-                <strong>Chapter</strong> of that story, translating its{" "}
-                <strong className="text-mbg-green">Mentality</strong> into
-                garments with their own purpose, identity and message.
-              </p>
-
-              <p>
-                Every piece becomes a physical reminder of the journey,
-                <strong className="font-semibold text-mbg-black">
-                  {" "}
-                  keep working, keep learning, keep improving, keep moving
-                  forward.
-                </strong>
-              </p>
-              <p>
-                Inspired by <strong>craftsmanship</strong>,{" "}
-                <strong>sport</strong>, <strong>basketball</strong>,{" "}
-                <strong>movement</strong>, and{" "}
-                <strong>Japanese philosophy</strong>, Milos BG draws deeply from
-                the spirit of <strong>Kaizen</strong>, the pursuit of continuous
-                improvement through discipline, patience, and repetition. As
-                well as <strong>Kintsugi</strong>, the art of repairing what has
-                been broken while embracing its scars as part of its history,
-                character, and strength. The brand also finds inspiration in the{" "}
-                <strong>Madagascar periwinkle</strong>, a flower whose
-                remarkable resilience and ability to endure challenging
-                conditions reflects the mindset at the heart of Milos BG.
-              </p>
-              <p>
-                These influences shape not only the philosophy of the brand, but
-                also the way each piece is conceived.{" "}
-                <strong>Milos BG creates garments</strong>{" "}
-                <strong>
-                  designed to accompany you throughout the process
-                </strong>
-                , from the quiet hours when no one sees the work to the moments
-                when that dedication finally speaks for itself.{" "}
-                <strong>Every piece reflects the</strong>{" "}
-                <strong>
-                  belief that progress is built step by step, through
-                  resilience,
-                </strong>
-                <strong>
-                  consistency, intention, and respect for the craft
-                </strong>
-                . Like Kintsugi, it is about finding strength and meaning in
-                what has been endured. Like the Madagascar periwinkle, it is
-                about continuing to grow, adapt, and move forward regardless of
-                the conditions.
-              </p>
-              <p className="text-mbg-green">
-                Together, they embody a simple idea at the core of Milos BG,
-                progress is not defined by perfection, but by the ability to
-                persist, evolve, and turn every experience into part of the
-                journey.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* The unseen work */}
-        <div className="border-y border-mbg-black/10 py-12 md:py-16">
-          <Image
-            src={MBG2}
-            alt="Grind Until Achieve"
-            className="
-    mx-auto
-    h-auto
-    w-[46%]
-    max-w-[460px]
-    object-center
-    py-8
-    sm:w-[68%]
-    md:w-[64%]
-    lg:w-[60%]
-  "
-          />
-        </div>
-        {/* The unseen work */}
-        <div className="border-y bg-mbg-white/80 border-mbg-black/10 py-12 px-4 md:py-16">
-          <div className="mx-auto max-w-5xl">
-            <div className="grid gap-10 md:grid-cols-[1fr_1.2fr] md:items-center">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-mbg-green">
-                  Before Achievement
-                </span>
-
-                <p className="mt-4 max-w-md text-base leading-8 text-mbg-black md:text-lg">
-                  <strong>ACHIEVE</strong> means very little without everything
-                  required to reach it.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-8 gap-y-0 border-t border-mbg-black/10 sm:grid-cols-3">
-                {[
-                  "The setbacks",
-                  "The repetitions",
-                  "The discipline",
-                  "The sacrifices",
-                  "The unseen hours",
-                  "The invisible progress",
-                ].map((item, index) => (
-                  <div key={item} className="border-b border-mbg-black/10 py-4">
-                    <span className="mr-2 text-[9px] font-bold text-mbg-green">
-                      0{index + 1}
-                    </span>
-
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-mbg-black">
-                      {item}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Closing / Progression Chart */}
-        <div className="mx-auto max-w-5xl py-16 md:py-24">
-          {/* Heading */}
+        {/* THE ROAD CONTINUES */}
+        <section aria-labelledby="road-title" className="border-x border-b border-mbg-white/10 px-5 py-16 sm:px-9 sm:py-20 lg:px-14 lg:py-24">
           <div className="max-w-4xl">
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-mbg-green">
-              The Journey
-            </span>
-
-            <h2 className="mt-5 max-w-3xl text-2xl font-semibold leading-[1.25] tracking-tight text-mbg-black md:text-4xl">
-              We don&apos;t celebrate only the destination.
-              <span className="mt-1 block text-mbg-green">
-                We celebrate the GRIND that makes it possible.
-              </span>
+            <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">05 / The journey continues</p>
+            <h2 id="road-title" className="mt-5 text-[clamp(2rem,4.7vw,4.5rem)] font-black uppercase leading-[1.03] tracking-[-0.05em]">
+              WE DON&apos;T CELEBRATE ONLY THE DESTINATION.
+              <span className="mt-2 block text-mbg-green">WE CELEBRATE THE GRIND THAT MAKES IT POSSIBLE.</span>
             </h2>
           </div>
-
-          {/* Chart */}
-          <div className="relative mt-16 md:mt-20">
-            {/* Desktop horizontal line */}
-            <div className="absolute left-0 right-0 top-[22px] hidden h-px bg-mbg-black/15 md:block" />
-
-            {/* Green progress line */}
-            <div className="absolute left-0 top-[22px] hidden h-px w-[75%] bg-mbg-green md:block" />
-
-            <div className="grid gap-10 md:grid-cols-4 md:gap-6">
-              {/* 01 */}
-              <div className="group relative">
-                <div className="relative z-10 flex items-center md:block">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
-                    01
-                  </div>
-
-                  {/* Mobile line */}
-                  <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
+          <div className="relative mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+            <div aria-hidden="true" className="absolute left-0 right-0 top-[22px] hidden h-px bg-mbg-green/50 lg:block" />
+            {progression.map((step) => (
+              <div key={step.number} className="group relative border-l border-mbg-white/10 py-2 pl-5 transition-colors hover:border-mbg-green lg:border-l-0 lg:pl-0">
+                <div className="relative z-10 flex size-11 items-center justify-center border border-mbg-green bg-mbg-black text-xs font-black text-mbg-green transition-colors duration-300 group-hover:bg-mbg-green group-hover:text-mbg-white">
+                  {step.number}
                 </div>
-
-                <div className="mt-5 md:mt-8">
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
-                    Chapter
-                  </span>
-
-                  <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
-                    Every Chapter
-                    <span className="block font-normal text-mbg-black/60">
-                      tells a story.
-                    </span>
-                  </p>
-                </div>
+                <h3 className="mt-6 text-xs font-black uppercase tracking-[0.15em] text-mbg-green">{step.title}</h3>
+                <p className="mt-3 max-w-[220px] text-sm leading-7 text-mbg-white/70">{step.text}</p>
               </div>
+            ))}
+          </div>
+        </section>
 
-              {/* 02 */}
-              <div className="group relative">
-                <div className="relative z-10 flex items-center md:block">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
-                    02
-                  </div>
-
-                  <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
-                </div>
-
-                <div className="mt-5 md:mt-8">
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
-                    Collection
-                  </span>
-
-                  <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
-                    Every collection
-                    <span className="block font-normal text-mbg-black/60">
-                      represents a step forward.
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              {/* 03 */}
-              <div className="group relative">
-                <div className="relative z-10 flex items-center md:block">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-green bg-white text-[10px] font-bold tracking-widest text-mbg-green transition-all duration-300 group-hover:bg-mbg-green group-hover:text-white">
-                    03
-                  </div>
-
-                  <div className="ml-4 h-px flex-1 bg-mbg-black/10 md:hidden" />
-                </div>
-
-                <div className="mt-5 md:mt-8">
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
-                    Piece
-                  </span>
-
-                  <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
-                    Every piece
-                    <span className="block font-normal text-mbg-black/60">
-                      carries a message.
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              {/* 04 */}
-              <div className="group relative">
-                <div className="relative z-10 flex items-center md:block">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mbg-black bg-mbg-black text-[10px] font-bold tracking-widest text-white transition-all duration-300 group-hover:border-mbg-green group-hover:bg-mbg-green">
-                    04
-                  </div>
-                </div>
-
-                <div className="mt-5 md:mt-8">
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.25em] text-mbg-black/40">
-                    Journey
-                  </span>
-
-                  <p className="mt-2 max-w-[190px] text-sm font-semibold leading-6 text-mbg-black">
-                    Every person
-                    <span className="block font-normal text-mbg-black/60">
-                      continues the journey.
-                    </span>
-                  </p>
-                </div>
-              </div>
+        {/* MANTRA / FINAL INVITATION */}
+        <section aria-labelledby="mantra-title" className="relative isolate overflow-hidden border-x border-b border-mbg-white/10 bg-[#071008] px-5 py-16 text-center sm:px-9 sm:py-20 lg:px-14 lg:py-28">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,130,26,0.18),transparent_65%)]" />
+          <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 size-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-mbg-white/10 sm:size-[750px]" />
+          <div className="relative z-10 mx-auto max-w-5xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">The mantra / The promise to yourself</p>
+            <h2 id="mantra-title" className="mt-7 text-[clamp(2rem,7vw,6.75rem)] font-black uppercase leading-[0.94] tracking-[-0.06em]">
+              <Mantra />
+            </h2>
+            <div className="mx-auto mt-8 h-[3px] w-16 bg-mbg-green" />
+            <p className="mx-auto mt-8 max-w-2xl text-sm leading-8 text-mbg-white/75 sm:text-base">
+              A story you don&apos;t simply read. A mentality you don&apos;t simply follow. <strong className="font-bold text-mbg-white">A journey you wear.</strong>
+            </p>
+            <p className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-mbg-green">Five chapters. One journey.</p>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/products" className="inline-flex min-h-12 items-center justify-center border border-mbg-green bg-mbg-green px-6 py-3 text-xs font-black uppercase tracking-[0.12em] text-mbg-white transition-[background-color,transform] duration-300 hover:bg-mbg-black motion-safe:hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-white">
+                Discover the outfits <span aria-hidden="true" className="ml-3">↗</span>
+              </Link>
+              <Link href="/contact" className="inline-flex min-h-12 items-center justify-center border border-mbg-white/25 px-6 py-3 text-xs font-black uppercase tracking-[0.12em] text-mbg-white transition-colors duration-300 hover:border-mbg-green hover:bg-mbg-green/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green">
+                Contact Milos BG
+              </Link>
             </div>
+            <p className="mt-12 text-xs font-black uppercase tracking-[0.16em] text-mbg-white/60">
+              Grind Until <span className="text-mbg-green">You</span> Achieve.
+            </p>
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-mbg-green">Make It Your Liked Outfits.</p>
+            <p className="mt-4 text-xs font-medium text-mbg-white/60">Enjoy the Grind. ✿</p>
           </div>
+        </section>
 
-          {/* Closing mantra */}
-          <div className="mt-16 flex items-center gap-4 border-t border-mbg-black/10 pt-6 md:mt-20">
-            <div className="h-[2px] w-8 bg-mbg-green" />
-
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-mbg-black">
-              Grind Until Achieve
-            </p>
-          </div>
-        </div>
-
-        {/* Final Signature */}
-        <div className="bg-mbg-white/80 px-6 py-12 text-center md:py-16">
-          <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-mbg-black/60">
-            This is Milos BG
-          </p>
-
-          <div className="mx-auto mt-6 max-w-4xl">
-            <p className="text-2xl font-bold uppercase leading-[1.15] tracking-tight text-mbg-black sm:text-3xl md:text-5xl">
-              A story you don&apos;t simply read.
-              <br />
-              A mentality you don&apos;t simply follow.
-              <br />
-              <span className="text-mbg-green">A journey you wear.</span>
-            </p>
-          </div>
-
-          <div className="mx-auto mt-10 h-px max-w-xs bg-mbg-black/20" />
-
-          <div className="mt-8 space-y-1">
-            <p className="text-sm font-black uppercase tracking-[0.15em] text-mbg-black">
-              Grind Until <text className="text-mbg-green">You</text> Achieve.
-            </p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-mbg-green">
-              Make It Your Liked Outfits.
-            </p>
-
-            <p className="pt-3 text-xs font-medium text-mbg-black">
-              Enjoy the Grind. ✿
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Craft + Materials */}
-      <section className="mt-8 grid gap-6">
-        <div className="rounded-xs border border-mbg-black/7 bg-mbg-white p-4">
-          <H3 className="text-mbg-green text-base m-0">Grind in Production</H3>
-
-          <p className="mt-2 text-xs text-mbg-black/95">
-            The main production is handmade, the quality is checked and we give
-            our best for a great customer experience.
-          </p>
-        </div>
-      </section>
-
-      {/* Numbers / Highlights */}
-      <section className="mt-8 grid gap-4 sm:grid-cols-3">
-        {[
-          ["2022", "Year of creation"],
-          ["MANTRA", "Grind Until Achieve"],
-          ["Slogan", "Make It your Liked OutfitS"],
-        ].map(([big, label]) => (
-          <div
-            key={label}
-            className="rounded-xs border border-mbg-black/7 bg-mbg-black/7 p-4 text-center"
-          >
-            <div className="text-lg uppercase font-bold tracking-tight text-mbg-black/80">
-              {big}
+        {/* QUICK FACTS */}
+        <section aria-label="Milos BG highlights" className="grid grid-cols-1 border-x border-b border-mbg-white/10 sm:grid-cols-3">
+          {[
+            { value: "2022", label: "Year of creation" },
+            { value: "05", label: "Chapters / One journey" },
+            { value: "01", label: "Mentality / Grind Until Achieve" },
+          ].map((fact) => (
+            <div key={fact.label} className="border-b border-mbg-white/10 px-6 py-7 text-center last:border-b-0 sm:border-b-0 sm:border-r sm:border-mbg-white/10 sm:last:border-r-0">
+              <p className="text-2xl font-black text-mbg-white">{fact.value}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-mbg-green">{fact.label}</p>
             </div>
+          ))}
+        </section>
 
-            <div className="mt-1 text-[9.5px] font-semibold uppercase text-mbg-green">
-              {label}
-            </div>
-          </div>
-        ))}
-      </section>
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-mbg-white/10 py-7 text-[10px] font-medium text-mbg-white/45">
+          <p>Last update: 01/09/2026</p>
+          <p>&copy; {new Date().getFullYear()} Milos BG — All rights reserved</p>
+        </footer>
+      </Container>
 
-      {/* CTA */}
-      <section className="mt-10 rounded-xs border border-mbg-green/40 bg-mbg-green/7 p-4">
-        <H3 className="text-base text-mbg-green m-0">Get in touch&nbsp;</H3>
-
-        <p className="mt-2 text-xs text-mbg-black/95">
-          Grind and discover our <strong>OUTFITS</strong> and{" "}
-          <strong>CHAPTERS</strong>
-        </p>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link
-            href="/products"
-            className="rounded-xs border border-mbg-green px-3 py-1.5 text-[12px] font-semibold text-mbg-green hover:bg-mbg-green hover:text-mbg-white hoverEffect uppercase transition"
-          >
-            Discover
-          </Link>
-
-          <Link
-            href="/contact"
-            className="rounded-xs border border-mbg-darkgrey px-3 py-1.5 text-[12px] font-semibold text-mbg-darkgrey hover:bg-mbg-darkgrey hover:text-mbg-white hoverEffect uppercase transition"
-          >
-            Contact Us
-          </Link>
-        </div>
-      </section>
-
-      <footer className="mt-12 border-t pt-6 text-[10px] text-mbg-green">
-        <p>
-          Last update&nbsp;:&nbsp;
-          {/* UPDATE MANUALLY */}
-          01/09/2026
-        </p>
-
-        <p className="mt-2">
-          &copy; {new Date().getFullYear()} Milos BG - All rights reserved
-        </p>
-      </footer>
-    </Container>
+      <style>{`
+        @keyframes mbg-background-enter {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes mbg-ambient-shift {
+          0%, 100% { opacity: 0.55; transform: scale(1); }
+          50% { opacity: 0.95; transform: scale(1.05); }
+        }
+        @keyframes mbg-chapter-enter {
+          from { opacity: 0; transform: translateY(-5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .mbg-entrance {
+          animation: mbg-background-enter 850ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .mbg-ambient {
+          animation: mbg-ambient-shift 14s ease-in-out infinite;
+        }
+        details[open] > .mbg-chapter-content {
+          animation: mbg-chapter-enter 350ms ease-out both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mbg-entrance, .mbg-ambient, details[open] > .mbg-chapter-content { animation: none; }
+        }
+      `}</style>
+    </main>
   );
 };
 
