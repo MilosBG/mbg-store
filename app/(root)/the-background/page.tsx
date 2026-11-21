@@ -50,7 +50,7 @@ const chapters = [
     emblem: RESILIENCE,
     short: "The courage to rise after impact.",
     description:
-      "The strength to get back up. To turn failure, pressure and adversity into fuel — not a reason to stop.",
+      "The strength to get back up. To turn failure, pressure and adversity into fuel, not a reason to stop.",
     challenge: "What will you learn from what tried to break you?",
   },
   {
