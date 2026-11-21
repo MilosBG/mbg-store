@@ -35,10 +35,6 @@ type LocalizedProduct = Product & {
   categoryFr?: string;
 };
 
-/* -------------------------------------------------------------------------- */
-/*                              LOCALIZED CONTENT                             */
-/* -------------------------------------------------------------------------- */
-
 const getLocalizedProductContent = (product: Product, lang: StoreLanguage) => {
   const localizedProduct = product as LocalizedProduct;
 
@@ -60,39 +56,27 @@ const getLocalizedProductContent = (product: Product, lang: StoreLanguage) => {
   };
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                  METADATA                                  */
-/* -------------------------------------------------------------------------- */
-
 export async function generateMetadata({
   params,
   searchParams,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-
   const { lang: rawLang } = await searchParams;
-
   const lang = normalizeStoreLanguage(rawLang);
-
   const encodedSlug = encodeURIComponent(slug);
 
   const fallback = buildMetadata({
     title: lang === "fr" ? "Produit" : "Product",
-
     description:
       lang === "fr"
         ? "Découvrez les vêtements et accessoires Milos BG inspirés du basketball."
         : "Discover Milos BG basketball-inspired apparel and accessories.",
-
     path: `/products/${encodedSlug}`,
-
     image: "/Grinder.png",
-
     keywords:
       lang === "fr"
         ? ["Milos BG", "produit", "vêtement", "basketball"]
         : ["Milos BG", "product", "apparel", "basketball"],
-
     robotsIndex: false,
   });
 
@@ -104,13 +88,9 @@ export async function generateMetadata({
     }
 
     const content = getLocalizedProductContent(product, lang);
-
     const cleanDescription = content.description.replace(/\s+/g, " ").trim();
-
     const summary = cleanDescription
-      ? `${cleanDescription.slice(0, 155)}${
-          cleanDescription.length > 155 ? "..." : ""
-        }`
+      ? `${cleanDescription.slice(0, 155)}${cleanDescription.length > 155 ? "..." : ""}`
       : lang === "fr"
         ? "Découvrez les créations Milos BG conçues pour le terrain et en dehors."
         : "Shop authentic Milos BG gear built for on and off the court.";
@@ -120,22 +100,13 @@ export async function generateMetadata({
         ? (product.media[0] ?? "/Grinder.png")
         : "/Grinder.png";
 
-    /**
-     * Important :
-     * la canonical utilise maintenant le slug,
-     * plus jamais le MongoDB _id.
-     */
     const canonicalSlug = encodeURIComponent(product.slug || slug);
 
     return buildMetadata({
       title: content.title,
-
       description: summary,
-
       path: `/products/${canonicalSlug}`,
-
       image: heroImage,
-
       keywords:
         lang === "fr"
           ? ["Milos BG", content.title, "basketball", "vêtement"]
@@ -143,14 +114,9 @@ export async function generateMetadata({
     });
   } catch (error) {
     console.error("Failed to build product metadata", error);
-
     return fallback;
   }
 }
-
-/* -------------------------------------------------------------------------- */
-/*                              LANGUAGE SWITCHER                             */
-/* -------------------------------------------------------------------------- */
 
 const LanguageSwitcher = ({
   slug,
@@ -160,14 +126,13 @@ const LanguageSwitcher = ({
   lang: StoreLanguage;
 }) => {
   const basePath = `/products/${encodeURIComponent(slug)}`;
-
   const itemClass =
     "flex h-8 min-w-10 items-center justify-center px-3 text-[10px] font-bold uppercase transition-colors";
 
   return (
     <div className="flex justify-end">
       <div
-        className="flex border border-mbg-green"
+        className="flex border border-[#00821A]"
         role="group"
         aria-label={lang === "fr" ? "Choisir la langue" : "Choose language"}
       >
@@ -176,8 +141,8 @@ const LanguageSwitcher = ({
           aria-current={lang === "en" ? "page" : undefined}
           className={`${itemClass} ${
             lang === "en"
-              ? "bg-mbg-green text-mbg-white"
-              : "text-mbg-green hover:bg-mbg-green/10"
+              ? "bg-[#00821A] text-white"
+              : "text-[#00821A] hover:bg-[#00821A]/10"
           }`}
         >
           EN
@@ -188,8 +153,8 @@ const LanguageSwitcher = ({
           aria-current={lang === "fr" ? "page" : undefined}
           className={`${itemClass} ${
             lang === "fr"
-              ? "bg-mbg-black text-mbg-white"
-              : "text-mbg-black hover:bg-mbg-black/5"
+              ? "bg-black text-white"
+              : "text-black hover:bg-black/5"
           }`}
         >
           FR
@@ -199,139 +164,99 @@ const LanguageSwitcher = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                PRODUCT PAGE                                */
-/* -------------------------------------------------------------------------- */
-
 const ProductDetails = async ({ params, searchParams }: PageProps) => {
   const { slug } = await params;
-
   const { lang: rawLang } = await searchParams;
-
   const lang = normalizeStoreLanguage(rawLang);
 
   const productDetails = await getProductBySlugOrId(slug);
+  if (!productDetails) notFound();
 
-  if (!productDetails) {
-    notFound();
-  }
-
-  /**
-   * On préfère toujours le slug réel
-   * renvoyé par la DB.
-   */
   if (productDetails.slug && slug !== productDetails.slug) {
     const langParam =
       typeof rawLang === "string" ? `?lang=${encodeURIComponent(rawLang)}` : "";
-
-    redirect(
-      `/products/${encodeURIComponent(productDetails.slug)}${langParam}`,
-    );
+    redirect(`/products/${encodeURIComponent(productDetails.slug)}${langParam}`);
   }
-  const productSlug = productDetails.slug || slug;
 
+  const productSlug = productDetails.slug || slug;
   const localized = getLocalizedProductContent(productDetails, lang);
-  const fr = lang === "fr";
-  const copy = fr ? {
-    back: "Toutes les tenues",
-    edition: "LA COLLECTION / LA QUÊTE",
-    headingOne: "CHAQUE PIÈCE.",
-    headingTwo: "UN NOUVEAU CHAPITRE.",
-    introduction: "L’aventure ne se raconte pas seulement. Elle se construit, une décision après l’autre.",
-    stages: ["GRIND", "RESILIENCE", "CONSISTENCY", "FOCUS", "ACHIEVE"],
-    photoLabel: "01 / LA PIÈCE",
-    photoNote: "Découvrez les détails, la matière, le caractère.",
-    experience: "AU-DELÀ DU VÊTEMENT",
-    experienceTitle: "PORTEZ VOTRE PROCHAIN CHAPITRE.",
-    experienceText: "Cinq chapitres. Un seul voyage. Un chemin de discipline, de résilience et de progression — à vivre à votre rythme.",
-    discover: "DÉCOUVRIR L’HISTOIRE",
-    craft: "FAIT AVEC INTENTION",
-  } : {
-    back: "All Outfits",
-    edition: "THE COLLECTION / THE QUEST",
-    headingOne: "EVERY PIECE.",
-    headingTwo: "A NEW CHAPTER.",
-    introduction: "The journey is not simply told. It is built, one decision at a time.",
-    stages: ["GRIND", "RESILIENCE", "CONSISTENCY", "FOCUS", "ACHIEVE"],
-    photoLabel: "01 / THE PIECE",
-    photoNote: "Explore every detail, every texture, every choice.",
-    experience: "BEYOND THE GARMENT",
-    experienceTitle: "WEAR YOUR NEXT CHAPTER.",
-    experienceText: "Five chapters. One journey. A path of discipline, resilience and progress — yours to walk.",
-    discover: "EXPLORE THE STORY",
-    craft: "MADE WITH INTENTION",
-  };
+  const copy =
+    lang === "fr"
+      ? {
+          back: "Toutes les tenues",
+          note: "Une pièce pensée pour traverser l’effort, le mouvement et le temps.",
+          detailLabel: "DÉCOUVRIR LA PIÈCE",
+          detailText: "Explorez les détails, la matière et la présence du vêtement.",
+          quest: "UN CHAPITRE À PORTER",
+          questText:
+            "Du terrain au quotidien, la pièce entre dans votre parcours. Choisissez vos options, demandez une taille spécifique si nécessaire et avancez vers le prochain chapitre.",
+          discover: "DÉCOUVRIR GRIND UNTIL ACHIEVE",
+        }
+      : {
+          back: "All Outfits",
+          note: "A piece designed to move through effort, motion and time.",
+          detailLabel: "DISCOVER THE PIECE",
+          detailText: "Explore the details, the fabric and the presence of the garment.",
+          quest: "A CHAPTER TO WEAR",
+          questText:
+            "From court to everyday life, the piece becomes part of your path. Choose your options, request a custom size if needed, and move toward the next chapter.",
+          discover: "DISCOVER GRIND UNTIL ACHIEVE",
+        };
 
   return (
-    <div className="relative min-h-[70vh] overflow-hidden bg-[#F4F4F1] font-[Kanit,sans-serif] text-black">
-      <Container className="pb-12 sm:pb-16 lg:pb-24">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 py-4 sm:py-5">
-          <nav aria-label={fr ? "Fil d’Ariane" : "Breadcrumb"} className="flex min-w-0 flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#404040]">
-            <Link href={`/products?lang=${lang}`} className="transition-colors hover:text-[#00821A]">{copy.back}</Link>
-            <span aria-hidden="true" className="text-[#00821A]">/</span>
-            <span aria-current="page" className="max-w-48 truncate text-black sm:max-w-xs">{localized.title}</span>
-          </nav>
+    <div className="bg-[#ececeb] text-black">
+      <Container className="min-h-[60vh] py-4 sm:py-6 lg:py-8">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b border-black/10 pb-4">
+          <div className="min-w-0">
+            <Link
+              href={`/products?lang=${lang}`}
+              className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#404040] transition hover:text-[#00821A]"
+            >
+              {copy.back}
+            </Link>
+            <h1 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em] text-black sm:text-3xl">
+              {localized.title}
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#404040]">{copy.note}</p>
+          </div>
           <LanguageSwitcher slug={productSlug} lang={lang} />
         </div>
 
-        <header className="relative overflow-hidden border-b border-black/10 py-8 sm:py-11 lg:py-14">
-          <div className="pointer-events-none absolute -right-10 top-0 hidden select-none text-[190px] font-black leading-none tracking-tighter text-black/[0.025] lg:block" aria-hidden="true">01</div>
-          <div className="relative max-w-4xl">
-            <p className="mb-5 inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#00821A]">
-              <span className="h-px w-8 bg-[#00821A]" aria-hidden="true" />{copy.edition}
-            </p>
-            <h1 className="text-[clamp(2rem,5.6vw,5.1rem)] font-black uppercase leading-[0.99] tracking-[-0.043em]">
-              <span className="block">{copy.headingOne}</span>
-              <span className="block text-[#00821A]">{copy.headingTwo}</span>
-            </h1>
-            <p className="mt-5 max-w-xl text-[13px] leading-[1.8] text-[#404040] sm:text-[15px]">
-              {copy.introduction}
-            </p>
-          </div>
-          <div className="relative mt-8 grid grid-cols-5 gap-1.5 sm:mt-10 sm:gap-3" aria-label={fr ? "Les cinq chapitres" : "The five chapters"}>
-            {copy.stages.map((stage, index) => (
-              <div key={stage} className={`border-t-2 pt-3 ${index === 0 ? "border-[#00821A]" : "border-black/15"}`}>
-                <span className="block text-[10px] font-black tabular-nums text-[#00821A]">0{index + 1}</span>
-                <span className="mt-1 block break-words text-[8px] font-bold uppercase leading-[1.4] tracking-[0.02em] text-black/70 sm:text-[10px]">{stage}</span>
+        <section className="overflow-hidden border border-black/10 bg-[#0a0a0a] shadow-[0_30px_80px_rgba(0,0,0,0.18)]">
+          <div className="grid grid-cols-1 gap-0 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+            <div className="border-b border-white/10 p-4 sm:p-5 lg:border-b-0 lg:border-r lg:border-white/10 lg:p-6">
+              <div className="overflow-hidden border border-white/10 bg-[#151515] p-2 sm:p-3">
+                <Gallery productMedia={productDetails.media} />
               </div>
-            ))}
-          </div>
-        </header>
-
-        <div className="grid items-start gap-6 py-8 sm:gap-8 sm:py-11 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.94fr)] lg:gap-10 xl:gap-14">
-          <div className="min-w-0 space-y-4 lg:sticky lg:top-6">
-            <div className="relative border border-black/10 bg-[#E8E8E5] p-2 sm:p-3">
-              <Gallery productMedia={productDetails.media} productName={localized.title} />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-[#00821A] pl-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-black">{copy.photoLabel}</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-[#404040]">{copy.photoNote}</p>
+              <div className="mt-4 border-l-2 border-[#00821A] pl-4 text-white">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#77d488]">{copy.detailLabel}</p>
+                <p className="mt-2 max-w-lg text-[13px] leading-6 text-white/68">{copy.detailText}</p>
               </div>
-              <span className="text-[9px] font-semibold uppercase tracking-[0.13em] text-[#00821A]">{copy.craft}</span>
+            </div>
+
+            <div className="min-w-0 p-4 sm:p-5 lg:p-6">
+              <ProductInfo productInfo={productDetails} lang={lang} />
+              <div className="mt-5">
+                <ProductAccordion product={productDetails} lang={lang} />
+              </div>
             </div>
           </div>
+        </section>
 
-          <div className="min-w-0 space-y-5">
-            <ProductInfo productInfo={productDetails} lang={lang} />
-            <ProductAccordion product={productDetails} lang={lang} />
-          </div>
-        </div>
-
-        <aside className="relative mt-4 overflow-hidden bg-black px-6 py-9 text-white sm:px-9 sm:py-12 lg:px-14 lg:py-14">
-          <div className="absolute left-0 top-0 h-full w-1 bg-[#00821A]" />
-          <div className="pointer-events-none absolute -right-6 -top-12 select-none text-[170px] font-black leading-none text-white/[0.045] sm:text-[250px]" aria-hidden="true">05</div>
-          <div className="relative grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <div className="max-w-2xl">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#BFBFBF]">{copy.experience}</p>
-              <h2 className="mt-3 text-3xl font-black uppercase leading-[1.05] tracking-[-0.025em] sm:text-4xl">{copy.experienceTitle}</h2>
-              <p className="mt-4 max-w-xl text-[13px] leading-[1.8] text-white/70">{copy.experienceText}</p>
+        <section className="mt-6 overflow-hidden border border-black/10 bg-black text-white shadow-[0_18px_48px_rgba(0,0,0,0.16)]">
+          <div className="grid grid-cols-1 gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#77d488]">{copy.quest}</p>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-white/70">{copy.questText}</p>
             </div>
-            <Link href={`/grind-until-achieve?lang=${lang}`} className="inline-flex min-h-12 items-center justify-center gap-4 self-end border border-white/60 px-6 py-3 text-[11px] font-black uppercase tracking-[0.12em] text-white transition-colors hover:border-[#00821A] hover:bg-[#00821A]">
-              {copy.discover}<span aria-hidden="true">↗</span>
+            <Link
+              href={`/grind-until-achieve?lang=${lang}`}
+              className="inline-flex min-h-12 items-center justify-center border border-white/20 px-5 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-white transition hover:border-[#00821A] hover:bg-[#00821A]"
+            >
+              {copy.discover}
             </Link>
           </div>
-        </aside>
+        </section>
       </Container>
     </div>
   );

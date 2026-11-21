@@ -143,7 +143,7 @@ const MultilineText = ({ value }: { value?: string }) => {
         <li key={`${line}-${index}`} className="flex gap-2">
           <span
             aria-hidden="true"
-            className="bg-mbg-green mt-[0.58em] h-1 w-1 shrink-0 rounded-full"
+            className="mt-[0.58em] h-1 w-1 shrink-0 rounded-full bg-[#00821A]"
           />
           <span>{line}</span>
         </li>
@@ -160,10 +160,10 @@ const Detail = ({
   children: ReactNode;
 }) => (
   <div>
-    <p className="text-black mb-1 text-[10px] font-bold tracking-[0.09em] uppercase">
+    <p className="mb-1 text-[10px] font-bold tracking-[0.1em] uppercase text-white/92">
       {label}
     </p>
-    <div className="text-[#404040] text-[12px] leading-[1.75] sm:text-[13px]">
+    <div className="text-[12px] leading-[1.8] text-white/68 sm:text-[13px]">
       {children}
     </div>
   </div>
@@ -454,9 +454,9 @@ const ProductAccordion = ({
   return (
     <section
       aria-label={t.ariaLabel}
-      className="w-full border border-black/10 bg-white px-5 sm:px-7"
+      className="bg-mbg-black/3 mt-3 w-full px-4 sm:px-5"
     >
-      <div className="divide-y divide-black/10">
+      <div className="divide-y divide-white/10">
         {visibleItems.map((item) => {
           const isOpen = openId === item.id;
           const contentId = `${item.id}-content`;
@@ -472,13 +472,13 @@ const ProductAccordion = ({
                     current === item.id ? null : item.id,
                   )
                 }
-                className="group flex min-h-14 w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-[#00821A]"
+                className="group flex min-h-14 w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-[#77d488]"
               >
-                <span className="text-black text-[11px] font-bold tracking-[0.08em] uppercase sm:text-[12px]">
+                <span className="text-[11px] font-bold tracking-[0.08em] uppercase text-white sm:text-[12px]">
                   {item.title}
                 </span>
 
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-black/15 bg-[#F4F4F1] text-black transition-colors duration-300 group-hover:border-[#00821A] group-hover:text-[#00821A]">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-white/15 bg-white/5 text-white transition-colors duration-300 group-hover:border-[#00821A] group-hover:text-[#77d488]">
                   <ChevronDown
                     aria-hidden="true"
                     className={`h-3.5 w-3.5 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
