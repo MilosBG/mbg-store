@@ -68,7 +68,6 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
   // If a new product is passed in, show its first available image automatically.
   const activeIndex = Math.max(0, images.indexOf(selectedSrc ?? ""));
   const activeImage = images[activeIndex];
-  const hasImages = images.length > 0;
   const visibleZoom = zoomOpen && !!activeImage;
 
   const resetView = useCallback(() => {

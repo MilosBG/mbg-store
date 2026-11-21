@@ -19,11 +19,138 @@ import { auth } from "@clerk/nextjs/server";
    TYPES
 ========================================================= */
 
+type Language = "en" | "fr";
+
 type PageProps = {
   params: Promise<{
     orderId: string;
   }>;
+  searchParams?: Promise<{
+    lang?: string | string[];
+  }>;
 };
+
+const copy = {
+  en: {
+    heading: "Your order",
+    heroEyebrow: "02 / THE JOURNEY CONTINUES",
+    heroFirst: "A PIECE OF",
+    heroSecond: "YOUR JOURNEY.",
+    heroDescription: "Every order marks a new step. Follow your piece from our workshop to your hands.",
+    heroSignature: "FIVE CHAPTERS. ONE JOURNEY.",
+    allOrders: "All orders",
+    accountRequired: "Account required",
+    signInTitle: "Sign in to view your order",
+    signInText: "Your order information is securely associated with your Milos BG account.",
+    signIn: "Sign in",
+    unavailable: "Order unavailable",
+    notFound: "Order not found",
+    notFoundText: "We couldn’t find this order or it isn’t associated with your account.",
+    viewOrders: "View my orders",
+    orderId: "Order ID",
+    totalAmount: "Total amount",
+    shipping: "Shipping",
+    item: "Item",
+    items: "Items",
+    progress: "THE PATH FORWARD",
+    progressCaption: "A real-time reflection of your order’s current status.",
+    pieces: "YOUR PIECES",
+    itemsInOrder: "The pieces in your story",
+    subtotal: "Subtotal",
+    total: "Order total",
+    includingDelivery: "Including delivery",
+    unitPrice: "Unit price",
+    lineTotal: "Line total",
+    product: "Product",
+    color: "Color",
+    size: "Size",
+    quantity: "Qty",
+    journeyNote: "THE JOURNEY DOESN’T STOP AT DELIVERY.",
+    journeyText: "GRIND. RESILIENCE. CONSISTENCY. FOCUS. ACHIEVE. Every chapter begins with a decision.",
+    discover: "Discover our story",
+    pending: "Awaiting confirmation",
+    processing: "In preparation",
+    shipped: "On the way",
+    delivered: "Delivered",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    refunded: "Refunded",
+    returned: "Returned",
+    receivedMsg: "Your order has been received. The next step begins here.",
+    preparingMsg: "Your order is being prepared. Your journey moves forward.",
+    shippedMsg: "Your order is on the way.",
+    deliveredMsg: "Your order has been delivered.",
+    completedMsg: "Order completed. Thank you for being part of the journey.",
+    cancelledMsg: "This order has been cancelled.",
+    refundedMsg: "This order has been refunded.",
+    returnedMsg: "This order has been returned.",
+    express: "Express delivery",
+    free: "Free delivery",
+    standard: "Standard delivery",
+  },
+  fr: {
+    heading: "Votre commande",
+    heroEyebrow: "02 / L’AVENTURE CONTINUE",
+    heroFirst: "UNE PIÈCE DE",
+    heroSecond: "VOTRE PARCOURS.",
+    heroDescription: "Chaque commande marque une nouvelle étape. Suivez votre pièce de notre atelier jusqu’à vous.",
+    heroSignature: "CINQ CHAPITRES. UN SEUL VOYAGE.",
+    allOrders: "Toutes les commandes",
+    accountRequired: "Compte nécessaire",
+    signInTitle: "Connectez-vous pour consulter votre commande",
+    signInText: "Les informations de cette commande sont associées à votre compte Milos BG.",
+    signIn: "Se connecter",
+    unavailable: "Commande indisponible",
+    notFound: "Commande introuvable",
+    notFoundText: "Nous n’avons pas trouvé cette commande ou elle n’est pas associée à votre compte.",
+    viewOrders: "Voir mes commandes",
+    orderId: "Référence de commande",
+    totalAmount: "Montant total",
+    shipping: "Livraison",
+    item: "Article",
+    items: "Articles",
+    progress: "LE CHEMIN PARCOURU",
+    progressCaption: "Votre commande avance au rythme des statuts réellement enregistrés.",
+    pieces: "VOS PIÈCES",
+    itemsInOrder: "Les pièces de votre histoire",
+    subtotal: "Sous-total",
+    total: "Total de la commande",
+    includingDelivery: "Livraison comprise",
+    unitPrice: "Prix unitaire",
+    lineTotal: "Total de la ligne",
+    product: "Produit",
+    color: "Couleur",
+    size: "Taille",
+    quantity: "Qté",
+    journeyNote: "L’AVENTURE NE S’ARRÊTE PAS À LA LIVRAISON.",
+    journeyText: "GRIND. RESILIENCE. CONSISTENCY. FOCUS. ACHIEVE. Chaque chapitre commence par une décision.",
+    discover: "Découvrir notre histoire",
+    pending: "En attente de validation",
+    processing: "En préparation",
+    shipped: "En livraison",
+    delivered: "Livrée",
+    completed: "Terminée",
+    cancelled: "Annulée",
+    refunded: "Remboursée",
+    returned: "Retournée",
+    receivedMsg: "Votre commande a été reçue. La prochaine étape commence ici.",
+    preparingMsg: "Votre commande est en préparation. Votre parcours se poursuit.",
+    shippedMsg: "Votre commande est en route.",
+    deliveredMsg: "Votre commande a été livrée.",
+    completedMsg: "Commande terminée. Merci de faire partie de l’aventure.",
+    cancelledMsg: "Cette commande a été annulée.",
+    refundedMsg: "Cette commande a été remboursée.",
+    returnedMsg: "Cette commande a été retournée.",
+    express: "Livraison express",
+    free: "Livraison gratuite",
+    standard: "Livraison standard",
+  },
+} as const;
+
+function getLanguage(value: string | string[] | undefined): Language {
+  return value === "fr" || (Array.isArray(value) && value[0] === "fr") ? "fr" : "en";
+}
+
 
 type ResolvedOrder = NonNullable<
   Awaited<ReturnType<typeof getOrderDetails>>
@@ -78,8 +205,12 @@ export async function generateMetadata({
 
 export default async function OrderDetailsPage({
   params,
+  searchParams,
 }: PageProps) {
   const { orderId } = await params;
+  const { lang: requestedLanguage } = (await searchParams) || {};
+  const language = getLanguage(requestedLanguage);
+  const t = copy[language];
 
   const { userId } = await auth();
 
@@ -89,13 +220,12 @@ export default async function OrderDetailsPage({
 
   if (!userId) {
     return (
-      <Container className="mt-8 min-h-[60vh]">
+      <Container className="mt-8 min-h-[60vh] pb-14">
         <div className="mb-6">
-          <H2>Your Order</H2>
+          <H2>{t.heading}</H2>
 
           <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-mbg-black/45">
-            Review your order details and delivery
-            progress.
+            {t.heroDescription}
           </p>
         </div>
 
@@ -109,24 +239,23 @@ export default async function OrderDetailsPage({
             items-center
             justify-center
             border
-            border-mbg-black/10
-            bg-mbg-black/[0.025]
+            border-[#BFBFBF]/65
+            bg-white
             px-6
             py-14
             text-center
           "
         >
-          <span className="mb-4 text-[9px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
-            Account required
+          <span className="mb-4 text-[10px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
+            {t.accountRequired}
           </span>
 
           <h3 className="text-xl font-extrabold uppercase tracking-tight text-mbg-black md:text-2xl">
-            Sign in to view your order
+            {t.signInTitle}
           </h3>
 
           <p className="mt-3 max-w-sm text-[11px] leading-relaxed text-mbg-black/50">
-            Your order information is securely
-            associated with your Milos BG account.
+            {t.signInText}
           </p>
 
           <Link
@@ -149,7 +278,7 @@ export default async function OrderDetailsPage({
               hover:bg-mbg-green
             "
           >
-            Sign In
+            {t.signIn}
           </Link>
         </section>
       </Container>
@@ -171,9 +300,9 @@ export default async function OrderDetailsPage({
 
   if (!orderDetails) {
     return (
-      <Container className="mt-8 min-h-[60vh]">
+      <Container className="mt-8 min-h-[60vh] pb-14">
         <div className="mb-6">
-          <H2>Your Order</H2>
+          <H2>{t.heading}</H2>
         </div>
 
         <Separator className="mb-8 bg-mbg-black" />
@@ -186,28 +315,27 @@ export default async function OrderDetailsPage({
             items-center
             justify-center
             border
-            border-mbg-black/10
-            bg-mbg-black/[0.025]
+            border-[#BFBFBF]/65
+            bg-white
             px-6
             py-14
             text-center
           "
         >
-          <span className="mb-4 text-[9px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
-            Order unavailable
+          <span className="mb-4 text-[10px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
+            {t.unavailable}
           </span>
 
           <h3 className="text-xl font-extrabold uppercase tracking-tight text-mbg-black">
-            Order not found
+            {t.notFound}
           </h3>
 
           <p className="mt-3 max-w-sm text-[11px] leading-relaxed text-mbg-black/50">
-            We couldn&apos;t find this order or it
-            isn&apos;t associated with your account.
+            {t.notFoundText}
           </p>
 
           <Link
-            href="/orders"
+            href={`/orders?lang=${language}`}
             className="
               mt-7
               inline-flex
@@ -226,7 +354,7 @@ export default async function OrderDetailsPage({
               hover:bg-mbg-green
             "
           >
-            View My Orders
+            {t.viewOrders}
           </Link>
         </section>
       </Container>
@@ -313,68 +441,49 @@ export default async function OrderDetailsPage({
   ======================================================= */
 
   return (
-    <Container className="mt-8 min-h-[60vh] pb-16">
-      {/* ===================================================
-          PAGE TOP
-      ==================================================== */}
-
-      <div
-        className="
-          mb-6
-          flex
-          flex-col
-          gap-5
-          sm:flex-row
-          sm:items-end
-          sm:justify-between
-        "
-      >
-        <div>
-          <span className="text-[9px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
-            Order Details
+    <Container className="min-h-[65vh] pb-16 pt-6 font-[Kanit] sm:pt-10">
+      <section className="relative mb-8 overflow-hidden border border-[#BFBFBF]/65 bg-white px-5 py-7 sm:px-9 sm:py-10 lg:px-12 lg:py-11">
+        <span aria-hidden="true" className="pointer-events-none absolute -right-3 -top-12 text-[160px] font-black leading-none tracking-tight text-mbg-black/[0.035] sm:right-8 sm:text-[210px]">02</span>
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.19em] text-mbg-green">
+            <span aria-hidden="true" className="h-px w-7 bg-mbg-green" /> {t.heroEyebrow}
           </span>
-
-          <H2>Your Order</H2>
-
-          <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-mbg-black/40">
-            Follow your order from confirmation
-            to delivery.
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="group" aria-label={language === "fr" ? "Choisir la langue" : "Choose language"} className="flex overflow-hidden rounded-sm border border-mbg-green">
+              {(["en", "fr"] as const).map((option) => (
+                <Link
+                  key={option}
+                  href={`/orders/${encodeURIComponent(orderId)}?lang=${option}`}
+                  aria-current={option === language ? "page" : undefined}
+                  className={`inline-flex min-h-10 min-w-10 items-center justify-center px-3 text-[10px] font-black uppercase transition-colors ${option === language ? "bg-mbg-green text-white" : "bg-white text-mbg-green hover:bg-mbg-green/10"}`}
+                >
+                  {option.toUpperCase()}
+                </Link>
+              ))}
+            </div>
+            <Link
+              href={`/orders?lang=${language}`}
+              className="inline-flex min-h-10 items-center gap-2 rounded-sm border border-mbg-black/20 bg-white px-4 text-[10px] font-bold uppercase tracking-[0.08em] text-mbg-black transition-colors hover:border-mbg-green hover:text-mbg-green"
+            >
+              <span aria-hidden="true">←</span> {t.allOrders}
+            </Link>
+          </div>
         </div>
-
-        <Link
-          href="/orders"
-          className="
-            group
-            inline-flex
-            w-fit
-            items-center
-            gap-2
-            text-[9px]
-            font-extrabold
-            uppercase
-            tracking-[0.18em]
-            text-mbg-black/55
-            transition-colors
-            duration-200
-            hover:text-mbg-green
-          "
-        >
-          <span
-            className="
-              transition-transform
-              duration-300
-              group-hover:-translate-x-1
-            "
-          >
-            ←
-          </span>
-
-          All Orders
-        </Link>
-      </div>
-
-      <Separator className="mb-8 bg-mbg-black" />
+        <div className="relative mt-7 grid gap-7 md:grid-cols-[minmax(0,1fr)_minmax(200px,0.35fr)] md:items-end lg:gap-12">
+          <div>
+            <h1 className="text-[clamp(1.85rem,5.1vw,3.7rem)] font-black uppercase leading-[0.98] tracking-[-0.03em] text-mbg-black">
+              {t.heroFirst}<span className="mt-1 block text-mbg-green">{t.heroSecond}</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-[#404040] sm:text-base">{t.heroDescription}</p>
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.15em] text-mbg-black/55">{t.heroSignature}</p>
+          </div>
+          <div className="border-l-[3px] border-mbg-green bg-mbg-black p-5 text-white sm:p-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/60">{t.orderId}</p>
+            <p className="mt-3 break-all text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">#{orderId}</p>
+            <div className="mt-4 border-t border-white/20 pt-3 text-[10px] font-bold uppercase tracking-[0.1em] text-[#b0d8b7]">{formatStatus(status, language)}</div>
+          </div>
+        </div>
+      </section>
 
       {/* ===================================================
           MAIN ORDER CARD
@@ -384,15 +493,15 @@ export default async function OrderDetailsPage({
         className="
           overflow-hidden
           border
-          border-mbg-black/10
-          bg-[#f2f2f2]
+          border-[#BFBFBF]/65
+          bg-white
         "
       >
         {/* =================================================
             ORDER HEADER
         ================================================== */}
 
-        <header className="px-5 py-6 sm:px-7 lg:px-8">
+        <header className="border-b border-mbg-black/10 px-5 py-6 sm:px-7 lg:px-8">
           <div
             className="
               flex
@@ -404,8 +513,8 @@ export default async function OrderDetailsPage({
             "
           >
             <div className="min-w-0">
-              <p className="text-[8px] font-extrabold uppercase tracking-[0.25em] text-mbg-black/40">
-                Order ID
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-mbg-black/40">
+                {t.orderId}
               </p>
 
               <p
@@ -444,25 +553,21 @@ export default async function OrderDetailsPage({
           "
         >
           <OrderStat
-            label="Total Amount"
-            value={`€ ${formatAmount(
-              totalAmount
-            )}`}
+            label={t.totalAmount}
+            value={formatCurrency(totalAmount, language)}
           />
 
           <OrderStat
-            label="Shipping"
-            value={getShippingLabel(
-              orderDetails.shippingMethod
-            )}
+            label={t.shipping}
+            value={getShippingLabel(orderDetails.shippingMethod, language)}
             border
           />
 
           <OrderStat
             label={
               totalQuantity === 1
-                ? "Item"
-                : "Items"
+                ? t.item
+                : t.items
             }
             value={String(
               totalQuantity
@@ -477,12 +582,12 @@ export default async function OrderDetailsPage({
 
         <div className="px-5 py-7 sm:px-7 sm:py-8 lg:px-8">
           <div className="mb-5 flex items-center justify-between gap-4">
-            <span className="text-[8px] font-extrabold uppercase tracking-[0.25em] text-mbg-black/40">
-              Order Progress
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-mbg-black/40">
+              {t.progress}
             </span>
 
-            <span className="text-[8px] font-extrabold uppercase tracking-[0.18em] text-mbg-green">
-              {formatStatus(status)}
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-mbg-green">
+              {formatStatus(status, language)}
             </span>
           </div>
 
@@ -495,13 +600,13 @@ export default async function OrderDetailsPage({
               mt-7
               border-l-2
               border-mbg-green
-              bg-white/45
+              bg-mbg-green/[0.06]
               px-4
               py-3
             "
           >
             <p className="text-[11px] font-medium leading-relaxed text-mbg-black/65">
-              {getOrderMessage(status)}
+              {getOrderMessage(status, language)}
             </p>
           </div>
         </div>
@@ -520,20 +625,20 @@ export default async function OrderDetailsPage({
             "
           >
             <div>
-              <span className="text-[8px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
-                Your Pieces
+              <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
+                {t.pieces}
               </span>
 
               <h3 className="mt-1 text-base font-extrabold uppercase tracking-tight text-mbg-black">
-                Items in this order
+                {t.itemsInOrder}
               </h3>
             </div>
 
-            <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-mbg-black/40">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-mbg-black/40">
               {totalQuantity}{" "}
               {totalQuantity === 1
-                ? "Item"
-                : "Items"}
+                ? t.item
+                : t.items}
             </span>
           </div>
         </div>
@@ -594,6 +699,7 @@ export default async function OrderDetailsPage({
                     lineTotal={
                       lineTotal
                     }
+                    language={language}
                   />
                 );
               }
@@ -610,7 +716,7 @@ export default async function OrderDetailsPage({
             mt-4
             border-t
             border-mbg-black/10
-            bg-white/40
+            bg-[#BFBFBF]/10
             px-5
             py-7
             sm:px-7
@@ -621,13 +727,15 @@ export default async function OrderDetailsPage({
           <div className="ml-auto w-full sm:max-w-sm">
             <div className="flex flex-col gap-4">
               <PriceRow
-                label="Subtotal"
+                label={t.subtotal}
                 value={subtotal}
+                language={language}
               />
 
               <PriceRow
-                label="Shipping"
+                label={t.shipping}
                 value={shippingAmount}
+                language={language}
               />
             </div>
 
@@ -635,25 +743,35 @@ export default async function OrderDetailsPage({
 
             <div className="flex items-end justify-between gap-5">
               <div>
-                <p className="text-[8px] font-extrabold uppercase tracking-[0.23em] text-mbg-black/40">
-                  Order Total
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.23em] text-mbg-black/40">
+                  {t.total}
                 </p>
 
                 <p className="mt-1 text-[10px] font-medium text-mbg-black/45">
-                  Including delivery
+                  {t.includingDelivery}
                 </p>
               </div>
 
-              <span className="text-xl font-extrabold uppercase tracking-tight text-mbg-green sm:text-2xl">
-                €{" "}
-                {formatAmount(
-                  totalAmount
-                )}
+              <span className="text-xl font-black tracking-tight text-mbg-green sm:text-2xl">
+                {formatCurrency(totalAmount, language)}
               </span>
             </div>
           </div>
         </div>
       </section>
+
+      <aside className="mt-7 border-l-[3px] border-mbg-green bg-mbg-black px-5 py-7 text-white sm:px-9 sm:py-9">
+        <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
+          <div className="max-w-xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/70">GRIND UNTIL ACHIEVE</p>
+            <h2 className="mt-2 text-xl font-black uppercase leading-tight sm:text-2xl">{t.journeyNote}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-white/70">{t.journeyText}</p>
+          </div>
+          <Link href={`/grind-until-achieve?lang=${language}`} className="inline-flex min-h-11 items-center justify-center rounded-sm border border-white/50 px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white transition-colors hover:border-mbg-green hover:bg-mbg-green">
+            {t.discover} <span aria-hidden="true" className="ml-2">↗</span>
+          </Link>
+        </div>
+      </aside>
 
       {/* ===================================================
           BOTTOM NAVIGATION
@@ -661,13 +779,13 @@ export default async function OrderDetailsPage({
 
       <div className="mt-6">
         <Link
-          href="/orders"
+          href={`/orders?lang=${language}`}
           className="
             group
             inline-flex
             items-center
             gap-3
-            text-[9px]
+            text-[10px]
             font-extrabold
             uppercase
             tracking-[0.18em]
@@ -687,7 +805,7 @@ export default async function OrderDetailsPage({
             ←
           </span>
 
-          Back to Orders
+          {t.allOrders}
         </Link>
       </div>
     </Container>
@@ -703,19 +821,22 @@ function OrderProduct({
   unitPrice,
   quantity,
   lineTotal,
+  language,
 }: {
   orderItem: OrderLine;
   unitPrice: number;
   quantity: number;
   lineTotal: number;
+  language: Language;
 }) {
+  const t = copy[language];
   const image =
     orderItem.product?.media?.[0] ||
     FALLBACK_IMAGE;
 
   const title =
     orderItem.product?.title ||
-    "Product";
+    t.product;
 
   return (
     <div
@@ -738,7 +859,7 @@ function OrderProduct({
           items-center
           justify-center
           overflow-hidden
-          bg-white
+          bg-[#BFBFBF]/10
           sm:h-[115px]
           sm:w-[115px]
         "
@@ -765,8 +886,8 @@ function OrderProduct({
         "
       >
         <div>
-          <p className="text-[8px] font-extrabold uppercase tracking-[0.22em] text-mbg-black/35">
-            Product
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-mbg-black/35">
+            {t.product}
           </p>
 
           <h4
@@ -789,7 +910,7 @@ function OrderProduct({
           <div className="mt-3 flex flex-wrap gap-2">
             {orderItem.color && (
               <ProductAttribute
-                label="Color"
+                label={t.color}
                 value={
                   orderItem.color
                 }
@@ -798,19 +919,15 @@ function OrderProduct({
 
             {orderItem.size && (
               <ProductAttribute
-                label="Size"
+                label={t.size}
                 value={
                   orderItem.size
                 }
               />
             )}
 
-            {orderItem.productionType === "ON_REQUEST" && (
-              <ProductAttribute label="Production" value="Made to order" />
-            )}
-
             <ProductAttribute
-              label="Qty"
+              label={t.quantity}
               value={String(
                 quantity
               )}
@@ -830,28 +947,22 @@ function OrderProduct({
           "
         >
           <div>
-            <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-mbg-black/35">
-              Unit Price
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-mbg-black/35">
+              {t.unitPrice}
             </p>
 
             <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.1em] text-mbg-black/65">
-              €{" "}
-              {formatAmount(
-                unitPrice
-              )}
+              {formatCurrency(unitPrice, language)}
             </p>
           </div>
 
           <div className="text-right">
-            <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-mbg-black/35">
-              Line Total
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-mbg-black/35">
+              {t.lineTotal}
             </p>
 
             <p className="mt-1 text-xs font-extrabold uppercase tracking-[0.08em] text-mbg-green">
-              €{" "}
-              {formatAmount(
-                lineTotal
-              )}
+              {formatCurrency(lineTotal, language)}
             </p>
           </div>
         </div>
@@ -879,10 +990,10 @@ function ProductAttribute({
         gap-1.5
         border
         border-mbg-black/10
-        bg-white/60
+        bg-[#BFBFBF]/10
         px-2
         py-1.5
-        text-[8px]
+        text-[10px]
         font-bold
         uppercase
         tracking-[0.13em]
@@ -930,7 +1041,7 @@ function OrderStat({
         }
       `}
     >
-      <p className="text-[8px] font-extrabold uppercase tracking-[0.22em] text-mbg-black/40">
+      <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-mbg-black/40">
         {label}
       </p>
 
@@ -948,9 +1059,11 @@ function OrderStat({
 function PriceRow({
   label,
   value,
+  language,
 }: {
   label: string;
   value: number;
+  language: Language;
 }) {
   return (
     <div className="flex items-center justify-between gap-5">
@@ -959,7 +1072,7 @@ function PriceRow({
       </span>
 
       <span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-mbg-black">
-        € {formatAmount(value)}
+        {formatCurrency(value, language)}
       </span>
     </div>
   );
@@ -969,80 +1082,53 @@ function PriceRow({
    ORDER STATUS MESSAGE
 ========================================================= */
 
-function getOrderMessage(
-  status: string
-): string {
+function getOrderMessage(status: string, language: Language): string {
+  const t = copy[language];
   switch (status) {
     case "PROCESSING":
-      return "We're preparing your order.";
-
+    case "CONFIRMED":
+    case "PACKED":
+      return t.preparingMsg;
     case "SHIPPED":
-      return "Your order is on the way.";
-
-    case "DELIVERED":
-      return "Your order has been delivered.";
-
-    case "COMPLETED":
-      return "Order completed. Thank you!";
-
+    case "OUT_FOR_DELIVERY":
+      return t.shippedMsg;
+    case "DELIVERED": return t.deliveredMsg;
+    case "COMPLETED": return t.completedMsg;
     case "CANCELLED":
-      return "This order has been cancelled.";
-
-    case "REFUNDED":
-      return "This order has been refunded.";
-
-    default:
-      return "Your order has been received.";
+    case "CANCELED": return t.cancelledMsg;
+    case "REFUNDED": return t.refundedMsg;
+    case "RETURNED": return t.returnedMsg;
+    default: return t.receivedMsg;
   }
 }
 
-/* =========================================================
-   STATUS DISPLAY
-========================================================= */
-
-function formatStatus(
-  status: string
-): string {
-  return status
-    .replaceAll("_", " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) =>
-      letter.toUpperCase()
-    );
+function formatStatus(status: string, language: Language): string {
+  const t = copy[language];
+  switch (status) {
+    case "PENDING": return t.pending;
+    case "PROCESSING":
+    case "CONFIRMED":
+    case "PACKED": return t.processing;
+    case "SHIPPED":
+    case "OUT_FOR_DELIVERY": return t.shipped;
+    case "DELIVERED": return t.delivered;
+    case "COMPLETED": return t.completed;
+    case "CANCELLED":
+    case "CANCELED": return t.cancelled;
+    case "REFUNDED": return t.refunded;
+    case "RETURNED": return t.returned;
+    default:
+      return status.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
 }
 
-/* =========================================================
-   SHIPPING METHOD
-========================================================= */
-
-function getShippingLabel(
-  shippingMethod?: string
-): string {
-  const method = String(
-    shippingMethod || ""
-  )
-    .trim()
-    .toUpperCase();
-
-  switch (method) {
-    case "EXPRESS":
-    case "EXPRESS_DELIVERY":
-      return "Express Delivery";
-
-    case "FREE":
-    case "FREE_DELIVERY":
-      return "Free Delivery";
-
-    case "STANDARD":
-    case "STANDARD_DELIVERY":
-      return "Standard Delivery";
-
-    default:
-      return (
-        shippingMethod ||
-        "Standard Delivery"
-      );
-  }
+function getShippingLabel(shippingMethod: string | undefined, language: Language): string {
+  const method = String(shippingMethod || "").trim().toUpperCase();
+  const t = copy[language];
+  if (method.includes("EXPRESS")) return t.express;
+  if (method.includes("FREE")) return t.free;
+  if (method.includes("STANDARD") || !method) return t.standard;
+  return shippingMethod || t.standard;
 }
 
 /* =========================================================
@@ -1081,21 +1167,11 @@ function resolveShippingAmount({
    MONEY FORMAT
 ========================================================= */
 
-function formatAmount(
-  value: unknown
-): string {
-  const numeric =
-    typeof value === "number"
-      ? value
-      : Number(value ?? 0);
-
-  if (
-    !Number.isFinite(
-      numeric
-    )
-  ) {
-    return "0.00";
-  }
-
-  return numeric.toFixed(2);
+function formatCurrency(value: unknown, language: Language): string {
+  const numeric = Number(value ?? 0);
+  if (!Number.isFinite(numeric)) return "—";
+  return new Intl.NumberFormat(language === "fr" ? "fr-FR" : "en-GB", {
+    style: "currency",
+    currency: "EUR",
+  }).format(numeric);
 }

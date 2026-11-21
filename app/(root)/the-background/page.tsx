@@ -254,7 +254,8 @@ const AboutUs = () => {
               </p>
               <blockquote className="border-l-[3px] border-mbg-green bg-mbg-white/[0.035] px-5 py-5 text-base font-semibold leading-8 text-mbg-white sm:text-lg">
                 “Achievement is not a single moment. It is the result of what we repeatedly choose to do when nobody is watching.”
-
+                <br />
+                <br />
                 <text className="text-mbg-darkgrey">Gamil BEN. A</text>
               </blockquote>
             </div>

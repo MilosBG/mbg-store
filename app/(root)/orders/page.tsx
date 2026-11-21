@@ -7,7 +7,6 @@ import {
 import { buildMetadata } from "@/lib/seo";
 
 import OrdersClient, { type OrdersClientError } from "./OrdersClient";
-import Container from "@/components/mbg-components/Container";
 
 export const metadata = buildMetadata({
   title: "Orders",
@@ -47,12 +46,10 @@ export default async function Orders() {
   }
 
   return (
-    <Container className="pb-10">
-      <OrdersClient
-        orders={orders}
-        error={error}
-        requiresSignIn={!userId}
-      />
-    </Container>
+    <OrdersClient
+      orders={orders}
+      error={error}
+      requiresSignIn={!userId}
+    />
   );
 }

@@ -3,13 +3,18 @@
 
 import BasketBall from "@/components/mbg-components/BasketBall";
 import BasketBallAnimation from "@/components/mbg-components/BasketBallAnimation";
-import Button from "@/components/mbg-components/Button";
 import useCart from "@/lib/hooks/useCart";
 import type { StoreLanguage } from "@/lib/store-language";
 import type { Product } from "@/lib/types";
-import { getLocalizedProductText } from "@/lib/product-localization";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, Mail, Ruler, ChevronDown } from "lucide-react";
+
+type LocalizedProduct = Product & {
+  titleFr?: string;
+  descriptionFr?: string;
+  categoryFr?: string;
+};
 
 type ProductInfoProps = {
   productInfo: Product;
@@ -27,7 +32,32 @@ const COPY = {
     variantStock: "Variant stock",
     outOfStock: "Out of stock",
     quantity: "Quantity",
-    shoot: "Shoot",
+    shoot: "ADD TO THE HOOP",
+    selectOptions: "CHOOSE YOUR OPTIONS",
+    discover: "A piece of the journey",
+    caption: "GRIND UNTIL ACHIEVE · BUILT WITH INTENTION",
+    colorPrompt: "Select your color",
+    sizePrompt: "Find your fit",
+    standardSizes: "Core artisan sizes · M / L / S",
+    sizeRequestTitle: "YOUR JOURNEY. YOUR SIZE.",
+    sizeRequestSub: "Need another size? Ask our atelier about a custom fit.",
+    requestButton: "REQUEST A SPECIFIC SIZE",
+    requestedSize: "Desired size",
+    sizeChoose: "Choose a size",
+    sizeOther: "Other / exact measurements",
+    specifySize: "Specify the size or measurements",
+    notes: "Additional details (optional)",
+    notesPlaceholder: "Measurements, desired fit, or any useful information...",
+    emailRequest: "PREPARE MY EMAIL",
+    emailMissing: "Choose a size to prepare your email.",
+    requestNotice: "This is an inquiry, not an order. Availability, price and lead time are confirmed by email.",
+    copyEmail: "Or write directly to",
+    selected: "Selected",
+    unavailable: "Unavailable",
+    sizesReminder: "Other sizes are available on request, not as standard stock.",
+    countLabel: "Choose your quantity",
+    shopStage: "02 / MAKE YOUR CHOICE",
+    beginning: "A small decision. A step forward.",
     emptyStock: "Empty stock",
     stock: "Stock",
     onlyLeft: (stock: number) => `Only ${stock} left`,
@@ -42,7 +72,32 @@ const COPY = {
     variantStock: "Stock de la variante",
     outOfStock: "Rupture de stock",
     quantity: "Quantité",
-    shoot: "Shooter",
+    shoot: "AJOUTER AU PANIER",
+    selectOptions: "CHOISISSEZ VOS OPTIONS",
+    discover: "Une pièce de votre parcours",
+    caption: "GRIND UNTIL ACHIEVE · FAIT AVEC INTENTION",
+    colorPrompt: "Choisissez votre couleur",
+    sizePrompt: "Trouvez votre taille",
+    standardSizes: "Tailles artisanales standards · M / L / S",
+    sizeRequestTitle: "VOTRE PARCOURS. VOTRE TAILLE.",
+    sizeRequestSub: "Une autre taille ? Contactez notre atelier pour une demande spécifique.",
+    requestButton: "DEMANDER UNE TAILLE SPÉCIFIQUE",
+    requestedSize: "Taille souhaitée",
+    sizeChoose: "Choisir une taille",
+    sizeOther: "Autre / mensurations exactes",
+    specifySize: "Précisez la taille ou vos mensurations",
+    notes: "Précisions complémentaires (facultatif)",
+    notesPlaceholder: "Mensurations, coupe souhaitée, informations utiles...",
+    emailRequest: "PRÉPARER MON E-MAIL",
+    emailMissing: "Choisissez une taille pour préparer votre e-mail.",
+    requestNotice: "Il s'agit d'une demande, pas d'une commande. Disponibilité, prix et délai sont confirmés par e-mail.",
+    copyEmail: "Ou écrivez directement à",
+    selected: "Sélectionnée",
+    unavailable: "Indisponible",
+    sizesReminder: "Les autres tailles se demandent par e-mail et ne constituent pas du stock standard.",
+    countLabel: "Choisissez la quantité",
+    shopStage: "02 / FAITES VOTRE CHOIX",
+    beginning: "Une décision. Un pas de plus.",
     emptyStock: "Stock épuisé",
     stock: "Stock",
     onlyLeft: (stock: number) => `Plus que ${stock} en stock`,
@@ -54,9 +109,6 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
 
   // Live copy of the product for real-time stock updates
   const [product, setProduct] = useState<Product>(productInfo);
-
-  // Keep server-rendered translations in sync when switching ?lang=en/fr.
-  useEffect(() => setProduct(productInfo), [productInfo]);
 
   // Poll product details; pause when tab hidden and refresh on focus
   useEffect(() => {
@@ -99,14 +151,9 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
             variants: (prev as any)?.variants ?? null,
             price: (prev as any)?.price ?? null,
             updatedAt: (prev as any)?.updatedAt ?? null,
-            title: prev.title,
-            description: prev.description,
-            category: prev.category,
-            commerceInfo: prev.commerceInfo ?? null,
-            commerceInfoFr: prev.commerceInfoFr ?? null,
-            titleFr: prev.titleFr ?? null,
-            descriptionFr: prev.descriptionFr ?? null,
-            categoryFr: prev.categoryFr ?? null,
+            titleFr: (prev as any)?.titleFr ?? null,
+            descriptionFr: (prev as any)?.descriptionFr ?? null,
+            categoryFr: (prev as any)?.categoryFr ?? null,
           });
 
           const nextKey = JSON.stringify({
@@ -114,14 +161,9 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
             variants: (fresh as any)?.variants ?? null,
             price: (fresh as any)?.price ?? null,
             updatedAt: (fresh as any)?.updatedAt ?? null,
-            title: fresh.title,
-            description: fresh.description,
-            category: fresh.category,
-            commerceInfo: fresh.commerceInfo ?? null,
-            commerceInfoFr: fresh.commerceInfoFr ?? null,
-            titleFr: fresh.titleFr ?? null,
-            descriptionFr: fresh.descriptionFr ?? null,
-            categoryFr: fresh.categoryFr ?? null,
+            titleFr: (fresh as any)?.titleFr ?? null,
+            descriptionFr: (fresh as any)?.descriptionFr ?? null,
+            categoryFr: (fresh as any)?.categoryFr ?? null,
           });
 
           if (prevKey !== nextKey) return { ...prev, ...fresh } as Product;
@@ -166,9 +208,19 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
     };
   }, [productInfo._id]);
 
-  const productTitle = getLocalizedProductText(product, "title", lang);
-  const productDescription = getLocalizedProductText(product, "description", lang);
-  const productCategory = getLocalizedProductText(product, "category", lang);
+  const localizedProduct = product as LocalizedProduct;
+  const productTitle =
+    lang === "fr"
+      ? localizedProduct.titleFr?.trim() || product.title
+      : product.title;
+  const productDescription =
+    lang === "fr"
+      ? localizedProduct.descriptionFr?.trim() || product.description
+      : product.description;
+  const productCategory =
+    lang === "fr"
+      ? localizedProduct.categoryFr?.trim() || product.category
+      : product.category;
 
   const variants = (product as any)?.variants as
     | Array<{ color?: string; size?: string; stock: number }>
@@ -181,6 +233,21 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
   const sizesArr = Array.isArray((product as any)?.sizes)
     ? ((product as any).sizes as string[])
     : [];
+
+  // Standard atelier sizes are displayed in the requested M / L / S order.
+  // Other sizes are handled through the email inquiry rather than cart stock.
+  const STANDARD_SIZES = ["M", "L", "S"] as const;
+  const orderedSizes = STANDARD_SIZES.filter((size) =>
+    sizesArr.some((stored) => stored.trim().toUpperCase() === size),
+  );
+  const hasStandardSizeChoice = sizesArr.length > 0;
+  const isStandardSize = (size: string) =>
+    STANDARD_SIZES.some((standard) => standard === size.trim().toUpperCase());
+
+  const [customRequestOpen, setCustomRequestOpen] = useState(false);
+  const [requestedSize, setRequestedSize] = useState("");
+  const [specificSize, setSpecificSize] = useState("");
+  const [requestNotes, setRequestNotes] = useState("");
 
   // Require explicit user selection when options exist
   const pickDefaults = () => {
@@ -210,7 +277,10 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
     }
 
     return variants
-      .filter((item) => (item.color ?? "") === color)
+      .filter((item) =>
+        (item.color ?? "") === color &&
+        (!hasStandardSizeChoice || isStandardSize(item.size ?? "")),
+      )
       .reduce((total, item) => total + Number(item?.stock ?? 0), 0);
   };
 
@@ -290,6 +360,7 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
       | undefined;
 
     const hasVariants = Array.isArray(vars) && vars.length > 0;
+    if (hasStandardSizeChoice && size && !isStandardSize(size)) return 0;
     const needsColor = hasVariants && colorsArr.length > 0;
     const needsSize = hasVariants && sizesArr.length > 0;
 
@@ -323,6 +394,11 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
     return Number((product as any)?.countInStock ?? 0);
   })();
 
+  const standardStock = hasStandardSizeChoice && Array.isArray(variants) && variants.length > 0
+    ? variants
+        .filter((variant) => isStandardSize(variant.size ?? ""))
+        .reduce((sum, variant) => sum + Number(variant.stock ?? 0), 0)
+    : totalStock;
   const currentStock = selectStock(selectedColor, selectedSize);
   const [quantity, setQuantity] = useState<number>(currentStock > 0 ? 1 : 0);
 
@@ -342,217 +418,242 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
     end: DOMRect;
   } | null>(null);
 
+  const requestedCustomSize = requestedSize === "OTHER"
+    ? specificSize.trim()
+    : requestedSize;
+  const mailSubject = lang === "fr"
+    ? `Demande de taille spécifique — ${productTitle}`
+    : `Custom size inquiry — ${productTitle}`;
+  const mailBody = lang === "fr"
+    ? [
+        "Bonjour Milos BG,",
+        "",
+        "Je souhaite me renseigner sur une taille spécifique pour cette pièce.",
+        `Produit : ${productTitle}`,
+        `Lien : https://milos-bg.com/products/${encodeURIComponent(product.slug || product._id)}?lang=fr`,
+        `Taille demandée : ${requestedCustomSize}`,
+        `Couleur souhaitée : ${selectedColor || "à préciser"}`,
+        `Précisions : ${requestNotes.trim() || "aucune"}`,
+        "",
+        "Pouvez-vous m'indiquer les possibilités, le prix et le délai ?",
+        "Merci !",
+      ].join("\n")
+    : [
+        "Hello Milos BG,",
+        "",
+        "I'd like to ask about a custom size for this piece.",
+        `Product: ${productTitle}`,
+        `Link: https://milos-bg.com/products/${encodeURIComponent(product.slug || product._id)}?lang=en`,
+        `Requested size: ${requestedCustomSize}`,
+        `Preferred color: ${selectedColor || "to confirm"}`,
+        `Details: ${requestNotes.trim() || "none"}`,
+        "",
+        "Could you confirm feasibility, pricing and lead time?",
+        "Thank you!",
+      ].join("\n");
+  const mailHref = requestedCustomSize
+    ? `mailto:contact@milos-bg.com?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`
+    : "";
+  const needsSelection =
+    (colorsArr.length > 0 && !selectedColor) ||
+    (orderedSizes.length > 0 && !selectedSize);
+  const canAddToCart = currentStock > 0 && quantity > 0 && !needsSelection;
+  const productCurrency = Number.isFinite(Number(product.price))
+    ? new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "en-IE", {
+        style: "currency", currency: "EUR", maximumFractionDigits: 2,
+      }).format(Number(product.price))
+    : "—";
+
   return (
-    <div className="w-full md:w-full flex flex-col gap-4 bg-mbg-green/7 px-7 py-4">
-      <div className="flex items-center justify-between border-b border-mbg-green pb-1">
-        <p className="text-xl font-bold uppercase text-mbg-black">
-          {productTitle}
-        </p>
-        <BasketBall product={product} />
-      </div>
-
-      <p className="font-bold text-lg text-mbg-green">€ {product.price}</p>
-
-      <div className="flex gap-2 border-b border-t py-2 border-mbg-green">
-        <p className="uppercase text-[11px] font-semibold">{t.category}</p>
-        <p className="uppercase text-[11px] font-semibold text-mbg-green">
-          {productCategory}
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <p className="uppercase text-[11px] font-semibold">{t.description}</p>
-        <p className="uppercase text-[11px] font-semibold text-mbg-green">
-          {productDescription}
-        </p>
-      </div>
-
-      {colorsArr.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <p className="uppercase text-[11px] font-semibold">{t.colors}</p>
-
-          <div className="flex gap-2 flex-wrap">
-            {colorsArr.map((color) => {
-              const colorStock = stockForColor(color);
-              const disabled = colorStock <= 0;
-
-              return (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => !disabled && handleSelectColor(color)}
-                  aria-pressed={selectedColor === color}
-                  disabled={disabled}
-                  className={`px-2 py-0.5 rounded-xs text-[10px] uppercase border font-semibold transition ${
-                    selectedColor === color
-                      ? "bg-mbg-black text-mbg-green border-mbg-black"
-                      : "text-mbg-black border-mbg-black"
-                  } ${
-                    disabled
-                      ? "opacity-40 cursor-not-allowed"
-                      : "cursor-pointer hover:bg-mbg-black/7"
-                  }`}
-                  title={
-                    Array.isArray(variants) && variants.length > 0
-                      ? `${t.stock}: ${colorStock}`
-                      : undefined
-                  }
-                >
-                  {color}
-                  {Array.isArray(variants) && variants.length > 0 && (
-                    <span className="ml-1 text-[9px] text-mbg-green">
-                      ({colorStock})
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {sizesArr.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <p className="uppercase text-[11px] font-semibold">{t.sizes}</p>
-
-          <div className="flex gap-2 flex-wrap">
-            {sizesArr.map((size) => {
-              const sizeStock = stockForSize(size);
-              const disabled = sizeStock <= 0;
-
-              return (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => !disabled && handleSelectSize(size)}
-                  aria-pressed={selectedSize === size}
-                  disabled={disabled}
-                  className={`px-2 py-0.5 rounded-xs text-[10px] uppercase border font-semibold transition ${
-                    selectedSize === size
-                      ? "bg-mbg-black text-mbg-green border-mbg-black"
-                      : "text-mbg-black border-mbg-black"
-                  } ${
-                    disabled
-                      ? "opacity-40 cursor-not-allowed"
-                      : "cursor-pointer hover:bg-mbg-black/7"
-                  }`}
-                  title={
-                    Array.isArray(variants) && variants.length > 0
-                      ? `${t.stock}: ${sizeStock}`
-                      : undefined
-                  }
-                >
-                  {size}
-                  {Array.isArray(variants) && variants.length > 0 && (
-                    <span className="ml-1 text-[9px] text-mbg-green">
-                      ({sizeStock})
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <Link
-            href={`/size-guide?lang=${lang}`}
-            className="mbg-link text-[10px]"
-          >
-            {t.sizeGuide}
-          </Link>
-        </div>
-      )}
-
-      <p className="text-[11px] uppercase font-semibold">
-        {totalStock > 0 ? (
-          <>
-            <span>
-              {t.totalStock}: {totalStock}
-            </span>
-
-            {Array.isArray(variants) && variants.length > 0 && (
-              <span className="text-mbg-green">
-                {" • "}
-                {t.variantStock}: {currentStock}
-              </span>
+    <section className="relative overflow-hidden border border-black/10 bg-white font-[Kanit,sans-serif] shadow-[0_18px_55px_rgba(0,0,0,0.035)]">
+      <div className="h-1 w-full bg-[#00821A]" />
+      <div className="p-5 sm:p-7 lg:p-8">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="min-w-0 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.21em] text-[#00821A]">{t.discover}</p>
+            <h2 className="text-3xl font-bold uppercase leading-[0.98] tracking-[-0.025em] text-black sm:text-[2.5rem]">
+              {productTitle}
+            </h2>
+            {productCategory && (
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#404040]">
+                {t.category} <span className="ml-2 text-[#00821A]">/ {productCategory}</span>
+              </p>
             )}
-          </>
-        ) : (
-          <span className="text-red-600">{t.outOfStock}</span>
+          </div>
+          <div className="shrink-0 border border-black/10 p-2 text-[#00821A]"><BasketBall product={product} /></div>
+        </div>
+        <div className="mb-5 flex items-center justify-between gap-3 border-y border-black/10 py-4">
+          <p className="text-2xl font-bold tracking-tight text-[#00821A] sm:text-3xl">{productCurrency}</p>
+          <span className="max-w-[48%] text-right text-[9px] font-semibold uppercase leading-relaxed tracking-[0.12em] text-[#404040]">
+            {t.caption}
+          </span>
+        </div>
+
+        {productDescription && (
+          <div className="mb-7 border-l-2 border-[#00821A] pl-4">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/50">{t.description}</p>
+            <p className="whitespace-pre-line text-[13px] leading-[1.75] text-[#404040] sm:text-sm">{productDescription}</p>
+          </div>
         )}
-      </p>
 
-      <div className="flex flex-col gap-2">
-        <p className="uppercase text-[11px] font-semibold">{t.quantity}</p>
+        <div className="mb-4 flex items-center justify-between border-b border-black/10 pb-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black">{t.shopStage}</p>
+          <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-black/50">{t.beginning}</span>
+        </div>
 
-        <div className="flex gap-3 items-center">
-          <button
-            type="button"
-            aria-label={lang === "fr" ? "Diminuer la quantité" : "Decrease quantity"}
-            disabled={quantity <= 1}
-            onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-            className="mbg-p-center bg-mbg-black/7 py-1 px-3 font-bold hover:bg-mbg-green hover:text-mbg-white hoverEffect rounded-xs cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            -
+        {colorsArr.length > 0 && (
+          <fieldset className="mb-6 min-w-0 space-y-3">
+            <legend className="text-[11px] font-bold uppercase tracking-[0.1em] text-black">{t.colorPrompt}</legend>
+            <div className="flex flex-wrap gap-2">
+              {colorsArr.map((color) => {
+                const stock = stockForColor(color);
+                const disabled = stock <= 0;
+                const active = selectedColor === color;
+                return (
+                  <button key={color} type="button" aria-pressed={active} disabled={disabled}
+                    title={`${color} · ${t.stock}: ${stock}`}
+                    onClick={() => handleSelectColor(color)}
+                    className={`min-h-10 rounded-sm border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.055em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] ${active ? "border-black bg-black text-white" : "border-black/20 bg-[#F5F5F2] text-black hover:border-[#00821A]"} ${disabled ? "cursor-not-allowed opacity-35" : ""}`}>
+                    {color}<span className={`ml-2 text-[9px] ${active ? "text-[#BFBFBF]" : "text-[#00821A]"}`}>{stock}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        )}
+
+        {orderedSizes.length > 0 && (
+          <fieldset className="mb-3 min-w-0 space-y-3">
+            <legend className="text-[11px] font-bold uppercase tracking-[0.1em] text-black">{t.sizePrompt}</legend>
+            <div className="flex flex-wrap items-center gap-2">
+              {orderedSizes.map((size) => {
+                const stock = stockForSize(size);
+                const disabled = stock <= 0;
+                const active = selectedSize.toUpperCase() === size;
+                return (
+                  <button key={size} type="button" aria-pressed={active} disabled={disabled}
+                    onClick={() => handleSelectSize(sizesArr.find((stored) => stored.toUpperCase() === size) || size)}
+                    className={`min-h-11 min-w-14 rounded-sm border px-4 text-[12px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] ${active ? "border-[#00821A] bg-[#00821A] text-white" : "border-black/20 bg-white text-black hover:border-[#00821A]"} ${disabled ? "cursor-not-allowed opacity-35" : ""}`}>
+                    {size}
+                  </button>
+                );
+              })}
+              <Link href={`/size-guide?lang=${lang}`} className="ml-auto min-h-11 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#00821A] underline underline-offset-4 hover:text-black">
+                <Ruler size={14} aria-hidden="true" />{t.sizeGuide}
+              </Link>
+            </div>
+            <p className="text-[10px] text-[#404040]">{t.standardSizes}</p>
+          </fieldset>
+        )}
+
+        <div className="my-6 border border-[#00821A]/25 bg-[#F4F7F3]">
+          <button type="button" aria-expanded={customRequestOpen} aria-controls="mbg-custom-size-panel"
+            onClick={() => setCustomRequestOpen((current) => !current)}
+            className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-[#EAF2E9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A]">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#00821A] text-white"><Ruler size={19} aria-hidden="true" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[11px] font-black uppercase tracking-[0.07em] text-black">{t.sizeRequestTitle}</span>
+              <span className="mt-1 block text-[11px] leading-relaxed text-[#404040]">{t.sizeRequestSub}</span>
+            </span>
+            <ChevronDown size={17} className={`shrink-0 text-[#00821A] transition-transform duration-300 ${customRequestOpen ? "rotate-180" : ""}`} aria-hidden="true" />
           </button>
+          {customRequestOpen && (
+            <div id="mbg-custom-size-panel" className="space-y-4 border-t border-[#00821A]/20 p-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-black">{t.requestedSize}</span>
+                  <select value={requestedSize} onChange={(event) => setRequestedSize(event.target.value)}
+                    className="min-h-11 w-full rounded-sm border border-black/20 bg-white px-3 text-xs text-black focus:border-[#00821A] focus:outline-none">
+                    <option value="">{t.sizeChoose}</option>
+                    <option value="XS">XS</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                    <option value="3XL">3XL</option>
+                    <option value="OTHER">{t.sizeOther}</option>
+                  </select>
+                </label>
+                {requestedSize === "OTHER" && (
+                  <label className="block space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-black">{t.specifySize}</span>
+                    <input value={specificSize} maxLength={100} onChange={(event) => setSpecificSize(event.target.value)}
+                      className="min-h-11 w-full rounded-sm border border-black/20 bg-white px-3 text-xs focus:border-[#00821A] focus:outline-none"
+                      placeholder={lang === "fr" ? "Ex. 4XL, tour de poitrine..." : "E.g. 4XL, chest measurement..."} />
+                  </label>
+                )}
+              </div>
+              <label className="block space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wide text-black">{t.notes}</span>
+                <textarea value={requestNotes} maxLength={1000} rows={3} onChange={(event) => setRequestNotes(event.target.value)}
+                  placeholder={t.notesPlaceholder}
+                  className="w-full resize-y rounded-sm border border-black/20 bg-white px-3 py-2 text-xs leading-relaxed text-black focus:border-[#00821A] focus:outline-none" />
+              </label>
+              {mailHref ? (
+                <a href={mailHref} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm bg-black px-4 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-white transition-colors hover:bg-[#00821A] sm:w-auto">
+                  <Mail size={15} aria-hidden="true" />{t.emailRequest}<ArrowUpRight size={15} aria-hidden="true" />
+                </a>
+              ) : (
+                <button type="button" disabled className="inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center gap-2 rounded-sm bg-black/30 px-4 py-3 text-[11px] font-bold uppercase text-white sm:w-auto">
+                  <Mail size={15} aria-hidden="true" />{t.emailRequest}
+                </button>
+              )}
+              <p className="text-[11px] leading-relaxed text-[#404040]">{t.requestNotice}</p>
+              <p className="text-[10px] text-[#404040]">{t.copyEmail} <a className="font-semibold text-[#00821A] underline underline-offset-2" href="mailto:contact@milos-bg.com">contact@milos-bg.com</a></p>
+            </div>
+          )}
+        </div>
 
-          <p className="font-bold text-[11px] text-mbg-green">{quantity}</p>
-
-          <button
-            type="button"
-            aria-label={lang === "fr" ? "Augmenter la quantité" : "Increase quantity"}
-            disabled={currentStock <= 0 || quantity >= currentStock}
-            onClick={() => setQuantity(Math.min(quantity + 1, currentStock))}
-            className="mbg-p-center bg-mbg-black/7 py-1 px-3 font-bold hover:bg-mbg-green hover:text-mbg-white hoverEffect rounded-xs cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            +
+        <div className="space-y-4 border-t border-black/10 pt-5">
+          <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#404040]">
+            {standardStock > 0 ? (
+              <>{t.totalStock}: <span className="text-black">{standardStock}</span>
+                {selectedSize && selectedColor && (
+                  <span className="ml-2 text-[#00821A]">· {t.variantStock}: {currentStock}</span>
+                )}
+              </>
+            ) : <span className="text-[#a12e2e]">{t.outOfStock}</span>}
+          </p>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-black">{t.countLabel}</p>
+              <div className="inline-flex h-11 items-center border border-black/15 bg-[#F5F5F2]">
+                <button type="button" aria-label={lang === "fr" ? "Diminuer la quantité" : "Decrease quantity"}
+                  disabled={quantity <= 1} onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                  className="h-11 w-11 text-lg text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-30">−</button>
+                <output aria-live="polite" className="min-w-10 text-center text-sm font-bold tabular-nums text-black">{quantity}</output>
+                <button type="button" aria-label={lang === "fr" ? "Augmenter la quantité" : "Increase quantity"}
+                  disabled={currentStock <= 0 || quantity >= currentStock} onClick={() => setQuantity((prev) => Math.min(prev + 1, currentStock))}
+                  className="h-11 w-11 text-lg text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-30">+</button>
+              </div>
+            </div>
+            {currentStock > 0 && currentStock <= 5 && !needsSelection && (
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#00821A]">{t.onlyLeft(currentStock)}</span>
+            )}
+          </div>
+          <button ref={shootBtnRef} type="button" disabled={!canAddToCart} aria-disabled={!canAddToCart}
+            onClick={() => {
+              if (!canAddToCart) return;
+              const start = shootBtnRef.current?.getBoundingClientRect();
+              const end = document.getElementById("basket-icon")?.getBoundingClientRect();
+              if (start && end) {
+                setAnimationData({ start, end });
+                window.setTimeout(() => {
+                  cart.addItem({ item: product, quantity, color: selectedColor, size: selectedSize });
+                }, 800);
+              } else {
+                // Avoid silently losing a cart action when the basket icon is hidden on mobile.
+                cart.addItem({ item: product, quantity, color: selectedColor, size: selectedSize });
+              }
+            }}
+            className="flex min-h-14 w-full items-center justify-center gap-3 rounded-sm bg-black px-5 py-4 text-[12px] font-black uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#00821A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] disabled:cursor-not-allowed disabled:bg-black/15 disabled:text-black/45">
+            {needsSelection && standardStock > 0 ? t.selectOptions : currentStock > 0 ? t.shoot : t.emptyStock}
+            <ArrowUpRight size={19} aria-hidden="true" />
           </button>
+          {animationData && (
+            <BasketBallAnimation start={animationData.start} end={animationData.end} onComplete={() => setAnimationData(null)} />
+          )}
         </div>
       </div>
-
-      <Button
-        ref={shootBtnRef}
-        mbg="primefull"
-        type="button"
-        disabled={currentStock <= 0 || quantity <= 0}
-        aria-disabled={currentStock <= 0 || quantity <= 0}
-        onClick={() => {
-          const start = shootBtnRef.current?.getBoundingClientRect();
-          const end = document
-            .getElementById("basket-icon")
-            ?.getBoundingClientRect();
-
-          if (start && end) {
-            setAnimationData({ start, end });
-
-            // Add to cart only after animation finishes
-            setTimeout(() => {
-              cart.addItem({
-                item: product,
-                quantity,
-                color: selectedColor,
-                size: selectedSize,
-              });
-            }, 800);
-          }
-        }}
-      >
-        {currentStock > 0 ? t.shoot : t.emptyStock}
-      </Button>
-
-      {currentStock > 0 && currentStock <= 5 && (
-        <p className="text-[10px] text-mbg-green uppercase tracking-wider font-medium mt-1">
-          {t.onlyLeft(currentStock)}
-        </p>
-      )}
-
-      {animationData && (
-        <BasketBallAnimation
-          start={animationData.start}
-          end={animationData.end}
-          onComplete={() => setAnimationData(null)}
-        />
-      )}
-    </div>
+    </section>
   );
 };
 
