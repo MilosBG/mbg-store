@@ -1,7 +1,7 @@
 "use client";
 
 import Container from "@/components/mbg-components/Container";
-import { GrindUntilAchieve2 } from "@/images";
+import { GrindUntilAchieve, GrindUntilAchieve2 } from "@/images";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -427,7 +427,7 @@ export default function ClientPage() {
                 <span className="text-[10px] font-bold uppercase tracking-[0.19em] text-white/65">{copy.kicker}</span>
               </div>
               <h1 className="max-w-[850px] text-[clamp(1.85rem,6.4vw,4.5rem)] font-black uppercase leading-[0.99] tracking-[-0.045em] [text-wrap:balance]">
-                <span className="block">{copy.heroLine1}</span>
+                <span className="block text-mbg-black text-shadow-2xs text-shadow-mbg-green/70">{copy.heroLine1}</span>
                 <span className="mt-2 block text-[#00821A]">{copy.heroLine2}</span>
               </h1>
               <div aria-hidden="true" className="mt-7 h-px w-full max-w-lg bg-gradient-to-r from-[#00821A] via-white/20 to-transparent" />
@@ -611,7 +611,13 @@ export default function ClientPage() {
             <div className="relative mt-7 overflow-hidden border border-[#00821A]/35 bg-[#101711] px-5 py-9 text-center sm:px-9 sm:py-12">
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,130,26,0.1),transparent_65%)]" />
               <div className="relative mx-auto flex max-w-xl flex-col items-center">
-                <Sparkles size={24} className="text-[#00821A]" aria-hidden="true" />
+                   <Image
+                                  src={GrindUntilAchieve}
+                                  alt="GRIND UNTIL ACHIEVE"
+                                  width={38}
+                                  height={38}
+                                  className="mb-5 size-9 object-contain transition-transform duration-500 motion-safe:hover:scale-110"
+                                />
                 <p className="mt-5 text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{copy.closingKicker}</p>
                 <h2 className="mt-2 text-[clamp(1.4rem,5vw,2.6rem)] font-black uppercase leading-tight tracking-[-0.025em]">{copy.closingTitle}</h2>
                 <div aria-hidden="true" className="my-5 h-[2px] w-14 bg-[#00821A]" />
