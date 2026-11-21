@@ -397,7 +397,7 @@ const AboutUs = () => {
               <h3 className="mt-3 text-xl font-black uppercase tracking-[-0.03em] text-mbg-white">Crafted with purpose.</h3>
             </div>
             <div className="py-6 sm:pl-7">
-              <p className="text-sm leading-7 text-mbg-white/65">Milos BG's main production is handmade. Quality is checked, details matter, and every piece is intended to offer a considered customer experience — not just another item of clothing.</p>
+              <p className="text-sm leading-7 text-mbg-white/65">Milos BG&apos;s main production is handmade. Quality is checked, details matter, and every piece is intended to offer a considered customer experience — not just another item of clothing.</p>
             </div>
           </div>
           <p className="mt-12 max-w-3xl border-l-[3px] border-mbg-green pl-5 text-sm leading-8 text-mbg-white/75 sm:text-base">
