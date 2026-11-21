@@ -180,7 +180,7 @@ const AboutUs = () => {
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.23em] text-mbg-green">
                 An invitation to go beyond yourself
               </p>
-              <h1 className="max-w-4xl text-[clamp(2.8rem,8.7vw,7.5rem)] text-mbg-black font-black uppercase leading-[0.9] tracking-normal outline-1 outline-mbg-green">
+              <h1 className="max-w-4xl text-[clamp(2.8rem,8.7vw,7.5rem)] text-mbg-black font-black uppercase leading-[0.9] tracking-normal text-shadow-2xs text-shadow-mbg-green/50">
                 THE JOURNEY
                 <span className="mt-2 block text-mbg-green">IS THE TEST.</span>
               </h1>
@@ -480,7 +480,7 @@ const AboutUs = () => {
             <p className="mt-12 text-xs font-black uppercase tracking-[0.16em] text-mbg-white/60">
               Grind Until <span className="text-mbg-green">You</span> Achieve.
             </p>
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-mbg-green">Make It Your Liked Outfits.</p>
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-mbg-green">Make It Your Liked Outfits</p>
             <p className="mt-4 text-xs font-medium text-mbg-white/60">Enjoy the Grind. ✿</p>
           </div>
         </section>
