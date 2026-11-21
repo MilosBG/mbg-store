@@ -3,7 +3,7 @@
 "use client";
 
 import Container from "@/components/mbg-components/Container";
-import { GrindUntilAchieve2, MBG } from "@/images";
+import { GrindUntilAchieve, MBG } from "@/images";
 import { createCheckoutOrder } from "@/lib/checkoutClient";
 import { isMadeToOrderSize, MAX_ON_REQUEST_QUANTITY } from "@/lib/sizeProduction";
 import type { CheckoutLine } from "@/lib/checkoutClient";
@@ -631,22 +631,13 @@ const Cart = () => {
             {cart.cartItems.length === 0 ? (
               <div className="relative overflow-hidden border border-mbg-white/10 bg-mbg-darkgrey/15 px-6 py-11 text-center sm:px-10 sm:py-14">
                 <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[-140px] size-[300px] -translate-x-1/2 rounded-full border border-mbg-green/10"/>
-                <div className="relative mx-auto flex size-14 items-center justify-center border border-mbg-green/30 bg-mbg-green/10 text-mbg-green"> <Image
-                    src={GrindUntilAchieve2}
-                    alt="GRIND UNTIL ACHIEVE"
-                    width={32}
-                    height={32}
-                    priority
-                    className="
-      h-5
-      w-5
-      cursor-pointer
-      object-contain
-      transition-opacity
-      duration-300
-      group-hover:opacity-80
-    "
-                  /></div>
+                <div className="relative mx-auto flex size-14 items-center justify-center">    <Image
+                  src={GrindUntilAchieve}
+                  alt="GRIND UNTIL ACHIEVE"
+                  width={38}
+                  height={38}
+                  className="mb-5 size-9 object-contain transition-transform duration-500 motion-safe:hover:scale-110"
+                /></div>
                 <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-mbg-green">{t.emptyBadge}</p>
                 <h3 className="mt-3 text-2xl font-black uppercase tracking-[-0.04em] sm:text-3xl">{t.emptyHeading}</h3>
                 <p className="mx-auto mt-4 max-w-md text-[13px] leading-7 text-mbg-white/65">{t.emptyText}</p>
