@@ -1,84 +1,81 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BiSolidBasketball } from "react-icons/bi";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, MoveLeft } from "lucide-react";
 
 import { GrindUntilAchieve } from "@/images";
 
+/**
+ * Shared 404 UI for route-level 404s and the global 404.
+ * Global styles are loaded by app/global-not-found.tsx when no root layout matches.
+ */
 export default function NotFound() {
   return (
-    <main className="relative isolate flex min-h-[100svh] overflow-hidden bg-[#050505] px-4 py-8 text-white sm:px-6 sm:py-10 lg:px-8">
+    <main
+      className="relative isolate flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-[#050505] px-4 py-8 text-center text-white sm:px-6 sm:py-12"
+      style={{ backgroundColor: "#050505", color: "#ffffff", minHeight: "100svh" }}
+    >
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.05),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(0,130,26,0.18),transparent_28%),linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:auto,auto,32px_32px,32px_32px] opacity-80"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-50 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:42px_42px]"
       />
       <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[24rem] w-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00821A]/12 blur-3xl sm:h-[30rem] sm:w-[30rem]"
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/3 h-[22rem] w-[22rem] -translate-x-1/2 rounded-full bg-[#00821A]/20 blur-[105px] sm:h-[30rem] sm:w-[30rem]"
       />
+      <section
+        className="relative z-10 mx-auto flex w-full max-w-[900px] flex-col items-center border border-white/10 bg-black/70 px-5 py-7 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-10 sm:py-10 lg:px-14 lg:py-12"
+        style={{ maxWidth: 900, width: "100%", marginInline: "auto", textAlign: "center" }}
+      >
+        <p className="mb-5 inline-flex items-center gap-2 border border-[#00821A]/40 bg-[#00821A]/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[#86ca93] sm:mb-7">
+          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#00821A]" />
+          OUT OF BOUNDS / 404
+        </p>
 
-      <section className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-center">
-        <div className="grid w-full items-center gap-8 overflow-hidden border border-white/10 bg-black/65 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-sm sm:gap-10 sm:p-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:p-12 xl:p-14">
-          <div className="order-2 flex flex-col items-start lg:order-1">
-            <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[#77d488]">
-              <BiSolidBasketball className="h-4 w-4" />
-              OUT OF BOUNDS
-            </div>
+        <div className="relative flex w-full items-center justify-center py-1" style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute h-40 w-40 rounded-full border border-white/10 sm:h-64 sm:w-64"
+          />
+          <Image
+            src={GrindUntilAchieve}
+            alt="Grind Until Achieve — Milos BG"
+            priority
+            sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 280px"
+            className="relative z-10 h-auto w-44 max-w-full object-contain drop-shadow-[0_15px_35px_rgba(0,0,0,0.45)] sm:w-60 lg:w-70"
+            style={{ width: "min(52vw, 280px)", maxWidth: "100%", height: "auto", objectFit: "contain" }}
+          />
+        </div>
 
-            <div className="mt-5 flex items-end gap-4">
-              <span className="text-[clamp(4.6rem,16vw,10rem)] font-black leading-[0.75] tracking-[-0.09em] text-white">
-                404
-              </span>
-              <span className="mb-2 hidden h-16 w-px bg-[#00821A] sm:block" />
-            </div>
+        <div aria-hidden="true" className="my-6 h-px w-14 bg-[#00821A] sm:my-8" />
+        <h1 className="text-[clamp(1.85rem,6.5vw,3.85rem)] font-black uppercase leading-[1.02] tracking-[-0.045em] text-white">
+          MISSED THE <span className="text-[#00821A]">SHOT.</span>
+        </h1>
+        <p className="mt-4 max-w-xl text-[13px] leading-6 text-white/75 sm:text-[15px] sm:leading-7">
+          This page has moved, disappeared, or never existed. Keep your focus — the journey continues.
+        </p>
+        <p className="mt-2 max-w-xl text-[12px] leading-6 text-white/50 sm:text-[13px]">
+          Cette page n’existe pas ou n’est plus disponible. Continuez à avancer.
+        </p>
 
-            <h1 className="mt-6 text-3xl font-black uppercase leading-[0.95] tracking-[-0.04em] sm:text-4xl xl:text-5xl">
-              MISSED THE SHOT.
-            </h1>
+        <div className="mt-7 flex w-full max-w-md flex-col items-stretch justify-center gap-3 sm:mt-9 sm:flex-row">
+          <Link
+            href="/"
+            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 border border-[#00821A] bg-[#00821A] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.13em] text-white transition-colors hover:border-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <MoveLeft aria-hidden="true" className="h-4 w-4" /> Back home
+          </Link>
+          <Link
+            href="/products"
+            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 border border-white/20 bg-white/5 px-5 py-3 text-[11px] font-bold uppercase tracking-[0.13em] text-white transition-colors hover:border-[#00821A] hover:text-[#86ca93] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A]"
+          >
+            All outfits <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
+        </div>
 
-            <p className="mt-4 max-w-xl text-sm leading-7 text-white/74 sm:text-[15px]">
-              This page does not exist, has moved, or is no longer available. Keep moving — direction over speed.
-            </p>
-            <p className="mt-2 max-w-xl text-sm leading-7 text-white/55">
-              Cette page n’existe pas, a été déplacée ou n’est plus disponible.
-            </p>
-
-            <div className="mt-7 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
-              <Link
-                href="/"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-[#00821A] px-5 text-center text-[11px] font-black uppercase tracking-[0.16em] text-white transition hover:bg-white hover:text-black"
-              >
-                Back home
-                <ArrowUpRight size={16} />
-              </Link>
-              <Link
-                href="/products"
-                className="inline-flex min-h-12 items-center justify-center rounded-sm border border-white/20 px-5 text-center text-[11px] font-black uppercase tracking-[0.16em] text-white transition hover:border-[#00821A] hover:text-[#77d488]"
-              >
-                All outfits
-              </Link>
-            </div>
-
-            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-4 text-[10px] font-bold uppercase tracking-[0.18em] text-white/42">
-              <span>MILOS BG</span>
-              <span>GRIND UNTIL ACHIEVE</span>
-            </div>
-          </div>
-
-          <div className="order-1 flex items-center justify-center lg:order-2">
-            <div className="relative flex w-full max-w-[24rem] items-center justify-center sm:max-w-[28rem] lg:max-w-[32rem]">
-              <div
-                aria-hidden
-                className="absolute inset-6 rounded-full border border-white/10 bg-white/[0.02] blur-2xl"
-              />
-              <Image
-                src={GrindUntilAchieve}
-                alt="Grind Until Achieve"
-                priority
-                className="relative z-10 h-auto w-full max-w-[18rem] object-contain drop-shadow-[0_18px_45px_rgba(0,0,0,0.65)] sm:max-w-[22rem] lg:max-w-[28rem]"
-              />
-            </div>
-          </div>
+        <div className="mt-8 flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-white/10 pt-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45 sm:mt-10">
+          <span>MILOS BG</span>
+          <span className="text-[#00821A]">✿</span>
+          <span>GRIND UNTIL ACHIEVE</span>
         </div>
       </section>
     </main>
