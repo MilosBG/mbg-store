@@ -180,7 +180,7 @@ const AboutUs = () => {
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.23em] text-mbg-green">
                 An invitation to go beyond yourself
               </p>
-              <h1 className="max-w-4xl text-[clamp(2.8rem,8.7vw,7.5rem)] text-mbg-black font-black uppercase leading-[0.9] tracking-[-0.065em]">
+              <h1 className="max-w-4xl text-[clamp(2.8rem,8.7vw,7.5rem)] text-mbg-black font-black uppercase leading-[0.9] tracking-normal outline-1 outline-mbg-green">
                 THE JOURNEY
                 <span className="mt-2 block text-mbg-green">IS THE TEST.</span>
               </h1>
@@ -318,7 +318,7 @@ const AboutUs = () => {
                     <span className="mt-2 block break-words text-[clamp(1.35rem,4.2vw,3.5rem)] font-black uppercase leading-none tracking-[-0.045em] text-mbg-white transition-colors duration-300 group-hover:text-mbg-green">{chapter.title}</span>
                     <span className="mt-2 block text-[10px] leading-5 text-mbg-white/55 sm:text-xs">{chapter.short}</span>
                   </span>
-                  <span className={`relative flex h-14 w-14 items-center rounded-full justify-center border border-mbg-green/10 p-2 sm:h-20 sm:w-20 sm:p-3 ${chapter.title === "GRIND" ? "bg-mbg-green/70" : "bg-mbg-black"}`}>
+                  <span className={`relative flex h-14 w-14 items-center rounded-full justify-center border border-mbg-green/70 p-2 sm:h-20 sm:w-20 sm:p-3 ${chapter.title === "GRIND" ? "bg-mbg-green/70" : "bg-mbg-black"}`}>
                     <Image src={chapter.emblem} alt="" className="max-h-full w-full object-contain transition-transform duration-500 motion-safe:group-hover:scale-110" sizes="(max-width: 600px) 56px, 80px" />
                   </span>
                   <span aria-hidden="true" className="hidden size-9 items-center justify-center border border-mbg-white/20 text-lg font-light text-mbg-green transition-transform duration-300 group-open:rotate-45 sm:flex">+</span>
@@ -461,7 +461,7 @@ const AboutUs = () => {
           <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 size-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-mbg-white/10 sm:size-[750px]" />
           <div className="relative z-10 mx-auto max-w-5xl">
             <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">The mantra / The promise to yourself</p>
-            <h2 id="mantra-title" className="mt-7 text-[clamp(2rem,7vw,6.75rem)] font-black uppercase leading-[0.94] tracking-[-0.06em]">
+            <h2 id="mantra-title" className="mt-7 text-[clamp(2rem,7vw,6.75rem)] font-black text-mbg-black uppercase leading-[0.94] tracking-[-0.06em]">
               <Mantra />
             </h2>
             <div className="mx-auto mt-8 h-[3px] w-16 bg-mbg-green" />
@@ -477,7 +477,7 @@ const AboutUs = () => {
                 Contact Milos BG
               </Link>
             </div>
-            <p className="mt-12 text-xs font-black uppercase tracking-[0.16em] text-mbg-black">
+            <p className="mt-12 text-xs font-black uppercase tracking-[0.16em] text-mbg-white/60">
               Grind Until <span className="text-mbg-green">You</span> Achieve.
             </p>
             <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-mbg-green">Make It Your Liked Outfits.</p>
