@@ -461,7 +461,7 @@ const AboutUs = () => {
           <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 size-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-mbg-white/10 sm:size-[750px]" />
           <div className="relative z-10 mx-auto max-w-5xl">
             <p className="text-[10px] font-black uppercase tracking-[0.27em] text-mbg-green">The mantra / The promise to yourself</p>
-            <h2 id="mantra-title" className="mt-7 text-[clamp(2rem,7vw,6.75rem)] font-black text-mbg-black uppercase leading-[0.94] tracking-[-0.06em]">
+            <h2 id="mantra-title" className="mt-7 text-[clamp(2rem,7vw,6.75rem)] font-black text-mbg-black uppercase leading-[0.94] tracking-[-0.01em] text-shadow-2xs text-shadow-mbg-green/50">
               <Mantra />
             </h2>
             <div className="mx-auto mt-8 h-[3px] w-16 bg-mbg-green" />
