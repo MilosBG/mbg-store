@@ -3,7 +3,7 @@ import ClientPage from "./ClientPage";
 
 export const metadata = buildMetadata({
   title: "The Hoop",
-  description: "Review your Milos BG bag, update quantities, and proceed securely to checkout.",
+  description: "Review your Milos BG selection, choose delivery and place your order. Discover the journey behind every outfit.",
   path: "/the-hoop",
   image: "/Grinder.png",
   keywords: ["the hoop", "shopping cart", "checkout", "Milos BG"],
