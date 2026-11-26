@@ -22,7 +22,11 @@ export default function GlobalNotFound() {
         className={kanit.className}
         style={{
           margin: 0,
-          minHeight: "100vh",
+          width: "100%",
+          height: "100dvh",
+          overflow: "hidden",
+          border: 0,
+          padding: 0,
           backgroundColor: "#050505",
           color: "#ffffff",
           fontFamily: `${kanit.style.fontFamily}, system-ui, Arial, sans-serif`,

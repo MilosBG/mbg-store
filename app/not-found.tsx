@@ -11,15 +11,30 @@ import { GrindUntilAchieve } from "@/images";
  * None of the page's layout depends on Tailwind being injected.
  */
 const notFoundStyles = `
+  /* Reset only when the 404 view is mounted; other routes are unaffected. */
+  html:has(.mbg404), body:has(.mbg404) {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    background: #050505 !important;
+    overscroll-behavior: none;
+  }
   .mbg404, .mbg404 * { box-sizing: border-box; }
+  .mbg404 * { min-width: 0; }
   .mbg404 {
     --mbg-green: #00821A;
     --mbg-green-light: #8BDA99;
-    position: relative; isolation: isolate;
+    position: fixed; inset: 0; z-index: 9999; isolation: isolate;
     display: flex; align-items: center; justify-content: center;
-    width: 100%; min-height: 100vh; min-height: 100svh;
-    margin: 0; padding: clamp(20px, 5vw, 64px);
-    overflow: hidden;
+    width: 100vw; height: 100vh; height: 100dvh;
+    min-height: 0; max-height: 100dvh;
+    margin: 0; padding: clamp(12px, 3vw, 36px);
+    border: 0; outline: 0; overflow: hidden;
+    overscroll-behavior: none;
     background: #050505; color: #ffffff;
     font-family: Kanit, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -43,16 +58,10 @@ const notFoundStyles = `
   .mbg404__card {
     position: relative; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    width: min(100%, 870px);
-    padding: clamp(28px, 4.6vw, 54px) clamp(22px, 4.8vw, 58px);
-    border: 1px solid rgba(255,255,255,.12);
-    background: linear-gradient(150deg, rgba(24,24,24,.90), rgba(7,7,7,.94) 65%);
-    box-shadow: 0 32px 100px rgba(0,0,0,.55), inset 0 1px rgba(255,255,255,.05);
-  }
-  .mbg404__card::before {
-    content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    width: min(42%, 230px); height: 2px; background: var(--mbg-green);
-    box-shadow: 0 0 20px rgba(0,130,26,.65);
+    width: min(100%, 870px); max-height: 100%;
+    padding: clamp(18px, 3vw, 44px) clamp(12px, 4vw, 48px);
+    border: 0; outline: 0;
+    background: transparent; box-shadow: none;
   }
   .mbg404__label {
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
@@ -118,13 +127,42 @@ const notFoundStyles = `
   }
   .mbg404__flower { color: var(--mbg-green-light); font-size: 15px; }
   @media (max-width: 560px) {
-    .mbg404 { padding: 16px; }
-    .mbg404__card { padding: 28px 20px; }
+    .mbg404 { padding: 10px; }
+    .mbg404__card { padding: 16px 8px; }
     .mbg404__image { width: min(46vw, 190px) !important; min-width: 130px; }
     .mbg404__heading { font-size: clamp(30px, 8vw, 43px); }
     .mbg404__actions { gap: 9px; margin-top: 24px; }
     .mbg404__link { flex-basis: 100%; min-height: 46px; }
     .mbg404__footer { margin-top: 24px; font-size: 9px; gap: 9px; }
+  }
+  /* Keep every action reachable on short phones and landscape viewports. */
+  @media (max-height: 720px) {
+    .mbg404 { padding: 8px; }
+    .mbg404__card { padding: 10px 8px; }
+    .mbg404__label { padding: 5px 9px; font-size: 9px; }
+    .mbg404__art { margin: 8px 0 3px; }
+    .mbg404__image { width: min(24vh, 155px) !important; min-width: 0; }
+    .mbg404__rule { margin: 8px 0 9px; }
+    .mbg404__heading { font-size: clamp(25px, 4.2vw, 40px); }
+    .mbg404__lead { margin-top: 8px; font-size: 12px; line-height: 1.45; }
+    .mbg404__translation { margin-top: 4px; font-size: 11px; line-height: 1.4; }
+    .mbg404__actions { margin-top: 14px; gap: 8px; }
+    .mbg404__link { min-height: 40px; padding: 10px 13px; }
+    .mbg404__footer { margin-top: 13px; padding-top: 9px; }
+  }
+  @media (max-height: 520px) {
+    .mbg404__image { width: min(19vh, 90px) !important; }
+    .mbg404__art { margin: 4px 0 0; }
+    .mbg404__heading { font-size: clamp(23px, 4vw, 33px); }
+    .mbg404__lead { margin-top: 5px; font-size: 11px; line-height: 1.32; }
+    .mbg404__translation { margin-top: 2px; font-size: 10px; line-height: 1.25; }
+    .mbg404__actions { margin-top: 8px; }
+    .mbg404__link { min-height: 34px; padding: 7px 10px; }
+    .mbg404__footer { margin-top: 7px; padding-top: 6px; font-size: 9px; }
+  }
+  @media (max-width: 560px) and (max-height: 620px) {
+    .mbg404__actions { gap: 6px; }
+    .mbg404__link { flex-basis: calc(50% - 6px); min-width: 0; padding: 6px 5px; font-size: 9px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .mbg404__link { transition: none; }
@@ -135,7 +173,7 @@ export default function NotFound() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: notFoundStyles }} />
-      <main className="mbg404" style={{ minHeight: "100svh", background: "#050505", color: "#fff" }}>
+      <main className="mbg404" style={{ background: "#050505", color: "#fff" }}>
         <section className="mbg404__card" aria-labelledby="mbg404-heading">
           <p className="mbg404__label">
             <span aria-hidden="true" className="mbg404__dot" />
@@ -158,7 +196,7 @@ export default function NotFound() {
             MISSED THE <span>SHOT.</span>
           </h1>
           <p className="mbg404__lead">
-            This page has moved, disappeared, or never existed. Keep your focus — the journey continues.
+            This page has moved, disappeared, or never existed. Keep your focus, the journey continues.
           </p>
           <p className="mbg404__translation">
             Cette page n’existe pas ou n’est plus disponible. Continuez à avancer.

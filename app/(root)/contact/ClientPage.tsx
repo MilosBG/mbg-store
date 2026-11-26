@@ -417,7 +417,7 @@ export default function ClientPage() {
         <header className="mbg-contact-enter relative isolate mb-8 overflow-hidden border border-white/10 bg-[#0D120E] px-5 py-10 sm:px-8 sm:py-14 lg:px-12 lg:py-16">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_85%_18%,rgba(0,130,26,0.18),transparent_55%)]" />
           <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-36 flex size-[310px] items-center justify-center rounded-full border border-white/10 sm:size-[440px]">
-            <Image src={GrindUntilAchieve2} alt="" width={210} height={210} className="mbg-contact-float size-[115px] object-contain opacity-20 sm:size-[185px]" />
+            <Image src={GrindUntilAchieve2} alt="" width={210} height={210} className="mbg-contact-float size-[115px] object-contain opacity-50 sm:size-[185px]" />
           </div>
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-52 -right-28 size-[330px] rounded-full border border-[#00821A]/15 sm:size-[500px]" />
           <div className="relative z-10 grid min-w-0 gap-9 lg:grid-cols-[minmax(0,1.28fr)_minmax(290px,.72fr)] lg:items-end lg:gap-10">
