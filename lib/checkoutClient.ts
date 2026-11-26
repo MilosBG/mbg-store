@@ -37,6 +37,7 @@ export type CheckoutPayload = {
   contact: ContactDetails;
   shippingAddress: ShippingAddress;
   notes?: string | null;
+  promoCode?: string;
 };
 
 export type CheckoutOrderResult = {
@@ -45,6 +46,11 @@ export type CheckoutOrderResult = {
   approveUrl?: string | null;
   message?: string | null;
   raw?: unknown;
+  total?: number;
+  itemTotal?: number;
+  shippingAmount?: number;
+  discountAmount?: number;
+  promoCode?: string | null;
 };
 
 function resolveAdminBase() {
@@ -66,7 +72,7 @@ function resolveAdminBase() {
 }
 
 const ADMIN_API_BASE = resolveAdminBase();
-const STOREFRONT_SERVICE_TOKEN = process.env.NEXT_PUBLIC_STOREFRONT_SERVICE_TOKEN?.trim();
+// Checkout now always goes through /api/checkout (server-only service credentials).
 
 export async function createCheckoutOrder({
   lines,
@@ -75,6 +81,7 @@ export async function createCheckoutOrder({
   contact,
   shippingAddress,
   notes,
+  promoCode,
 }: CheckoutPayload): Promise<CheckoutOrderResult> {
   if (!Array.isArray(lines) || lines.length === 0) {
     throw new Error("Your cart is empty.");
@@ -156,6 +163,7 @@ export async function createCheckoutOrder({
     contact: normalizedContact,
     shippingAddress: normalizedShipping,
     notes: typeof notes === "string" && notes.trim().length > 0 ? notes.trim() : undefined,
+    promoCode: typeof promoCode === "string" ? promoCode.trim().toUpperCase() : undefined,
     metadata: {
       origin,
       generatedAt: Date.now(),
@@ -172,7 +180,7 @@ export async function createCheckoutOrder({
     shippingRate: shippingOption === "EXPRESS" ? "EXPRESS_DELIVERY" : "FREE_DELIVERY",
   };
 
-  const candidateEndpoints = buildCheckoutEndpoints(ADMIN_API_BASE);
+  const candidateEndpoints = ["/api/checkout"];
   let lastError: { status: number; message: string } | null = null;
 
   for (const endpoint of candidateEndpoints) {
@@ -181,12 +189,7 @@ export async function createCheckoutOrder({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(STOREFRONT_SERVICE_TOKEN
-            ? {
-                Authorization: `Bearer ${STOREFRONT_SERVICE_TOKEN}`,
-                "X-Storefront-Service-Token": STOREFRONT_SERVICE_TOKEN,
-              }
-            : {}),
+          // Never send admin service credentials from browser JavaScript.
           ...(origin ? { "X-Storefront-Origin": origin } : {}),
         },
         body: JSON.stringify(payload),
@@ -240,6 +243,11 @@ export async function createCheckoutOrder({
             : null,
         message: typeof body?.message === "string" ? body.message : null,
         raw: body,
+        total: typeof body?.total === "number" ? body.total : undefined,
+        itemTotal: typeof body?.itemTotal === "number" ? body.itemTotal : undefined,
+        shippingAmount: typeof body?.shippingAmount === "number" ? body.shippingAmount : undefined,
+        discountAmount: typeof body?.discountAmount === "number" ? body.discountAmount : undefined,
+        promoCode: typeof body?.promoCode === "string" ? body.promoCode : null,
       };
     } catch (error) {
       lastError = {

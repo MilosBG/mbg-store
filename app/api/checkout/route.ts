@@ -89,7 +89,11 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        await persistCheckoutOrder(payload, data);
+        // Admin's canonical checkout has already stored the order. Re-inserting
+        // it from client prices would duplicate stock changes and lose discounts.
+        if (!(typeof data?.orderId === "string" && data.orderId.trim())) {
+          await persistCheckoutOrder(payload, data);
+        }
       } catch (error) {
         throw new Error(
           error instanceof Error

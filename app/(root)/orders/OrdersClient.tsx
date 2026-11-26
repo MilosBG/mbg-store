@@ -37,8 +37,6 @@ type Stage = 0 | 1 | 2 | 3;
 const EMPTY_IMAGE =
   "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const REFRESH_THROTTLE_MS = 5000;
-const INITIAL_VISIBLE_ORDERS = 1;
-const ORDERS_PER_CLICK = 3;
 const HISTORY_STATUSES = new Set([
   "DELIVERED",
   "COMPLETED",
@@ -102,27 +100,6 @@ const translations = {
     backToTracking: "Back to tracking",
     language: "Language",
     breadcrumb: "Orders",
-    heroKicker: "01 / THE JOURNEY",
-    heroLead: "EVERY STEP",
-    heroAccent: "HAS ITS STORY.",
-    heroNote: "From the first choice to the final delivery. Your journey continues with each piece.",
-    signature: "FIVE CHAPTERS. ONE JOURNEY.",
-    heroCount: "Orders in progress",
-    archiveCount: "Chapters completed",
-    listTitle: "YOUR CHAPTERS",
-    activeList: "IN MOTION",
-    archivedList: "THE ARCHIVE",
-    listSubtitle: "Follow the next step, or revisit the pieces already collected.",
-    orderCount: "orders",
-    seeMore: "See more",
-    seeLess: "Show less",
-    showingOrders: "Showing orders",
-    shortProgress: ["Pending", "Preparing", "Shipped", "Delivered"],
-    stageLabel: "CURRENT CHAPTER",
-    journey: "Follow the journey",
-    story: "Discover the story",
-    storyHeading: "THE JOURNEY DOES NOT END HERE.",
-    storyDescription: "GRIND. RESILIENCE. CONSISTENCY. FOCUS. ACHIEVE. One journey, built step by step.",
   },
   fr: {
     tracking: "Suivi",
@@ -177,27 +154,6 @@ const translations = {
     backToTracking: "Revenir au suivi",
     language: "Langue",
     breadcrumb: "Commandes",
-    heroKicker: "01 / LE PARCOURS",
-    heroLead: "CHAQUE ÉTAPE",
-    heroAccent: "A SON HISTOIRE.",
-    heroNote: "Du premier choix à la livraison. Votre aventure se poursuit avec chaque pièce.",
-    signature: "CINQ CHAPITRES. UN SEUL VOYAGE.",
-    heroCount: "Commandes en cours",
-    archiveCount: "Chapitres terminés",
-    listTitle: "VOS CHAPITRES",
-    activeList: "EN COURS",
-    archivedList: "LES ARCHIVES",
-    listSubtitle: "Suivez la prochaine étape ou retrouvez les pièces déjà acquises.",
-    orderCount: "commandes",
-    seeMore: "Voir plus",
-    seeLess: "Voir moins",
-    showingOrders: "Commandes affichées",
-    shortProgress: ["Attente", "Prépa.", "Expédiée", "Livrée"],
-    stageLabel: "CHAPITRE ACTUEL",
-    journey: "Suivre le parcours",
-    story: "Découvrir l’histoire",
-    storyHeading: "L’AVENTURE NE S’ARRÊTE PAS ICI.",
-    storyDescription: "GRIND. RESILIENCE. CONSISTENCY. FOCUS. ACHIEVE. Un seul parcours, construit pas à pas.",
   },
 } as const;
 
@@ -211,17 +167,13 @@ export default function OrdersClient({
   const router = useRouter();
   const [language, setLanguage] = useState<Language>("en");
   const [view, setView] = useState<View>("tracking");
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_ORDERS);
   const [isRefreshing, startTransition] = useTransition();
   const lastRefreshRef = useRef(0);
   const t = translations[language];
 
   useEffect(() => {
     try {
-      const requested = new URLSearchParams(window.location.search).get("lang");
-      if (requested === "fr" || requested === "en") {
-        setLanguage(requested);
-      } else if (window.localStorage.getItem("mbg-orders-language") === "fr") {
+      if (window.localStorage.getItem("mbg-orders-language") === "fr") {
         setLanguage("fr");
       }
     } catch {
@@ -229,21 +181,12 @@ export default function OrdersClient({
     }
   }, []);
 
-  const changeView = (next: View) => {
-    setView(next);
-    // Each tab begins with the most recent order only.
-    setVisibleCount(INITIAL_VISIBLE_ORDERS);
-  };
-
   const changeLanguage = (next: Language) => {
     setLanguage(next);
     try {
-      const url = new URL(window.location.href);
-      url.searchParams.set("lang", next);
-      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
       window.localStorage.setItem("mbg-orders-language", next);
     } catch {
-      // Language selection still works when browser storage is unavailable.
+      // Storage is optional.
     }
   };
 
@@ -277,12 +220,7 @@ export default function OrdersClient({
   const historyOrders = orders.filter((order) =>
     HISTORY_STATUSES.has(normalizeStatus(order.fulfillmentStatus)),
   );
-  // Newest orders first, with stable original order for unknown dates.
-  const visibleOrders = [...(view === "tracking" ? trackingOrders : historyOrders)].sort(
-    (a, b) => getOrderTimestamp(b) - getOrderTimestamp(a),
-  );
-  const shownOrders = visibleOrders.slice(0, visibleCount);
-  const remainingOrders = Math.max(0, visibleOrders.length - shownOrders.length);
+  const visibleOrders = view === "tracking" ? trackingOrders : historyOrders;
   const counts = {
     awaiting: trackingOrders.filter(
       (order) => getStage(normalizeStatus(order.fulfillmentStatus)) === 0,
@@ -296,10 +234,10 @@ export default function OrdersClient({
   };
 
   return (
-    <main className="min-h-[65vh] min-w-0 overflow-x-clip bg-[#F5F5F2] pb-10 font-[Kanit] text-mbg-black sm:pb-16">
+    <main className="min-h-[60vh] bg-[#f7f8fa] pb-16 font-[Kanit] text-mbg-black">
       
-<div className="border-t-[3px] border-mbg-green bg-mbg-black">
-  <Container className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+<div className="bg-mbg-green">
+  <Container className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-1">
 
     {/* NAVIGATION */}
     <nav
@@ -321,12 +259,12 @@ export default function OrdersClient({
           id="tab-tracking"
           aria-controls="orders-panel"
           aria-pressed={view === "tracking"}
-          onClick={() => changeView("tracking")}
+          onClick={() => setView("tracking")}
           className={
-            "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[11px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
+            "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[9px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
             (view === "tracking"
-              ? "bg-white text-mbg-black"
-              : "bg-white/10 text-white hover:bg-white/20")
+              ? "bg-white text-mbg-green"
+              : "bg-white/15 text-white hover:bg-white/25")
           }
         >
           <span className="truncate">{t.tracking}</span>
@@ -341,12 +279,12 @@ export default function OrdersClient({
           id="tab-history"
           aria-controls="orders-panel"
           aria-pressed={view === "history"}
-          onClick={() => changeView("history")}
+          onClick={() => setView("history")}
           className={
-            "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[11px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
+            "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[9px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
             (view === "history"
-              ? "bg-white text-mbg-black"
-              : "bg-white/10 text-white hover:bg-white/20")
+              ? "bg-white text-mbg-green"
+              : "bg-white/15 text-white hover:bg-white/25")
           }
         >
           <span className="truncate">{t.history}</span>
@@ -358,8 +296,8 @@ export default function OrdersClient({
 
       {/* CART */}
       <Link
-        href={`/the-hoop?lang=${language}`}
-        className="flex min-h-11 min-w-0 items-center justify-center rounded-sm border border-white/20 bg-transparent px-2 text-[11px] font-bold uppercase tracking-[0.06em] text-white transition-all duration-200 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7"
+        href="/the-hoop"
+        className="flex min-h-11 min-w-0 items-center justify-center rounded-sm bg-white/15 px-2 text-[9px] font-bold uppercase tracking-[0.06em] text-white transition-all duration-200 hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7"
       >
         <span className="truncate">{t.cart}</span>
       </Link>
@@ -369,7 +307,7 @@ export default function OrdersClient({
     <div
       role="group"
       aria-label={t.language}
-      className="flex w-full items-center justify-end gap-1 border-t border-white/15 pt-2 text-[11px] font-bold sm:w-auto sm:shrink-0 sm:border-0 sm:pt-0"
+      className="flex w-full items-center justify-end gap-1 border-t border-white/20 pt-2 text-[10px] font-bold sm:w-auto sm:shrink-0 sm:border-0 sm:pt-0"
     >
       <button
         type="button"
@@ -377,9 +315,9 @@ export default function OrdersClient({
         aria-pressed={language === "en"}
         onClick={() => changeLanguage("en")}
         className={
-          "min-h-10 min-w-11 rounded-sm px-2 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
+          "min-h-9 min-w-10 rounded-sm px-2 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
           (language === "en"
-            ? "bg-mbg-green text-white"
+            ? "bg-white text-mbg-green"
             : "text-white hover:bg-white/15")
         }
       >
@@ -392,9 +330,9 @@ export default function OrdersClient({
         aria-pressed={language === "fr"}
         onClick={() => changeLanguage("fr")}
         className={
-          "min-h-10 min-w-11 rounded-sm px-2 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
+          "min-h-9 min-w-10 rounded-sm px-2 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
           (language === "fr"
-            ? "bg-mbg-green text-white"
+            ? "bg-white text-mbg-green"
             : "text-white hover:bg-white/15")
         }
       >
@@ -406,32 +344,11 @@ export default function OrdersClient({
 </div>
 
 
-      <Container className="pt-4 sm:pt-8 md:pt-10">
-        {/* Compact, order-focused heading on mobile; full brand storytelling on desktop. */}
-        <header className="relative mb-5 overflow-hidden rounded-sm border border-black/10 bg-white p-4 sm:mb-8 sm:px-8 sm:py-9 lg:px-11">
-          <span aria-hidden="true" className="pointer-events-none absolute -right-4 -top-8 hidden select-none text-[150px] font-black leading-none tracking-tighter text-black/[0.03] sm:block">01</span>
-          <div className="relative grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(170px,0.3fr)] sm:items-end lg:gap-10">
-            <div className="min-w-0">
-              <p className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A] sm:mb-4 sm:tracking-[0.2em]">
-                <span aria-hidden="true" className="h-px w-5 bg-[#00821A] sm:w-7" /> {t.heroKicker}
-              </p>
-              <h1 className="text-[1.65rem] font-black uppercase leading-[1.05] tracking-[-0.035em] sm:text-[clamp(2rem,4.6vw,3.55rem)] sm:leading-[0.98]">
-                <span className="sm:hidden">{t.title}</span>
-                <span className="hidden sm:inline">{t.heroLead}<span className="mt-1 block text-[#00821A]">{t.heroAccent}</span></span>
-              </h1>
-              <p className="mt-2 text-[12px] leading-5 text-[#404040] sm:mt-5 sm:max-w-xl sm:text-sm sm:leading-7">{t.subtitle}</p>
-              <p className="mt-3 hidden max-w-xl text-sm leading-7 text-[#404040] sm:block">{t.heroNote}</p>
-            </div>
-            <div className="flex items-center justify-between gap-4 border-l-[3px] border-[#00821A] bg-[#111111] px-4 py-3 text-white sm:min-h-32 sm:flex-col sm:items-start sm:p-5">
-              <span className="max-w-[13rem] text-[10px] font-bold uppercase leading-4 tracking-[0.1em] text-white/75 sm:tracking-[0.16em]">
-                {view === "tracking" ? t.heroCount : t.archiveCount}
-              </span>
-              <strong className="shrink-0 text-3xl font-black leading-none tabular-nums tracking-tight sm:text-5xl">
-                {view === "tracking" ? trackingOrders.length : historyOrders.length}
-              </strong>
-              <span className="hidden text-[9px] font-bold uppercase tracking-[0.12em] text-white/55 sm:block">{t.signature}</span>
-            </div>
-          </div>
+      <Container className="pt-8 md:pt-10">
+        <header className="mb-7">
+          <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.24em] text-mbg-green">Milos BG / {t.breadcrumb}</p>
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{t.title}</h1>
+          <p className="mt-2 text-sm text-mbg-black/60">{t.subtitle}</p>
         </header>
 
         {requiresSignIn ? (
@@ -448,13 +365,13 @@ export default function OrdersClient({
         ) : (
           <>
             {view === "tracking" && (
-              <section aria-label={t.tracking} className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
+              <section aria-label={t.tracking} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <SummaryCard count={counts.awaiting} label={t.awaiting} variant="awaiting" />
                 <SummaryCard count={counts.preparing} label={t.preparing} variant="preparing" />
                 <SummaryCard count={counts.shipping} label={t.shipping} variant="shipping" />
-                <Link href={`/products?lang=${language}`} className="group col-span-3 flex min-h-11 items-center justify-center gap-3 rounded-sm border border-black bg-black px-4 py-3 text-center text-white transition-colors hover:border-[#00821A] hover:bg-[#00821A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] sm:col-span-1 sm:min-h-[120px] sm:flex-col sm:gap-2 sm:p-4">
-                  <span aria-hidden="true" className="flex h-6 w-6 items-center justify-center border border-white/40 text-lg leading-none transition-transform group-hover:rotate-90 sm:h-10 sm:w-10 sm:text-2xl">+</span>
-                  <span className="text-[11px] font-bold uppercase tracking-[0.09em] sm:mt-2 sm:text-[10px] sm:tracking-[0.16em]">{t.newOrder}</span>
+                <Link href="/products" className="flex min-h-28 flex-col items-center justify-center rounded-sm bg-mbg-green p-4 text-center text-white transition-colors hover:bg-mbg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green">
+                  <span aria-hidden="true" className="text-3xl leading-none">+</span>
+                  <span className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em]">{t.newOrder}</span>
                 </Link>
               </section>
             )}
@@ -462,80 +379,34 @@ export default function OrdersClient({
             <section
               id="orders-panel"
               aria-label={view === "tracking" ? t.tracking : t.history}
-              className="mt-6 border-t border-black/15 pt-5 sm:mt-9 sm:pt-7"
+              className="mt-7 border-t border-mbg-black/10 pt-7"
             >
-              <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-mbg-green">{t.listTitle}</span>
-                  <h2 className="mt-1 text-xl font-black uppercase tracking-tight sm:text-3xl">
-                    {view === "tracking" ? t.activeList : t.archivedList}
-                  </h2>
-                  <p className="mt-1.5 max-w-xl text-xs leading-relaxed text-[#404040] sm:mt-2 sm:text-sm">{t.listSubtitle}</p>
-                </div>
-                <span className="shrink-0 self-start rounded-sm border border-black/15 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.07em] text-black/70 sm:self-auto">{visibleOrders.length} {t.orderCount}</span>
-              </div>
               {visibleOrders.length ? (
                 <>
-                  <div id="orders-list" className="space-y-3 sm:space-y-4" aria-live="off">
-                    {shownOrders.map((order) => (
+                  <div className="mb-3 hidden grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] gap-3 px-5 text-[9px] font-bold uppercase tracking-[0.17em] text-mbg-black/55 lg:grid">
+                    <span>{t.order}</span><span>{t.items}</span><span>{t.placedOn}</span><span>{t.delivery}</span><span>{t.total}</span><span className="w-32" />
+                  </div>
+                  <div className="space-y-4">
+                    {visibleOrders.map((order) => (
                       <OrderCard key={order._id} order={order} language={language} t={t} />
                     ))}
                   </div>
-                  <div className="mt-4 flex flex-col items-center gap-3 sm:mt-6">
-                    <p className="text-[11px] font-medium tabular-nums text-[#404040]" aria-live="polite">
-                      {t.showingOrders}: <strong className="font-bold text-black">{shownOrders.length} / {visibleOrders.length}</strong>
-                    </p>
-                    {remainingOrders > 0 && (
-                      <button
-                        type="button"
-                        aria-controls="orders-list"
-                        onClick={() => setVisibleCount((count) => Math.min(count + ORDERS_PER_CLICK, visibleOrders.length))}
-                        className="flex min-h-12 w-full items-center justify-center gap-3 rounded-sm border border-[#00821A] bg-white px-6 py-3 text-[12px] font-black uppercase tracking-[0.1em] text-[#00821A] transition-colors hover:bg-[#00821A] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] sm:w-auto sm:min-w-56"
-                      >
-                        {t.seeMore}
-                        <span className="rounded-sm bg-[#00821A]/10 px-2 py-1 text-[10px] tabular-nums">+{Math.min(ORDERS_PER_CLICK, remainingOrders)}</span>
-                        <span aria-hidden="true">↓</span>
-                      </button>
-                    )}
-                    {visibleCount > INITIAL_VISIBLE_ORDERS && (
-                      <button
-                        type="button"
-                        onClick={() => setVisibleCount(INITIAL_VISIBLE_ORDERS)}
-                        className="min-h-10 px-4 text-[11px] font-bold uppercase tracking-[0.08em] text-[#404040] underline underline-offset-4 transition-colors hover:text-[#00821A]"
-                      >
-                        {t.seeLess}
-                      </button>
-                    )}
-                  </div>
                 </>
-
               ) : (
                 <StatePanel
                   title={view === "tracking" ? t.emptyTracking : t.emptyHistory}
                   body={view === "tracking" ? t.emptyTrackingText : t.emptyHistoryText}
                 >
                   {view === "tracking" ? (
-                    <Link href={`/products?lang=${language}`} className="inline-flex min-h-11 items-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.shop}</Link>
+                    <Link href="/products" className="inline-flex min-h-11 items-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.shop}</Link>
                   ) : (
-                    <button type="button" onClick={() => changeView("tracking")} className="min-h-11 rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.backToTracking}</button>
+                    <button type="button" onClick={() => setView("tracking")} className="min-h-11 rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.backToTracking}</button>
                   )}
                 </StatePanel>
               )}
             </section>
           </>
         )}
-        <aside className="mt-8 overflow-hidden rounded-sm border-l-[3px] border-[#00821A] bg-black px-4 py-6 text-white sm:mt-12 sm:px-9 sm:py-9">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center sm:gap-6">
-            <div className="max-w-xl">
-              <p className="text-[10px] font-black uppercase tracking-[0.19em] text-white/70">GRIND UNTIL ACHIEVE</p>
-              <h2 className="mt-2 text-lg font-black uppercase leading-tight tracking-tight sm:text-2xl">{t.storyHeading}</h2>
-              <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-sm">{t.storyDescription}</p>
-            </div>
-            <Link href={`/grind-until-achieve?lang=${language}`} className="inline-flex min-h-11 w-full items-center justify-center rounded-sm border border-white/50 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white transition-colors hover:border-[#00821A] hover:bg-[#00821A] sm:w-auto sm:shrink-0">
-              {t.story} <span aria-hidden="true" className="ml-2">↗</span>
-            </Link>
-          </div>
-        </aside>
       </Container>
     </main>
   );
@@ -551,7 +422,7 @@ function StatePanel({
   children: ReactNode;
 }) {
   return (
-    <section className="relative flex min-h-48 flex-col items-center justify-center overflow-hidden rounded-sm border border-black/10 bg-white px-4 py-8 text-center before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-[#00821A] sm:min-h-72 sm:px-6 sm:py-12">
+    <section className="flex min-h-64 flex-col items-center justify-center rounded-sm border border-mbg-black/10 bg-white px-6 py-12 text-center">
       <h2 className="text-xl font-bold">{title}</h2>
       <p className="mt-2 max-w-md text-sm text-mbg-black/60">{body}</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">{children}</div>
@@ -574,12 +445,12 @@ function SummaryCard({
     shipping: "bg-mbg-green text-white",
   }[variant];
   return (
-    <div className="relative flex min-h-[96px] min-w-0 flex-col items-center justify-center rounded-sm border border-black/10 bg-white px-1.5 py-3 text-center transition-colors hover:border-[#00821A]/60 sm:min-h-[132px] sm:items-start sm:justify-end sm:px-5 sm:pb-4 sm:pt-10 sm:text-left">
-      <span className={"absolute -top-3 left-4 hidden h-9 w-9 items-center justify-center rounded-sm sm:flex " + color}>
+    <div className="relative flex min-h-28 flex-col justify-end rounded-sm border border-mbg-black/10 bg-white px-5 pb-4 pt-8">
+      <span className={"absolute -top-3 left-4 flex h-9 w-9 items-center justify-center rounded-sm " + color}>
         <StageIcon variant={variant} />
       </span>
-      <strong className="text-2xl font-black leading-none tracking-tight sm:text-4xl">{count}</strong>
-      <span className="mt-2 block break-words text-[9px] font-bold uppercase leading-[1.4] tracking-[0.02em] text-black/65 sm:text-[10px] sm:tracking-[0.11em]">{label}</span>
+      <strong className="text-3xl leading-none">{count}</strong>
+      <span className="mt-2 text-[10px] font-medium uppercase tracking-[0.13em] text-mbg-black/60">{label}</span>
     </div>
   );
 }
@@ -627,79 +498,44 @@ function OrderCard({
   const orderId = String(order._id);
   const reference = getReference(order);
   const isCancelled = status === "CANCELLED" || status === "CANCELED";
-  const firstProduct = products[0]?.product;
-  const previewImage = firstProduct?.media?.[0];
 
   return (
-    <article
-      aria-label={`${t.order} ${reference}`}
-      className="group min-w-0 overflow-hidden rounded-sm border border-black/10 bg-white shadow-[0_8px_28px_rgba(0,0,0,0.04)] transition-[border-color,box-shadow] hover:border-[#00821A]/50 hover:shadow-[0_16px_34px_rgba(0,0,0,0.07)]"
-    >
-      <div className="p-4 sm:p-6">
-        <div className="flex min-w-0 items-start justify-between gap-2 sm:gap-4">
-          <div className="flex min-w-0 flex-1 items-start gap-3">
-            <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-black/10 bg-[#F5F5F2] sm:size-[72px]">
-              {previewImage ? (
-                <Image
-                  src={previewImage}
-                  alt={firstProduct?.title || "Milos BG"}
-                  width={72}
-                  height={72}
-                  sizes="(max-width: 640px) 56px, 72px"
-                  className="size-full object-contain p-1.5"
-                />
-              ) : (
-                <span className="text-[9px] font-black uppercase tracking-[0.1em] text-black/30" aria-hidden="true">MBG</span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <SmallLabel>{t.order}</SmallLabel>
-              <Link
-                href={`/orders/${encodeURIComponent(orderId)}?lang=${language}`}
-                className="block break-all text-[13px] font-black uppercase leading-5 tracking-[0.02em] text-black hover:text-[#00821A] sm:text-base"
-              >
-                {reference}
-              </Link>
-              {firstProduct?.title && (
-                <p className="mt-1 max-w-[11rem] truncate text-[11px] leading-4 text-black/60 sm:max-w-none">{firstProduct.title}</p>
-              )}
-              <span className="mt-1.5 inline-flex max-w-full border-l-2 border-[#00821A] bg-[#00821A]/[0.07] px-2 py-1 text-[9px] font-bold uppercase leading-4 tracking-[0.02em] text-black/80 sm:text-[10px]">
-                {statusLabel(status, t)}
-              </span>
-            </div>
-          </div>
-          <div className="shrink-0 text-right">
-            <SmallLabel>{t.total}</SmallLabel>
-            <strong className="block text-sm font-black tabular-nums tracking-tight text-[#00821A] sm:text-lg">
-              {formatMoney(order.totalAmount, language)}
-            </strong>
-          </div>
+    <article className="overflow-hidden rounded-sm border border-mbg-black/10 bg-white transition-shadow hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+      <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] lg:items-center lg:gap-3">
+        <div className="min-w-0">
+          <SmallLabel className="lg:hidden">{t.order}</SmallLabel>
+          <Link href={"/orders/" + encodeURIComponent(orderId)} className="block truncate text-xs font-bold uppercase tracking-[0.07em] hover:text-mbg-green">
+            {reference}
+          </Link>
+          <span className="mt-1 block text-[10px] font-medium text-mbg-black/50">
+            {statusLabel(status, t)}
+          </span>
         </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 border-t border-black/10 pt-3 sm:grid-cols-3 sm:gap-4 sm:pt-4">
-          <div className="min-w-0">
-            <SmallLabel>{t.placedOn}</SmallLabel>
-            <span className="block text-[12px] font-semibold leading-5 text-black">{formatDate(getCreatedAt(order), language)}</span>
-          </div>
-          <div className="min-w-0">
-            <SmallLabel>{t.items}</SmallLabel>
-            <span className="block text-[12px] font-semibold leading-5 text-black">{quantity} {t.items.toLowerCase()}</span>
-          </div>
-          <div className="col-span-2 min-w-0 sm:col-span-1">
-            <SmallLabel>{t.delivery}</SmallLabel>
-            <span className="block break-words text-[12px] font-semibold leading-5 text-black">{formatShipping(order.shippingMethod, t)}</span>
-          </div>
+        <div>
+          <SmallLabel className="lg:hidden">{t.items}</SmallLabel>
+          <span className="text-xs font-semibold">{quantity} {t.items.toLowerCase()}</span>
         </div>
-
+        <div>
+          <SmallLabel className="lg:hidden">{t.placedOn}</SmallLabel>
+          <span className="text-xs font-semibold">{formatDate(getCreatedAt(order), language)}</span>
+        </div>
+        <div>
+          <SmallLabel className="lg:hidden">{t.delivery}</SmallLabel>
+          <span className="text-xs font-semibold">{formatShipping(order.shippingMethod, t)}</span>
+        </div>
+        <div>
+          <SmallLabel className="lg:hidden">{t.total}</SmallLabel>
+          <div className="flex flex-col items-end gap-1"><span className="text-xs font-bold">{formatMoney(order.totalAmount, language)}</span>{order.promotion?.code && <span className="text-[9px] font-bold uppercase text-mbg-green">{order.promotion.code}</span>}</div>
+        </div>
         <button
           type="button"
           aria-expanded={expanded}
-          aria-controls={`order-details-${orderId}`}
+          aria-controls={"order-details-" + orderId}
           onClick={() => setExpanded((previous) => !previous)}
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-black/15 bg-[#F5F5F2] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.07em] text-black transition-colors hover:border-[#00821A] hover:bg-[#00821A]/[0.07] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] sm:w-auto"
+          className="inline-flex min-h-10 w-full items-center justify-center gap-3 rounded-sm border border-mbg-black/15 px-3 text-[10px] font-semibold text-mbg-green transition-colors hover:border-mbg-green hover:bg-mbg-green/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green sm:w-auto lg:w-32"
         >
           {expanded ? t.hideDetails : t.details}
-          <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`size-4 transition-transform ${expanded ? "rotate-180" : ""}`}>
+          <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={"h-3.5 w-3.5 transition-transform " + (expanded ? "rotate-180" : "")}>
             <path d="m3 6 5 5 5-5" />
           </svg>
         </button>
@@ -708,26 +544,25 @@ function OrderCard({
       {stage !== null && !isCancelled ? (
         <OrderProgress stage={stage} language={language} t={t} />
       ) : (
-        <div className="border-t border-black/10 bg-[#F5F5F2] px-4 py-3 text-xs font-semibold text-[#404040] sm:px-6">
+        <div className="border-t border-mbg-black/10 px-5 py-3 text-xs font-semibold text-mbg-darkgrey">
           {statusLabel(status, t)}
         </div>
       )}
 
-      <div id={`order-details-${orderId}`} hidden={!expanded} className="border-t border-black/10 bg-[#F9F9F7] px-4 py-4 sm:px-6 sm:py-5">
-          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-black/55">{t.products}</p>
-          {products.length > 0 && (
-            <div className="mt-2 divide-y divide-black/10">
-              {products.map((product, index) => (
-                <OrderProduct key={product._id ?? index} product={product} language={language} t={t} />
-              ))}
-            </div>
-          )}
-          <Link
-            href={`/orders/${encodeURIComponent(orderId)}?lang=${language}`}
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-sm bg-black px-5 py-2 text-[11px] font-bold uppercase tracking-[0.06em] text-white transition-colors hover:bg-[#00821A] sm:w-auto"
-          >
+      <div id={"order-details-" + orderId} hidden={!expanded} className="border-t border-mbg-black/10 bg-[#fcfcfc] px-5 py-5">
+        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-mbg-black/50">{t.products}</p>
+        {products.length > 0 && (
+          <div className="mt-3 divide-y divide-mbg-black/10">
+            {products.map((product, index) => (
+              <OrderProduct key={product._id ?? index} product={product} language={language} t={t} />
+            ))}
+          </div>
+        )}
+        <div className="mt-4 flex justify-end">
+          <Link href={"/orders/" + encodeURIComponent(orderId)} className="inline-flex min-h-10 items-center rounded-sm bg-mbg-black px-5 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-mbg-green">
             {t.orderDetails} <span aria-hidden="true" className="ml-2">→</span>
           </Link>
+        </div>
       </div>
     </article>
   );
@@ -741,7 +576,7 @@ function SmallLabel({
   className?: string;
 }) {
   return (
-    <span className={"mb-1 block text-[10px] font-bold uppercase tracking-[0.15em] text-mbg-black/45 " + className}>
+    <span className={"mb-1 block text-[9px] font-bold uppercase tracking-[0.15em] text-mbg-black/45 " + className}>
       {children}
     </span>
   );
@@ -763,24 +598,29 @@ function OrderProgress({
     t.delivered,
   ];
   return (
-    <div className="border-t border-black/10 bg-[#F5F5F2] px-3 py-4 sm:px-6 sm:py-5" aria-label={t.timeline} lang={language}>
-      <ol className="grid grid-cols-4" aria-label={t.timeline}>
+    <div className="border-t border-mbg-black/10 px-2 py-5 sm:px-5" aria-label={t.timeline} lang={language}>
+      <ol className="grid grid-cols-4">
         {labels.map((label, index) => {
           const done = index < stage || stage === 3;
           const active = index === stage && stage !== 3;
           return (
-            <li key={index} className="min-w-0 text-center" aria-current={active ? "step" : undefined}>
-              <div className="relative flex h-5 items-center justify-center">
-                {index > 0 && <span aria-hidden="true" className={`absolute inset-y-[9px] left-0 right-1/2 h-0.5 ${index <= stage ? "bg-[#00821A]" : "bg-black/15"}`} />}
-                {index < 3 && <span aria-hidden="true" className={`absolute inset-y-[9px] left-1/2 right-0 h-0.5 ${index < stage ? "bg-[#00821A]" : "bg-black/15"}`} />}
-                <span aria-hidden="true" className={`relative z-10 flex size-5 shrink-0 items-center justify-center rounded-full border-2 text-[10px] leading-none ${done ? "border-[#00821A] bg-[#00821A] text-white" : active ? "border-[#00821A] bg-white" : "border-black/15 bg-white"}`}>
-                  {done ? "✓" : active ? <span className="size-1.5 rounded-full bg-[#00821A]" /> : null}
+            <li key={index} className="min-w-0 text-center">
+              <span className={"block min-h-8 px-1 text-[9px] font-semibold leading-tight sm:text-[11px] " +
+                (done || active ? "text-mbg-green" : "text-mbg-black/45")}>
+                {label}
+              </span>
+              <div className="relative mt-2 flex h-5 items-center justify-center">
+                {index > 0 && <span aria-hidden="true" className={"absolute left-0 right-1/2 h-0.5 " + (index <= stage ? "bg-mbg-green" : "bg-mbg-black/15")} />}
+                {index < 3 && <span aria-hidden="true" className={"absolute left-1/2 right-0 h-0.5 " + (index < stage ? "bg-mbg-green" : "bg-mbg-black/15")} />}
+                <span aria-hidden="true" className={"relative z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 text-[10px] leading-none " +
+                  (done
+                    ? "border-mbg-green bg-mbg-green text-white"
+                    : active
+                      ? "border-mbg-green bg-white"
+                      : "border-mbg-black/15 bg-white")}>
+                  {done ? "✓" : ""}
                 </span>
               </div>
-              <span className={`mt-2 block break-words px-0.5 text-[9px] font-bold leading-3 sm:min-h-8 sm:text-[11px] sm:leading-4 ${done || active ? "text-[#00821A]" : "text-black/45"}`}>
-                <span className="sm:hidden">{t.shortProgress[index]}</span>
-                <span className="hidden sm:inline">{label}</span>
-              </span>
               <span className="sr-only">
                 {done ? (language === "fr" ? "Terminée" : "Complete") : active ? (language === "fr" ? "En cours" : "Current") : (language === "fr" ? "À venir" : "Upcoming")}
               </span>
@@ -805,19 +645,19 @@ function OrderProduct({
   const quantity = safeQuantity(product.quantity);
   const unitPrice = Number(product.unitPrice ?? product.product?.price ?? 0);
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-3 py-3 sm:gap-4 sm:py-4">
-      <div className="size-14 shrink-0 overflow-hidden rounded-sm border border-black/10 bg-white sm:size-20">
+    <div className="flex items-center gap-4 py-4">
+      <div className="h-16 w-16 shrink-0 overflow-hidden bg-white sm:h-20 sm:w-20">
         <Image src={imageSrc} alt={product.product?.title || "Milos BG"} width={80} height={80} className="h-full w-full object-contain" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="break-words text-xs font-bold uppercase leading-5">{product.product?.title || "Milos BG"}</p>
+        <p className="text-xs font-bold uppercase">{product.product?.title || "Milos BG"}</p>
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-mbg-black/65">
           {product.color && <span>{t.color}: {product.color}</span>}
           {product.size && <span>{t.size}: {product.size}</span>}
           <span>{t.quantity}: {quantity}</span>
         </div>
       </div>
-      <strong className="ml-auto shrink-0 text-right text-xs tabular-nums">{formatMoney(unitPrice * quantity, language)}</strong>
+      <strong className="shrink-0 text-xs">{formatMoney(unitPrice * quantity, language)}</strong>
     </div>
   );
 }
@@ -862,13 +702,6 @@ function getReference(order: StorefrontOrder): string {
 
 function getCreatedAt(order: StorefrontOrder): unknown {
   return (order as unknown as Record<string, unknown>).createdAt;
-}
-
-function getOrderTimestamp(order: StorefrontOrder): number {
-  const raw = getCreatedAt(order);
-  if (!(raw instanceof Date) && typeof raw !== "string" && typeof raw !== "number") return 0;
-  const value = raw instanceof Date ? raw.getTime() : new Date(raw).getTime();
-  return Number.isFinite(value) ? value : 0;
 }
 
 function formatDate(value: unknown, language: Language): string {

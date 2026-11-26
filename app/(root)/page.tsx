@@ -7,7 +7,9 @@ import { Suspense } from "react";
 import ProductCardSkeleton from "@/components/mbg-components/ProductCardSkeleton";
 import MilosBGAnimatedSlogan from "./components/MilosBGAnimatedSlogan/MilosBGAnimatedSlogan";
 import MilosBGSocialsSection from "./components/MilosBGSocialsSection";
-import GrindUntilAchieveHero from "./components/GrindUntilAchieveHero";
+import GrindModeHero from "./components/GrindModeHero";
+import WelcomePopup from "./components/WelcomePopup";
+import { getWelcomeSettings } from "@/lib/welcome";
 
 export const dynamic = "force-dynamic";
 
@@ -40,10 +42,12 @@ export default async function Home({
   }>;
 }) {
   const { lang } = await searchParams;
+  const welcome = await getWelcomeSettings();
   return (
     <Container className="py-3">
+      <WelcomePopup config={welcome} lang={lang === "fr" ? "fr" : "en"} />
       <HomeBanner />
-      <GrindUntilAchieveHero lang={lang === "fr" ? "fr" : "en"} />
+      <GrindModeHero lang={lang === "fr" ? "fr" : "en"} />
       <Chapters />
       <Suspense
         fallback={

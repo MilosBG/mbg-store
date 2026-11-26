@@ -517,12 +517,6 @@ export default function ClientPage() {
                               </p>
                             )}
 
-                            {item.productionType === "ON_REQUEST" && (
-                              <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-mbg-green">
-                                Made to order — production to be confirmed
-                              </p>
-                            )}
-
                             <p className="mt-2 text-[9px] uppercase tracking-[0.12em] text-mbg-black/40">
                               Qty{" "}
                               <span className="font-bold text-mbg-black">
@@ -680,6 +674,7 @@ export default function ClientPage() {
                       </div>
                     </div>
 
+                    {Boolean(order.discountAmount) && <div className="flex items-center justify-between text-[10px] font-bold text-mbg-green"><span>PROMOTION {order.promoCode ? `(${order.promoCode})` : ""}</span><span>− {formatPrice(order.discountAmount ?? 0)}</span></div>}
                     <div className="my-4 h-px bg-mbg-green" />
 
                     <div className="flex items-end justify-between">
