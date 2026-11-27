@@ -15,7 +15,7 @@ type GrindUntilAchieveHeroProps = {
 
 const copy = {
   en: {
-    eyebrow: "EMBRACE THE JOURNEY",
+    eyebrow: "GRIND UNTIL ACHIEVE",
     title: "GRIND UNTIL ACHIEVE",
     description:
       "Discover the five chapters behind Milos BG: GRIND, RESILIENCE, CONSISTENCY, FOCUS and ACHIEVE.",
@@ -152,7 +152,7 @@ export default function GrindUntilAchieveHero({
             id="grind-until-achieve-hero-title"
             className="
               max-w-[700px]
-              text-[28px]
+              text-[42px]
               font-black
               uppercase
               leading-[0.92]
@@ -166,7 +166,7 @@ export default function GrindUntilAchieveHero({
           >
             {/* Each word stays together on mobile; only the specified letters glow. */}
             <span aria-hidden="true" className="inline-block whitespace-nowrap">
-              GR<span className={styles.neon}>I</span>ND
+              GR<span className={styles.neon} data-neon-letter="I">I</span>ND
             </span>{" "}
             <span
               aria-hidden="true"
@@ -175,7 +175,7 @@ export default function GrindUntilAchieveHero({
               UNTIL
             </span>{" "}
             <span aria-hidden="true" className="inline-block whitespace-nowrap">
-              ACHIE<span className={styles.neon}>V</span>E
+              ACHIE<span className={styles.neon} data-neon-letter="V">V</span>E
             </span>
           </h2>
 

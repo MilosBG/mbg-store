@@ -185,7 +185,7 @@ const Cart = () => {
   const inputClass = useCallback(
     (field: keyof CheckoutFormState) =>
       [
-        "w-full rounded-xs border bg-mbg-rgbablank px-3 py-2 text-xs uppercase tracking-widest text-mbg-black transition duration-200 focus:outline-none focus:ring-2",
+        "min-h-11 w-full min-w-0 rounded-sm border bg-white px-3 py-2 text-xs text-black transition duration-200 focus:outline-none focus:ring-2",
         formErrors[field]
           ? "border-red-500 focus:ring-red-500"
           : "border-mbg-green focus:ring-mbg-green",
@@ -438,18 +438,32 @@ const Cart = () => {
   );
 
   return (
-    <Container className="min-h-screen">
-      <div className="flex gap-4 max-lg:flex-col ">
-        <div className="w-2/3 max-lg:w-full">
-          <p className="heading2-bold py-3">The Hoop</p>
-          <hr className="py-3 bg-mbg-black/7 border-mbg-green" />
+    <main className="min-h-screen bg-white text-black">
+      <Container className="min-w-0 pb-12 pt-6 sm:pt-10 lg:pb-20">
+      <div className={cart.cartItems.length > 0 ? "grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(330px,0.82fr)] lg:items-start lg:gap-8" : "mx-auto max-w-3xl"}>
+        <section className="min-w-0">
+          <header className="mb-6 border-b border-[#BFBFBF]/60 pb-6 sm:mb-8 sm:pb-8">
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.21em] text-[#00821A]">
+              MILOS BG / THE JOURNEY CONTINUES
+            </p>
+            <h1 className="text-[clamp(2rem,7vw,4.5rem)] font-black uppercase leading-[0.98] tracking-[-0.045em] text-black">
+              THE <span className="text-[#00821A]">HOOP.</span>
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[#404040]">
+              Your pieces are ready for the next chapter. Review your selection, choose your delivery and complete the journey.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#404040]">
+              <span><span className="text-[#00821A]">01</span> YOUR PIECES</span>
+              <span><span className="text-[#00821A]">02</span> DELIVERY</span>
+              <span><span className="text-[#00821A]">03</span> CONFIRMATION</span>
+            </div>
+          </header>
 
           {cart.cartItems.length === 0 ? (
             <>
-              <p className="uppercase text-[11px] tracking-widest font-bold text-mbg-green py-3">
-                Empty Hoop...
-              </p>
-              <div className="min-h-[50%] bg-mbg-white/90 p-10">
+              <div className="border border-[#BFBFBF]/60 bg-white px-5 py-10 text-center sm:px-8 sm:py-14">
+                <p className="text-sm font-bold uppercase tracking-[0.1em] text-[#404040]">Your Hoop is waiting.</p>
+                <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-[#404040]">Every journey starts with a first piece.</p>
                 <Image
                   src={MBG}
                   alt="Grind Until Achieve"
@@ -465,8 +479,8 @@ const Cart = () => {
     lg:w-[60%]
   "
                 />
-                <Link href="/products" className="mbg-prime-full mbg-p-center">
-                  Shoot Now
+                <Link href="/products" className="mx-auto mt-3 inline-flex min-h-11 items-center justify-center rounded-sm bg-[#00821A] px-7 text-xs font-black uppercase tracking-[0.12em] text-white transition-colors hover:bg-black">
+                  EXPLORE OUTFITS
                 </Link>
               </div>
             </>
@@ -479,70 +493,63 @@ const Cart = () => {
                 return (
                   <div
                     key={key}
-                    className="w-full max-sm:flex-col max-sm:gap-3 gap-3 hover:bg-mbg-green/7 hoverEffect px-5 py-5 border-b bg-mbg-white/46 border-mbg-black/7"
+                    className="mb-3 min-w-0 border border-[#BFBFBF]/60 bg-white p-3 transition-colors hover:border-[#00821A]/40 sm:p-5"
                   >
-                    <div className="flex items-start">
-                      <div className="relative">
+                    <div className="flex min-w-0 items-start gap-3 sm:gap-5">
+                      <div className="relative shrink-0">
                         <Image
                           src={media?.[0] ?? "/placeholder.png"}
                           alt={title ?? "Item"}
                           width={100}
                           height={100}
-                          className="w-24 h-24 rounded-xs object-contain bg-mbg-rgbablank"
+                          className="h-20 w-20 rounded-sm bg-[#BFBFBF]/10 object-contain sm:h-28 sm:w-28"
                         />
-                        <Trash2
-                          className="mbg-icon hover:text-mbg-green hoverEffect cursor-pointer absolute top-1 right-1 bg-mbg-black/7 p-0.5 "
-                          onClick={() =>
-                            cart.removeItem(_id, cartItem.color, cartItem.size)
-                          }
-                        />
+                        <button
+                          type="button"
+                          aria-label={`Remove ${title ?? "item"} from cart`}
+                          title="Remove item"
+                          className="absolute -right-2 -top-2 inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#BFBFBF]/60 bg-white text-[#404040] transition-colors hover:border-red-500 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-[#00821A]"
+                          onClick={() => cart.removeItem(_id, cartItem.color, cartItem.size)}
+                        >
+                          <Trash2 size={15} aria-hidden="true" />
+                        </button>
                       </div>
 
-                      <div className="ml-4">
+                      <div className="min-w-0 flex-1 pl-1 sm:pl-0">
                         <Link href={`/products/${_id}`}>
-                          <p className="font-bold tracking-widest text-[10px] uppercase">
+                          <p className="break-words text-sm font-black uppercase tracking-[0.05em] text-black sm:text-base">
                             {title}
                           </p>
                         </Link>
-                        <p className="text-[10px] text-mbg-black/60 uppercase">
+                        <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-[#404040]">
                           {cartItem.color || ""} {cartItem.size || ""}
                         </p>
-                        <p className="uppercase text-[11px] font-semibold text-mbg-green">
+                        <p className="mt-2 text-sm font-black uppercase text-[#00821A]">
                           € {price}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex w-full justify-between items-center p-2 mt-2 bg-mbg-black/7">
-                      <div
-                        role="button"
-                        onClick={() =>
-                          cart.decreaseQuantity(
-                            _id,
-                            cartItem.color,
-                            cartItem.size,
-                          )
-                        }
-                        className="mbg-p-center bg-mbg-black/7 py-0.5 px-2.5 font-bold hover:bg-mbg-green hover:text-mbg-white hoverEffect rounded-xs cursor-pointer"
+                    <div className="mt-4 flex w-full items-center justify-between gap-3 border-t border-[#BFBFBF]/30 pt-3">
+                      <button
+                        type="button"
+                        aria-label={`Decrease quantity of ${title ?? "item"}`}
+                        onClick={() => cart.decreaseQuantity(_id, cartItem.color, cartItem.size)}
+                        className="flex h-11 w-11 items-center justify-center rounded-sm border border-[#BFBFBF]/60 bg-white text-lg font-bold transition hover:border-[#00821A] hover:text-[#00821A] focus-visible:outline-2 focus-visible:outline-[#00821A]"
                       >
-                        -
-                      </div>
-                      <p className="font-bold text-[11px] text-mbg-green">
+                        −
+                      </button>
+                      <output className="min-w-8 text-center text-sm font-black text-[#00821A]" aria-live="polite">
                         {cartItem.quantity}
-                      </p>
-                      <div
-                        role="button"
-                        onClick={() =>
-                          cart.increaseQuantity(
-                            _id,
-                            cartItem.color,
-                            cartItem.size,
-                          )
-                        }
-                        className="mbg-p-center bg-mbg-black/7 py-0.5 px-2.5 font-bold hover:bg-mbg-green hover:text-mbg-white hoverEffect rounded-xs cursor-pointer"
+                      </output>
+                      <button
+                        type="button"
+                        aria-label={`Increase quantity of ${title ?? "item"}`}
+                        onClick={() => cart.increaseQuantity(_id, cartItem.color, cartItem.size)}
+                        className="flex h-11 w-11 items-center justify-center rounded-sm border border-[#BFBFBF]/60 bg-white text-lg font-bold transition hover:border-[#00821A] hover:text-[#00821A] focus-visible:outline-2 focus-visible:outline-[#00821A]"
                       >
                         +
-                      </div>
+                      </button>
                     </div>
                     {lineStock(cartItem) <= 0 && (
                       <p className="text-[10px] text-red-600 mt-1">
@@ -560,11 +567,13 @@ const Cart = () => {
               })}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="w-1/3 max-lg:w-full flex flex-col gap-3 bg-mbg-black/7 mt-5 px-4 py-4.5">
-          <p className="text-sm font-bold uppercase text-mbg-black">
-            Summary{" "}
+        {cart.cartItems.length > 0 && (
+        <aside className="min-w-0 self-start rounded-sm border border-[#BFBFBF]/60 bg-white p-4 shadow-[0_6px_28px_rgba(0,0,0,0.04)] sm:p-6 lg:mt-1">
+          <p className="mb-1 text-[10px] font-black uppercase tracking-[0.19em] text-[#00821A]">02 / CHECKOUT</p>
+          <p className="mb-3 text-xl font-black uppercase tracking-tight text-black">
+            Order summary{" "}
             <span className="text-mbg-green font-medium">{`${
               cart.cartItems.length
             } ${cart.cartItems.length > 1 ? "items" : "item"}`}</span>
@@ -581,7 +590,7 @@ const Cart = () => {
           </div>
 
           {/* Shipping selector (FREE vs EXPRESS) */}
-          <div className="mbg-p-between items-center">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <label className="text-xs uppercase font-bold text-mbg-black/46">
               Shipping
             </label>
@@ -590,7 +599,7 @@ const Cart = () => {
               onChange={(e) =>
                 setShippingOption(e.target.value as "FREE" | "EXPRESS")
               }
-              className="text-mbg-green bg-mbg-rgbablank focus:ring-mbg-green focus:border-mbg-green rounded-xs border px-3 py-1 text-xs transition duration-200 focus:ring-2 focus:outline-none"
+              className="min-h-11 w-full min-w-0 rounded-sm border border-[#BFBFBF]/60 bg-white px-3 text-xs font-bold text-[#00821A] transition focus:border-[#00821A] focus:outline-none focus:ring-2 focus:ring-[#00821A]/20 sm:w-auto"
             >
               <option value="FREE">FREE DELIVERY (0€)</option>
               <option value="EXPRESS">EXPRESS DELIVERY (10€)</option>
@@ -599,21 +608,21 @@ const Cart = () => {
 
           <div className="space-y-2 border-t border-mbg-black/10 pt-3">
             <label htmlFor="promo-code" className="block text-[10px] font-black uppercase tracking-wide text-mbg-black">Promotion code</label>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input id="promo-code" type="text" maxLength={24} placeholder="GRIND10" value={promoInput} onChange={(e)=>{setPromoInput(e.target.value.toUpperCase());setPromoQuote(null);setPromoError("");}} className="min-h-11 w-full min-w-0 rounded-sm border border-mbg-black/20 bg-white px-3 text-xs font-bold tracking-widest" />
-              <button type="button" disabled={checkingPromo || !promoInput.trim()} onClick={()=>void applyPromo()} className="min-h-11 shrink-0 rounded-sm bg-mbg-black px-4 text-[10px] font-bold uppercase text-white hover:bg-mbg-green disabled:opacity-50">{checkingPromo?"CHECKING…":"APPLY"}</button>
+              <button type="button" disabled={checkingPromo || !promoInput.trim()} onClick={()=>void applyPromo()} className="min-h-11 w-full shrink-0 rounded-sm bg-black px-5 text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-[#00821A] disabled:opacity-50 sm:w-auto">{checkingPromo?"CHECKING…":"APPLY"}</button>
             </div>
             {promoError && <p role="alert" className="text-[11px] text-red-700">{promoError}</p>}
             {promoQuote && <p role="status" className="text-xs font-bold text-mbg-green">{promoQuote.code} − € {(promoQuote.discountCents/100).toFixed(2)}</p>}
           </div>
 
           {/* Final total (subtotal + shipping - validated discount) */}
-          <div className="mbg-p-between">
-            <span className="text-xs uppercase font-bold text-mbg-black/46">
+          <div className="mt-2 flex items-center justify-between gap-4 rounded-sm bg-[#00821A]/10 px-3 py-4">
+            <span className="text-xs uppercase font-black tracking-[0.07em] text-black">
               Total
             </span>
-            <span className="text-xs text-mbg-green uppercase font-bold">
-              € {finalTotal}
+            <span className="text-xl font-black text-[#00821A]">
+              € {finalTotal.toFixed(2)}
             </span>
           </div>
           <hr className=" border-mbg-green" />
@@ -683,7 +692,7 @@ const Cart = () => {
           </div>
 
           <form
-            className="mt-3 flex flex-col gap-4"
+            className="mt-5 flex flex-col gap-5 border-t border-[#BFBFBF]/30 pt-5"
             onSubmit={handleSubmit}
             noValidate
           >
@@ -703,7 +712,7 @@ const Cart = () => {
                   type="email"
                   autoComplete="email"
                   value={formData.email}
-                  placeholder="admin@example.com"
+                  placeholder="you@example.com"
                   onChange={(event) =>
                     handleFieldChange("email", event.target.value)
                   }
@@ -897,15 +906,17 @@ const Cart = () => {
 
             <button
               type="submit"
-              className="mbg-prime-full mbg-p-center mt-1 w-full disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-2 flex min-h-12 w-full items-center justify-center rounded-sm bg-[#00821A] px-5 py-3 text-[11px] font-black uppercase tracking-[0.12em] text-white transition hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] disabled:cursor-not-allowed disabled:opacity-60"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Processing..." : "Submit order"}
             </button>
           </form>
-        </div>
+        </aside>
+        )}
       </div>
-    </Container>
+      </Container>
+    </main>
   );
 };
 

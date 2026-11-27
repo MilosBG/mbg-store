@@ -323,7 +323,7 @@ export default function ClientPage() {
   ========================================================= */
 
   return (
-    <main className="relative isolate min-h-screen overflow-hidden bg-mbg-white">
+    <main className="relative isolate min-h-screen overflow-x-hidden bg-white">
       <OrderCelebration />
 
       {/* subtle background */}
@@ -332,12 +332,12 @@ export default function ClientPage() {
         className="pointer-events-none absolute inset-x-0 top-0 h-[450px] bg-gradient-to-b from-mbg-green/[0.07] to-transparent"
       />
 
-      <Container className="relative z-10 py-12 md:py-20">
+      <Container className="relative z-10 min-w-0 px-4 py-8 sm:px-6 sm:py-12 md:py-16">
         {/* =====================================================
             THANK YOU
         ====================================================== */}
 
-        <section className="mx-auto max-w-5xl">
+        <section className="mx-auto w-full max-w-5xl">
           <div className="text-center">
             <div className="mx-auto mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-mbg-green text-mbg-white shadow-sm">
               <Check size={19} />
@@ -347,7 +347,7 @@ export default function ClientPage() {
               Order confirmed
             </p>
 
-            <h1 className="text-5xl font-bold uppercase tracking-[-0.05em] text-mbg-black sm:text-6xl md:text-7xl lg:text-8xl">
+            <h1 className="text-[clamp(2.4rem,10vw,6rem)] font-black uppercase leading-[0.95] tracking-[-0.05em] text-black">
               Thank you !
             </h1>
 
@@ -389,7 +389,7 @@ export default function ClientPage() {
           ==================================================== */}
 
           {!order && (
-            <div className="mx-auto mt-12 max-w-2xl border border-mbg-black/10 bg-mbg-black/[0.025] p-7 text-center md:p-10">
+            <div className="mx-auto mt-9 max-w-2xl border border-[#BFBFBF]/60 bg-white p-4 text-center sm:p-7 md:mt-12 md:p-10">
               <PackageCheck
                 size={26}
                 className="mx-auto text-mbg-green"
@@ -423,7 +423,7 @@ export default function ClientPage() {
                   onClick={() =>
                     router.push("/")
                   }
-                  className="px-5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-mbg-black hover:text-mbg-green"
+                  className="min-h-11 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-mbg-black hover:text-mbg-green"
                 >
                   Keep shooting
                 </button>
@@ -436,12 +436,12 @@ export default function ClientPage() {
           ==================================================== */}
 
           {order && (
-            <div className="mt-12 grid gap-5 lg:grid-cols-[1.45fr_0.75fr]">
+            <div className="mt-9 grid min-w-0 gap-4 lg:mt-12 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.75fr)] lg:gap-5">
               {/* ===============================================
                   PRODUCTS
               ================================================ */}
 
-              <section className="border border-mbg-black/10 bg-mbg-white/90 backdrop-blur-sm">
+              <section className="min-w-0 rounded-sm border border-[#BFBFBF]/60 bg-white shadow-[0_6px_24px_rgba(0,0,0,0.035)]">
                 <div className="flex items-center justify-between border-b border-mbg-black/10 px-5 py-4 md:px-6">
                   <div>
                     <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-mbg-green">
@@ -466,9 +466,9 @@ export default function ClientPage() {
                     (item, index) => (
                       <article
                         key={`${item.productId}-${item.color ?? ""}-${item.size ?? ""}-${index}`}
-                        className="flex gap-4 border-b border-mbg-black/7 p-4 last:border-b-0 md:p-5"
+                        className="flex min-w-0 flex-wrap gap-3 border-b border-mbg-black/10 p-3 last:border-b-0 sm:flex-nowrap sm:gap-4 sm:p-5"
                       >
-                        <div className="relative h-24 w-24 shrink-0 overflow-hidden bg-mbg-black/[0.035]">
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-[#BFBFBF]/10 sm:h-24 sm:w-24">
                           {item.image ? (
                             <Image
                               src={
@@ -491,7 +491,7 @@ export default function ClientPage() {
                           )}
                         </div>
 
-                        <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
+                        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-1">
                           <div>
                             <p className="truncate text-[11px] font-bold uppercase tracking-[0.12em] text-mbg-black">
                               {
@@ -551,10 +551,10 @@ export default function ClientPage() {
                   RIGHT SIDE
               ================================================ */}
 
-              <aside className="flex flex-col gap-5">
+              <aside className="min-w-0 flex flex-col gap-4 sm:gap-5">
                 {/* Delivery */}
 
-                <section className="border border-mbg-black/10 bg-mbg-black/[0.025] p-5">
+                <section className="min-w-0 rounded-sm border border-[#BFBFBF]/60 bg-white p-4 sm:p-5">
                   <div className="mb-5 flex items-center gap-2">
                     <MapPin
                       size={15}
@@ -633,7 +633,7 @@ export default function ClientPage() {
 
                 {/* Totals */}
 
-                <section className="border border-mbg-black/10 bg-mbg-white p-5">
+                <section className="min-w-0 rounded-sm border border-[#BFBFBF]/60 bg-white p-4 sm:p-5">
                   <p className="mb-5 text-[10px] font-bold uppercase tracking-[0.18em] text-mbg-black">
                     Summary
                   </p>
@@ -715,7 +715,7 @@ export default function ClientPage() {
                   </p>
                 </div>
 
-                <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                   <button
                     type="button"
                     onClick={() =>
@@ -723,7 +723,7 @@ export default function ClientPage() {
                         "/orders",
                       )
                     }
-                    className="group flex items-center justify-center gap-2 border border-mbg-black px-5 py-2 text-[10px] font-bold uppercase tracking-[0.13em] text-mbg-black transition hover:bg-mbg-black hover:text-mbg-white"
+                    className="group flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-mbg-black px-5 py-2 text-[10px] font-bold uppercase tracking-[0.13em] text-mbg-black transition hover:bg-mbg-black hover:text-mbg-white"
                   >
                     My orders
 

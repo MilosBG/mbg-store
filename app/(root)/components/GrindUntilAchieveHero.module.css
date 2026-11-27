@@ -1,36 +1,25 @@
-/* MILOS BG — only I (GRIND), UNTIL and V (ACHIEVE) flicker. */
+/* MILOS BG: only I of GRIND, UNTIL and V of ACHIEVE shine. */
 .neon {
   color: #00821a;
-  text-shadow:
-    0 0 3px rgba(0, 130, 26, 0.75),
-    0 0 8px rgba(0, 130, 26, 0.65),
-    0 0 16px rgba(0, 130, 26, 0.5);
-  animation: neonAlternation 2.2s step-end infinite;
+  text-shadow: 0 0 3px rgba(0, 130, 26, .85),
+    0 0 10px rgba(0, 130, 26, .64), 0 0 20px rgba(0, 130, 26, .36);
+  animation: mbgNeonFlicker 2.8s steps(1, end) infinite;
+  will-change: color, text-shadow;
 }
 
-/* Hard switches between brand green and white, with two brief neon flickers. */
-@keyframes neonAlternation {
-  0%, 43%, 47%, 48%, 95%, 96%, 99%, 100% {
+@keyframes mbgNeonFlicker {
+  0%, 31%, 34%, 37%, 69%, 72%, 100% {
     color: #00821a;
-    text-shadow:
-      0 0 3px rgba(0, 130, 26, 0.75),
-      0 0 8px rgba(0, 130, 26, 0.65),
-      0 0 16px rgba(0, 130, 26, 0.5);
+    text-shadow: 0 0 3px rgba(0, 130, 26, .85),
+      0 0 10px rgba(0, 130, 26, .64), 0 0 20px rgba(0, 130, 26, .36);
   }
-
-  44%, 46%, 49%, 94%, 97%, 98% {
+  32%, 35%, 38%, 70%, 73%, 96% {
     color: #ffffff;
-    text-shadow:
-      0 0 3px rgba(255, 255, 255, 0.8),
-      0 0 8px rgba(255, 255, 255, 0.65),
-      0 0 16px rgba(255, 255, 255, 0.48);
+    text-shadow: 0 0 3px rgba(255,255,255,.92),
+      0 0 10px rgba(255,255,255,.78), 0 0 22px rgba(255,255,255,.5);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .neon {
-    animation: none;
-    color: #00821a;
-    text-shadow: none;
-  }
+  .neon { animation: none; color: #00821a; text-shadow: none; will-change: auto; }
 }

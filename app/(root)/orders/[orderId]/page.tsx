@@ -312,7 +312,7 @@ export default async function OrderDetailsPage({
   ======================================================= */
 
   return (
-    <Container className="mt-8 min-h-[60vh] pb-16">
+    <Container className="min-w-0 pt-6 pb-12 sm:pt-10 sm:pb-16">
       {/* ===================================================
           PAGE TOP
       ==================================================== */}
@@ -384,14 +384,15 @@ export default async function OrderDetailsPage({
           overflow-hidden
           border
           border-mbg-black/10
-          bg-[#f2f2f2]
+          bg-white
+          shadow-[0_12px_45px_rgba(0,0,0,0.04)]
         "
       >
         {/* =================================================
             ORDER HEADER
         ================================================== */}
 
-        <header className="px-5 py-6 sm:px-7 lg:px-8">
+        <header className="border-b-2 border-[#00821A] bg-[#BFBFBF]/10 px-4 py-5 sm:px-7 sm:py-7 lg:px-8">
           <div
             className="
               flex
@@ -439,7 +440,8 @@ export default async function OrderDetailsPage({
             grid-cols-1
             border-y
             border-mbg-black/10
-            sm:grid-cols-3
+            grid-cols-2
+          sm:grid-cols-3
           "
         >
           <OrderStat
@@ -474,7 +476,7 @@ export default async function OrderDetailsPage({
             ORDER PROGRESS
         ================================================== */}
 
-        <div className="px-5 py-7 sm:px-7 sm:py-8 lg:px-8">
+        <div className="min-w-0 px-3 py-5 sm:px-7 sm:py-8 lg:px-8">
           <div className="mb-5 flex items-center justify-between gap-4">
             <span className="text-[8px] font-extrabold uppercase tracking-[0.25em] text-mbg-black/40">
               Order Progress
@@ -509,7 +511,7 @@ export default async function OrderDetailsPage({
             PRODUCTS HEADER
         ================================================== */}
 
-        <div className="border-t border-mbg-black/10 px-5 pt-7 sm:px-7 lg:px-8">
+        <div className="border-t border-mbg-black/10 px-4 pt-6 sm:px-7 sm:pt-7 lg:px-8">
           <div
             className="
               flex
@@ -541,8 +543,8 @@ export default async function OrderDetailsPage({
             PRODUCTS
         ================================================== */}
 
-        <div className="px-5 sm:px-7 lg:px-8">
-          <div className="mt-5 divide-y divide-mbg-black/10">
+        <div className="min-w-0 px-3 sm:px-7 lg:px-8">
+          <div className="mt-3 divide-y divide-mbg-black/10 sm:mt-5">
             {products.map(
               (
                 orderItem: OrderLine
@@ -609,7 +611,7 @@ export default async function OrderDetailsPage({
             mt-4
             border-t
             border-mbg-black/10
-            bg-white/40
+            bg-[#BFBFBF]/10
             px-5
             py-7
             sm:px-7
@@ -724,6 +726,9 @@ function OrderProduct({
         gap-4
         py-6
         sm:gap-6
+        min-w-0
+        flex-wrap
+        sm:flex-nowrap
         sm:py-7
       "
     >
@@ -914,7 +919,9 @@ function OrderStat({
         items-center
         justify-between
         gap-5
-        px-5
+        last:col-span-2
+        sm:last:col-span-1
+        px-3
         py-4
         sm:block
         sm:px-6

@@ -100,6 +100,10 @@ const translations = {
     backToTracking: "Back to tracking",
     language: "Language",
     breadcrumb: "Orders",
+    seeMore: "See more",
+    seeLess: "See less",
+    showing: "Showing",
+    of: "of",
   },
   fr: {
     tracking: "Suivi",
@@ -154,6 +158,10 @@ const translations = {
     backToTracking: "Revenir au suivi",
     language: "Langue",
     breadcrumb: "Commandes",
+    seeMore: "Voir plus",
+    seeLess: "Voir moins",
+    showing: "Affichage de",
+    of: "sur",
   },
 } as const;
 
@@ -167,6 +175,12 @@ export default function OrdersClient({
   const router = useRouter();
   const [language, setLanguage] = useState<Language>("en");
   const [view, setView] = useState<View>("tracking");
+  // Show only the most recent order initially, regardless of viewport width.
+  const [visibleCount, setVisibleCount] = useState(1);
+  const changeView = (next: View) => {
+    setView(next);
+    setVisibleCount(1);
+  };
   const [isRefreshing, startTransition] = useTransition();
   const lastRefreshRef = useRef(0);
   const t = translations[language];
@@ -234,7 +248,7 @@ export default function OrdersClient({
   };
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f8fa] pb-16 font-[Kanit] text-mbg-black">
+    <main className="min-h-[60vh] bg-white pb-16 font-[Kanit] text-mbg-black">
       
 <div className="bg-mbg-green">
   <Container className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-1">
@@ -259,7 +273,7 @@ export default function OrdersClient({
           id="tab-tracking"
           aria-controls="orders-panel"
           aria-pressed={view === "tracking"}
-          onClick={() => setView("tracking")}
+          onClick={() => changeView("tracking")}
           className={
             "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[9px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
             (view === "tracking"
@@ -279,7 +293,7 @@ export default function OrdersClient({
           id="tab-history"
           aria-controls="orders-panel"
           aria-pressed={view === "history"}
-          onClick={() => setView("history")}
+          onClick={() => changeView("history")}
           className={
             "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[9px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
             (view === "history"
@@ -344,11 +358,12 @@ export default function OrdersClient({
 </div>
 
 
-      <Container className="pt-8 md:pt-10">
-        <header className="mb-7">
-          <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.24em] text-mbg-green">Milos BG / {t.breadcrumb}</p>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{t.title}</h1>
-          <p className="mt-2 text-sm text-mbg-black/60">{t.subtitle}</p>
+      <Container className="min-w-0 pt-6 sm:pt-9 md:pt-12">
+        <header className="mb-6 border-b border-[#BFBFBF]/60 pb-6 sm:mb-8 sm:pb-8">
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#00821A]">Milos BG / {t.breadcrumb}</p>
+          <h1 className="text-[clamp(1.7rem,5vw,3rem)] font-black uppercase leading-[1.05] tracking-[-0.04em] text-black">{t.title}</h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[#404040]">{t.subtitle}</p>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#404040]">FIVE CHAPTERS. ONE JOURNEY.</p>
         </header>
 
         {requiresSignIn ? (
@@ -365,11 +380,11 @@ export default function OrdersClient({
         ) : (
           <>
             {view === "tracking" && (
-              <section aria-label={t.tracking} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <section aria-label={t.tracking} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <SummaryCard count={counts.awaiting} label={t.awaiting} variant="awaiting" />
                 <SummaryCard count={counts.preparing} label={t.preparing} variant="preparing" />
                 <SummaryCard count={counts.shipping} label={t.shipping} variant="shipping" />
-                <Link href="/products" className="flex min-h-28 flex-col items-center justify-center rounded-sm bg-mbg-green p-4 text-center text-white transition-colors hover:bg-mbg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green">
+                <Link href="/products" className="flex min-h-28 flex-col items-center justify-center rounded-sm bg-mbg-green p-3 sm:p-4 text-center text-white transition-colors hover:bg-mbg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green">
                   <span aria-hidden="true" className="text-3xl leading-none">+</span>
                   <span className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em]">{t.newOrder}</span>
                 </Link>
@@ -386,11 +401,38 @@ export default function OrdersClient({
                   <div className="mb-3 hidden grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] gap-3 px-5 text-[9px] font-bold uppercase tracking-[0.17em] text-mbg-black/55 lg:grid">
                     <span>{t.order}</span><span>{t.items}</span><span>{t.placedOn}</span><span>{t.delivery}</span><span>{t.total}</span><span className="w-32" />
                   </div>
-                  <div className="space-y-4">
-                    {visibleOrders.map((order) => (
+                  <div className="space-y-3 sm:space-y-4" aria-live="polite">
+                    {visibleOrders.slice(0, visibleCount).map((order) => (
                       <OrderCard key={order._id} order={order} language={language} t={t} />
                     ))}
                   </div>
+                  {visibleOrders.length > 1 && (
+                    <div className="mt-5 flex flex-col items-center gap-3 border-t border-[#BFBFBF]/30 pt-5 sm:flex-row sm:justify-between">
+                      <p className="text-[11px] font-medium text-[#404040]">
+                        {t.showing} {Math.min(visibleCount, visibleOrders.length)} {t.of} {visibleOrders.length}
+                      </p>
+                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                        {visibleCount > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setVisibleCount(1)}
+                            className="min-h-11 rounded-sm border border-[#BFBFBF]/60 bg-white px-6 text-[11px] font-black uppercase tracking-wider text-black transition hover:border-[#00821A] sm:w-auto"
+                          >
+                            {t.seeLess}
+                          </button>
+                        )}
+                        {visibleCount < visibleOrders.length && (
+                          <button
+                            type="button"
+                            onClick={() => setVisibleCount((count) => Math.min(count + 3, visibleOrders.length))}
+                            className="min-h-11 rounded-sm bg-black px-7 text-[11px] font-black uppercase tracking-wider text-white transition hover:bg-[#00821A] sm:w-auto"
+                          >
+                            {t.seeMore} <span aria-hidden="true">↓</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <StatePanel
@@ -400,7 +442,7 @@ export default function OrdersClient({
                   {view === "tracking" ? (
                     <Link href="/products" className="inline-flex min-h-11 items-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.shop}</Link>
                   ) : (
-                    <button type="button" onClick={() => setView("tracking")} className="min-h-11 rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.backToTracking}</button>
+                    <button type="button" onClick={() => changeView("tracking")} className="min-h-11 rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.backToTracking}</button>
                   )}
                 </StatePanel>
               )}
@@ -500,8 +542,8 @@ function OrderCard({
   const isCancelled = status === "CANCELLED" || status === "CANCELED";
 
   return (
-    <article className="overflow-hidden rounded-sm border border-mbg-black/10 bg-white transition-shadow hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
-      <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] lg:items-center lg:gap-3">
+    <article className="min-w-0 overflow-hidden rounded-sm border border-[#BFBFBF]/60 bg-white transition-all duration-200 hover:border-[#00821A]/40 hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+      <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-4 px-4 py-4 sm:grid-cols-3 sm:px-5 sm:py-5 lg:grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] lg:items-center lg:gap-3">
         <div className="min-w-0">
           <SmallLabel className="lg:hidden">{t.order}</SmallLabel>
           <Link href={"/orders/" + encodeURIComponent(orderId)} className="block truncate text-xs font-bold uppercase tracking-[0.07em] hover:text-mbg-green">
@@ -525,14 +567,14 @@ function OrderCard({
         </div>
         <div>
           <SmallLabel className="lg:hidden">{t.total}</SmallLabel>
-          <div className="flex flex-col items-end gap-1"><span className="text-xs font-bold">{formatMoney(order.totalAmount, language)}</span>{order.promotion?.code && <span className="text-[9px] font-bold uppercase text-mbg-green">{order.promotion.code}</span>}</div>
+          <div className="flex flex-col items-start gap-1 lg:items-end"><span className="text-xs font-bold">{formatMoney(order.totalAmount, language)}</span>{order.promotion?.code && <span className="text-[9px] font-bold uppercase text-mbg-green">{order.promotion.code}</span>}</div>
         </div>
         <button
           type="button"
           aria-expanded={expanded}
           aria-controls={"order-details-" + orderId}
           onClick={() => setExpanded((previous) => !previous)}
-          className="inline-flex min-h-10 w-full items-center justify-center gap-3 rounded-sm border border-mbg-black/15 px-3 text-[10px] font-semibold text-mbg-green transition-colors hover:border-mbg-green hover:bg-mbg-green/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green sm:w-auto lg:w-32"
+          className="col-span-2 inline-flex min-h-11 w-full items-center justify-center gap-3 rounded-sm border border-mbg-black/15 px-3 text-[10px] font-semibold text-mbg-green transition-colors hover:border-mbg-green hover:bg-mbg-green/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green sm:col-span-3 lg:col-span-1 lg:w-32"
         >
           {expanded ? t.hideDetails : t.details}
           <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={"h-3.5 w-3.5 transition-transform " + (expanded ? "rotate-180" : "")}>
@@ -598,7 +640,7 @@ function OrderProgress({
     t.delivered,
   ];
   return (
-    <div className="border-t border-mbg-black/10 px-2 py-5 sm:px-5" aria-label={t.timeline} lang={language}>
+    <div className="border-t border-[#BFBFBF]/30 px-2 py-5 sm:px-5" aria-label={t.timeline} lang={language}>
       <ol className="grid grid-cols-4">
         {labels.map((label, index) => {
           const done = index < stage || stage === 3;
@@ -645,8 +687,8 @@ function OrderProduct({
   const quantity = safeQuantity(product.quantity);
   const unitPrice = Number(product.unitPrice ?? product.product?.price ?? 0);
   return (
-    <div className="flex items-center gap-4 py-4">
-      <div className="h-16 w-16 shrink-0 overflow-hidden bg-white sm:h-20 sm:w-20">
+    <div className="flex min-w-0 flex-wrap items-center gap-3 py-4 sm:flex-nowrap sm:gap-4">
+      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-[#BFBFBF]/10 sm:h-20 sm:w-20">
         <Image src={imageSrc} alt={product.product?.title || "Milos BG"} width={80} height={80} className="h-full w-full object-contain" />
       </div>
       <div className="min-w-0 flex-1">
@@ -657,7 +699,7 @@ function OrderProduct({
           <span>{t.quantity}: {quantity}</span>
         </div>
       </div>
-      <strong className="shrink-0 text-xs">{formatMoney(unitPrice * quantity, language)}</strong>
+      <strong className="ml-auto shrink-0 text-xs font-black text-[#00821A]">{formatMoney(unitPrice * quantity, language)}</strong>
     </div>
   );
 }
