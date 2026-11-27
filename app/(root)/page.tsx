@@ -1,28 +1,29 @@
+
+import { Suspense } from "react";
+
 import Container from "@/components/mbg-components/Container";
-import HomeBanner from "./components/HomeBanner";
 import Chapters from "@/components/mbg-components/Chapters";
 import ProductList from "@/components/mbg-components/ProductList";
-import { buildMetadata } from "@/lib/seo";
-import { Suspense } from "react";
 import ProductCardSkeleton from "@/components/mbg-components/ProductCardSkeleton";
+
+import HomeBanner from "./components/HomeBanner";
+import GrindUntilAchieveHero from "./components/GrindUntilAchieveHero";
+import WelcomePopup from "./components/WelcomePopup";
 import MilosBGAnimatedSlogan from "./components/MilosBGAnimatedSlogan/MilosBGAnimatedSlogan";
 import MilosBGSocialsSection from "./components/MilosBGSocialsSection";
-import GrindModeHero from "./components/GrindModeHero";
-import WelcomePopup from "./components/WelcomePopup";
+
+import { buildMetadata } from "@/lib/seo";
 import { getWelcomeSettings } from "@/lib/welcome";
+import { normalizeStoreLanguage } from "@/lib/store-language";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = buildMetadata({
   title: "Milos BG",
-
   description:
     "A story of progression, written one chapter at a time. Discover handcrafted apparel inspired by basketball, craftsmanship and the GRIND UNTIL ACHIEVE Mentality.",
-
   path: "/",
-
   image: "/milos-bg-og.jpg",
-
   keywords: [
     "Milos BG",
     "Grind Until Achieve",
@@ -34,27 +35,49 @@ export const metadata = buildMetadata({
   ],
 });
 
-export default async function Home({
-  searchParams,
-}: {
+type HomeProps = {
   searchParams: Promise<{
     lang?: string | string[];
   }>;
-}) {
-  const { lang } = await searchParams;
+};
+
+export default async function Home({
+  searchParams,
+}: HomeProps) {
+  const params = await searchParams;
+
+  const rawLang = Array.isArray(params.lang)
+    ? params.lang[0]
+    : params.lang;
+
+  const lang = normalizeStoreLanguage(rawLang);
+
   const welcome = await getWelcomeSettings();
+
   return (
     <Container className="py-3">
-      <WelcomePopup config={welcome} lang={lang === "fr" ? "fr" : "en"} />
+      {/* WELCOME POPUP */}
+      <WelcomePopup config={welcome} lang={lang} />
+
+      {/* MAIN HOME BANNER */}
       <HomeBanner />
-      <GrindModeHero lang={lang === "fr" ? "fr" : "en"} />
+
+      {/* GRIND UNTIL ACHIEVE HERO */}
+      <GrindUntilAchieveHero lang={lang} />
+
+      {/* FIVE CHAPTERS */}
       <Chapters />
+
+      {/* OUTFITS */}
       <Suspense
         fallback={
           <div className="mt-10">
-            <p className="py-3 heading2-bold">Outfits</p>
+            <p className="heading2-bold py-3">
+              Outfits
+            </p>
+
             <div className="mbg-p-between">
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
@@ -65,7 +88,11 @@ export default async function Home({
       >
         <ProductList />
       </Suspense>
+
+      {/* ANIMATED SLOGAN */}
       <MilosBGAnimatedSlogan />
+
+      {/* SOCIAL NETWORKS */}
       <MilosBGSocialsSection />
     </Container>
   );

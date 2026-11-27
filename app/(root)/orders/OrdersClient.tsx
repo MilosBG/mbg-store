@@ -28,6 +28,7 @@ type Props = {
   orders: StorefrontOrder[];
   error: OrdersClientError | null;
   requiresSignIn?: boolean;
+  initialLanguage?: "en" | "fr";
 };
 
 type Language = "en" | "fr";
@@ -104,6 +105,15 @@ const translations = {
     seeLess: "See less",
     showing: "Showing",
     of: "of",
+    chapter: "Your journey",
+    orderLabel: "Chapter of your order",
+    trackYourPath: "Keep moving. Your order is progressing through each stage.",
+    seeAll: "Your orders",
+    nextStage: "The next step",
+    lastOrders: "Your collection of journeys",
+    story: "FIVE CHAPTERS. ONE JOURNEY.",
+    liveUpdate: "Orders update when you return to this page.",
+    step: "Step",
   },
   fr: {
     tracking: "Suivi",
@@ -162,6 +172,15 @@ const translations = {
     seeLess: "Voir moins",
     showing: "Affichage de",
     of: "sur",
+    chapter: "Votre parcours",
+    orderLabel: "Chapitre de votre commande",
+    trackYourPath: "Continuez d’avancer. Votre commande progresse à chaque étape.",
+    seeAll: "Vos commandes",
+    nextStage: "La prochaine étape",
+    lastOrders: "Vos parcours",
+    story: "CINQ CHAPITRES. UN SEUL PARCOURS.",
+    liveUpdate: "Les commandes s’actualisent à votre retour sur cette page.",
+    step: "Étape",
   },
 } as const;
 
@@ -171,9 +190,10 @@ export default function OrdersClient({
   orders,
   error,
   requiresSignIn = false,
+  initialLanguage = "en",
 }: Props) {
   const router = useRouter();
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<Language>(initialLanguage);
   const [view, setView] = useState<View>("tracking");
   // Show only the most recent order initially, regardless of viewport width.
   const [visibleCount, setVisibleCount] = useState(1);
@@ -186,22 +206,26 @@ export default function OrdersClient({
   const t = translations[language];
 
   useEffect(() => {
-    try {
-      if (window.localStorage.getItem("mbg-orders-language") === "fr") {
-        setLanguage("fr");
-      }
-    } catch {
-      // The language switch still works when storage is unavailable.
+    // URL has priority so a detail-page language link is always respected.
+    const fromQuery = new URLSearchParams(window.location.search).get("lang");
+    if (fromQuery === "en" || fromQuery === "fr") {
+      setLanguage(fromQuery);
+      try { window.localStorage.setItem("mbg-orders-language", fromQuery); } catch { /* optional */ }
+      return;
     }
+    try {
+      if (window.localStorage.getItem("mbg-orders-language") === "fr") setLanguage("fr");
+    } catch { /* localStorage may be disabled */ }
   }, []);
 
   const changeLanguage = (next: Language) => {
     setLanguage(next);
     try {
       window.localStorage.setItem("mbg-orders-language", next);
-    } catch {
-      // Storage is optional.
-    }
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", next);
+      window.history.replaceState(window.history.state, "", url.toString());
+    } catch { /* Keep the selector usable without storage */ }
   };
 
   const refresh = useCallback(
@@ -248,202 +272,108 @@ export default function OrdersClient({
   };
 
   return (
-    <main className="min-h-[60vh] bg-white pb-16 font-[Kanit] text-mbg-black">
-      
-<div className="bg-mbg-green">
-  <Container className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-1">
-
-    {/* NAVIGATION */}
-    <nav
-      aria-label={language === "fr" ? "Commandes" : "Orders"}
-      className="grid w-full min-w-0 grid-cols-3 gap-1.5 sm:flex sm:w-auto sm:items-center sm:gap-2"
-    >
-      <div
-        role="group"
-        aria-label={
-          language === "fr"
-            ? "Afficher les commandes"
-            : "Show orders"
-        }
-        className="col-span-2 grid min-w-0 grid-cols-2 gap-1.5 sm:flex sm:items-center sm:gap-2"
-      >
-        {/* TRACKING */}
-        <button
-          type="button"
-          id="tab-tracking"
-          aria-controls="orders-panel"
-          aria-pressed={view === "tracking"}
-          onClick={() => changeView("tracking")}
-          className={
-            "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[9px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
-            (view === "tracking"
-              ? "bg-white text-mbg-green"
-              : "bg-white/15 text-white hover:bg-white/25")
-          }
-        >
-          <span className="truncate">{t.tracking}</span>
-          <span className="shrink-0 opacity-70">
-            {trackingOrders.length}
-          </span>
-        </button>
-
-        {/* HISTORY */}
-        <button
-          type="button"
-          id="tab-history"
-          aria-controls="orders-panel"
-          aria-pressed={view === "history"}
-          onClick={() => changeView("history")}
-          className={
-            "flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-sm px-2 text-[9px] font-bold uppercase tracking-[0.06em] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7 " +
-            (view === "history"
-              ? "bg-white text-mbg-green"
-              : "bg-white/15 text-white hover:bg-white/25")
-          }
-        >
-          <span className="truncate">{t.history}</span>
-          <span className="shrink-0 opacity-70">
-            {historyOrders.length}
-          </span>
-        </button>
+    <main lang={language} className="min-h-[65vh] bg-[#e7eae8] pb-[55px] font-[Kanit] text-[#111715] sm:pb-[89px]">
+      {/* Ink-dark navigation: the page beneath stays intentionally light. */}
+      <div className="border-b border-white/10 bg-[#111715] text-white">
+        <Container className="flex flex-col gap-[13px] py-[13px] sm:flex-row sm:items-center sm:justify-between sm:py-[21px]">
+          <nav aria-label={t.breadcrumb} className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap" >
+            <button type="button" aria-pressed={view === "tracking"} onClick={() => changeView("tracking")}
+              className={`min-h-11 rounded-sm border px-2 text-[10px] font-bold uppercase tracking-[0.07em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-[21px] ${view === "tracking" ? "border-[#00821A] bg-[#00821A] text-white" : "border-white/20 text-white/85 hover:border-[#00821A]"}`}>
+              {t.tracking} <span className="ml-1 opacity-70">{trackingOrders.length}</span>
+            </button>
+            <button type="button" aria-pressed={view === "history"} onClick={() => changeView("history")}
+              className={`min-h-11 rounded-sm border px-2 text-[10px] font-bold uppercase tracking-[0.07em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-[21px] ${view === "history" ? "border-[#00821A] bg-[#00821A] text-white" : "border-white/20 text-white/85 hover:border-[#00821A]"}`}>
+              {t.history} <span className="ml-1 opacity-70">{historyOrders.length}</span>
+            </button>
+            <Link href={"/the-hoop?lang=" + language} className="inline-flex min-h-11 items-center justify-center rounded-sm border border-white/20 px-2 text-[10px] font-bold uppercase tracking-[0.07em] text-white/85 transition-colors hover:border-[#00821A] sm:px-[21px]">
+              {t.cart}
+            </Link>
+          </nav>
+          <div role="group" aria-label={t.language} className="flex shrink-0 items-center justify-end gap-1.5">
+            <span className="mr-2 text-[9px] font-bold uppercase tracking-[0.14em] text-white/50">{t.language}</span>
+            {(["en", "fr"] as const).map((lang) => (
+              <button key={lang} type="button" lang={lang} aria-pressed={language === lang} onClick={() => changeLanguage(lang)}
+                className={`min-h-10 min-w-11 rounded-sm border px-3 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${language === lang ? "border-[#00821A] bg-white text-[#00821A]" : "border-white/25 text-white hover:bg-white/10"}`}>
+                {lang.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </Container>
       </div>
 
-      {/* CART */}
-      <Link
-        href="/the-hoop"
-        className="flex min-h-11 min-w-0 items-center justify-center rounded-sm bg-white/15 px-2 text-[9px] font-bold uppercase tracking-[0.06em] text-white transition-all duration-200 hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-h-10 sm:px-5 sm:text-[10px] sm:tracking-[0.12em] lg:px-7"
-      >
-        <span className="truncate">{t.cart}</span>
-      </Link>
-    </nav>
-
-    {/* LANGUAGE SELECTOR */}
-    <div
-      role="group"
-      aria-label={t.language}
-      className="flex w-full items-center justify-end gap-1 border-t border-white/20 pt-2 text-[10px] font-bold sm:w-auto sm:shrink-0 sm:border-0 sm:pt-0"
-    >
-      <button
-        type="button"
-        lang="en"
-        aria-pressed={language === "en"}
-        onClick={() => changeLanguage("en")}
-        className={
-          "min-h-9 min-w-10 rounded-sm px-2 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
-          (language === "en"
-            ? "bg-white text-mbg-green"
-            : "text-white hover:bg-white/15")
-        }
-      >
-        EN
-      </button>
-
-      <button
-        type="button"
-        lang="fr"
-        aria-pressed={language === "fr"}
-        onClick={() => changeLanguage("fr")}
-        className={
-          "min-h-9 min-w-10 rounded-sm px-2 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white " +
-          (language === "fr"
-            ? "bg-white text-mbg-green"
-            : "text-white hover:bg-white/15")
-        }
-      >
-        FR
-      </button>
-    </div>
-
-  </Container>
-</div>
-
-
-      <Container className="min-w-0 pt-6 sm:pt-9 md:pt-12">
-        <header className="mb-6 border-b border-[#BFBFBF]/60 pb-6 sm:mb-8 sm:pb-8">
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#00821A]">Milos BG / {t.breadcrumb}</p>
-          <h1 className="text-[clamp(1.7rem,5vw,3rem)] font-black uppercase leading-[1.05] tracking-[-0.04em] text-black">{t.title}</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-[#404040]">{t.subtitle}</p>
-          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#404040]">FIVE CHAPTERS. ONE JOURNEY.</p>
+      <Container className="min-w-0 pt-[21px] sm:pt-[34px]">
+        {/* Golden ratio: 1.618fr / 1fr = approximately 61.8% / 38.2%. */}
+        <header className="grid gap-[13px] lg:grid-cols-[minmax(0,1.618fr)_minmax(0,1fr)] lg:gap-[21px]">
+          <div className="relative min-w-0 overflow-hidden rounded-sm bg-[#171d19] px-[21px] py-[34px] text-white sm:px-[34px] sm:py-[55px]">
+            <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[#00821A]" />
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#63ce76]">Milos BG / {t.seeAll}</p>
+            <h1 className="mt-[13px] max-w-xl text-[clamp(2rem,4.2vw,3.8rem)] font-black uppercase leading-[1.03] tracking-[-0.035em]">{t.title}</h1>
+            <p className="mt-[21px] max-w-lg text-[13px] leading-[1.65] text-white/70 sm:text-[15px]">{t.subtitle}</p>
+            <div className="mt-[34px] flex flex-wrap items-center gap-[13px] border-t border-white/15 pt-[21px] text-[10px] font-bold uppercase tracking-[0.13em] text-white/60">
+              <span className="text-[#63ce76]">01 / 05</span><span>{t.story}</span>
+            </div>
+          </div>
+          <aside className="flex min-w-0 flex-col justify-between rounded-sm border border-[#c7ceca] bg-[#f7f8f6] p-[21px] sm:p-[34px]">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.chapter}</p>
+            <div>
+              <strong className="block text-[clamp(2rem,5vw,4rem)] font-black leading-none tracking-[-0.04em] tabular-nums">{view === "tracking" ? trackingOrders.length : historyOrders.length}</strong>
+              <p className="mt-3 text-sm font-bold uppercase tracking-[0.08em]">{view === "tracking" ? t.tracking : t.history}</p>
+              <p className="mt-[13px] max-w-xs text-[12px] leading-[1.65] text-[#56605a]">{t.trackYourPath}</p>
+            </div>
+            <p className="mt-5 border-t border-[#c7ceca] pt-[13px] text-[10px] leading-[1.6] text-[#68736b]">{t.liveUpdate}</p>
+          </aside>
         </header>
 
         {requiresSignIn ? (
           <StatePanel title={t.signInTitle} body={t.signInText}>
-            <Link href="/sign-in" className="inline-flex min-h-11 items-center justify-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.signIn}</Link>
+            <Link href="/sign-in" className="inline-flex min-h-11 items-center justify-center rounded-sm bg-[#111715] px-[21px] text-[11px] font-bold uppercase tracking-wider text-white hover:bg-[#00821A]">{t.signIn}</Link>
           </StatePanel>
         ) : error ? (
           <StatePanel title={t.loadError} body={error.type === "unauthorized" ? t.sessionErrorText : t.loadErrorText}>
-            {error.type === "unauthorized" && (
-              <Link href="/sign-in" className="inline-flex min-h-11 items-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.signIn}</Link>
-            )}
-            <button type="button" disabled={isRefreshing} onClick={() => refresh(true)} className="min-h-11 rounded-sm border border-mbg-black px-6 text-xs font-bold uppercase tracking-wider hover:border-mbg-green hover:text-mbg-green disabled:opacity-50">{isRefreshing ? t.refreshing : t.retry}</button>
+            {error.type === "unauthorized" && <Link href="/sign-in" className="inline-flex min-h-11 items-center rounded-sm bg-[#111715] px-[21px] text-[11px] font-bold uppercase tracking-wider text-white hover:bg-[#00821A]">{t.signIn}</Link>}
+            <button type="button" disabled={isRefreshing} onClick={() => refresh(true)} className="min-h-11 rounded-sm border border-[#111715] px-[21px] text-[11px] font-bold uppercase tracking-wider hover:border-[#00821A] hover:text-[#00821A] disabled:opacity-50">{isRefreshing ? t.refreshing : t.retry}</button>
           </StatePanel>
         ) : (
           <>
             {view === "tracking" && (
-              <section aria-label={t.tracking} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <section aria-label={t.tracking} className="mt-[21px] grid grid-cols-2 gap-[13px] lg:grid-cols-4 lg:gap-[21px]">
                 <SummaryCard count={counts.awaiting} label={t.awaiting} variant="awaiting" />
                 <SummaryCard count={counts.preparing} label={t.preparing} variant="preparing" />
                 <SummaryCard count={counts.shipping} label={t.shipping} variant="shipping" />
-                <Link href="/products" className="flex min-h-28 flex-col items-center justify-center rounded-sm bg-mbg-green p-3 sm:p-4 text-center text-white transition-colors hover:bg-mbg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green">
-                  <span aria-hidden="true" className="text-3xl leading-none">+</span>
-                  <span className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em]">{t.newOrder}</span>
+                <Link href="/products" className="flex min-h-[130px] flex-col justify-between rounded-sm bg-[#00821A] p-[21px] text-white transition-colors hover:bg-[#111715] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A]">
+                  <span className="text-3xl leading-none" aria-hidden="true">＋</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.13em]">{t.newOrder} <span aria-hidden="true">↗</span></span>
                 </Link>
               </section>
             )}
-
-            <section
-              id="orders-panel"
-              aria-label={view === "tracking" ? t.tracking : t.history}
-              className="mt-7 border-t border-mbg-black/10 pt-7"
-            >
+            <section id="orders-panel" aria-label={view === "tracking" ? t.tracking : t.history} className="mt-[34px] sm:mt-[55px]">
+              <div className="mb-[13px] flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.orderLabel}</p>
+                  <h2 className="mt-2 text-[clamp(1.35rem,2.5vw,2.125rem)] font-black uppercase leading-[1.1] tracking-tight">{view === "tracking" ? t.tracking : t.history}</h2>
+                </div>
+                <span className="text-[11px] font-medium text-[#68736b]">{visibleOrders.length} {t.items.toLowerCase()}</span>
+              </div>
               {visibleOrders.length ? (
                 <>
-                  <div className="mb-3 hidden grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] gap-3 px-5 text-[9px] font-bold uppercase tracking-[0.17em] text-mbg-black/55 lg:grid">
-                    <span>{t.order}</span><span>{t.items}</span><span>{t.placedOn}</span><span>{t.delivery}</span><span>{t.total}</span><span className="w-32" />
-                  </div>
-                  <div className="space-y-3 sm:space-y-4" aria-live="polite">
+                  <div className="space-y-[13px]" aria-live="polite">
                     {visibleOrders.slice(0, visibleCount).map((order) => (
                       <OrderCard key={order._id} order={order} language={language} t={t} />
                     ))}
                   </div>
                   {visibleOrders.length > 1 && (
-                    <div className="mt-5 flex flex-col items-center gap-3 border-t border-[#BFBFBF]/30 pt-5 sm:flex-row sm:justify-between">
-                      <p className="text-[11px] font-medium text-[#404040]">
-                        {t.showing} {Math.min(visibleCount, visibleOrders.length)} {t.of} {visibleOrders.length}
-                      </p>
-                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                        {visibleCount > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setVisibleCount(1)}
-                            className="min-h-11 rounded-sm border border-[#BFBFBF]/60 bg-white px-6 text-[11px] font-black uppercase tracking-wider text-black transition hover:border-[#00821A] sm:w-auto"
-                          >
-                            {t.seeLess}
-                          </button>
-                        )}
-                        {visibleCount < visibleOrders.length && (
-                          <button
-                            type="button"
-                            onClick={() => setVisibleCount((count) => Math.min(count + 3, visibleOrders.length))}
-                            className="min-h-11 rounded-sm bg-black px-7 text-[11px] font-black uppercase tracking-wider text-white transition hover:bg-[#00821A] sm:w-auto"
-                          >
-                            {t.seeMore} <span aria-hidden="true">↓</span>
-                          </button>
-                        )}
+                    <div className="mt-[21px] flex flex-col gap-[13px] border-t border-[#c5ccc7] pt-[21px] sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-[11px] text-[#56605a]">{t.showing} {Math.min(visibleCount, visibleOrders.length)} {t.of} {visibleOrders.length}</p>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        {visibleCount > 1 && <button type="button" onClick={() => setVisibleCount(1)} className="min-h-11 rounded-sm border border-[#9ea8a1] bg-[#f7f8f6] px-[21px] text-[11px] font-black uppercase text-[#111715] hover:border-[#00821A]">{t.seeLess}</button>}
+                        {visibleCount < visibleOrders.length && <button type="button" onClick={() => setVisibleCount((count) => Math.min(count + 3, visibleOrders.length))} className="min-h-11 rounded-sm bg-[#111715] px-[34px] text-[11px] font-black uppercase tracking-[0.1em] text-white hover:bg-[#00821A]">{t.seeMore} <span aria-hidden="true"> ↓</span></button>}
                       </div>
                     </div>
                   )}
                 </>
               ) : (
-                <StatePanel
-                  title={view === "tracking" ? t.emptyTracking : t.emptyHistory}
-                  body={view === "tracking" ? t.emptyTrackingText : t.emptyHistoryText}
-                >
-                  {view === "tracking" ? (
-                    <Link href="/products" className="inline-flex min-h-11 items-center rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.shop}</Link>
-                  ) : (
-                    <button type="button" onClick={() => changeView("tracking")} className="min-h-11 rounded-sm bg-mbg-black px-6 text-xs font-bold uppercase tracking-wider text-white hover:bg-mbg-green">{t.backToTracking}</button>
-                  )}
+                <StatePanel title={view === "tracking" ? t.emptyTracking : t.emptyHistory} body={view === "tracking" ? t.emptyTrackingText : t.emptyHistoryText}>
+                  {view === "tracking" ? <Link href="/products" className="inline-flex min-h-11 items-center rounded-sm bg-[#111715] px-[21px] text-[11px] font-bold uppercase text-white hover:bg-[#00821A]">{t.shop}</Link> : <button type="button" onClick={() => changeView("tracking")} className="min-h-11 rounded-sm bg-[#111715] px-[21px] text-[11px] font-bold uppercase text-white hover:bg-[#00821A]">{t.backToTracking}</button>}
                 </StatePanel>
               )}
             </section>
@@ -454,45 +384,30 @@ export default function OrdersClient({
   );
 }
 
-function StatePanel({
-  title,
-  body,
-  children,
-}: {
-  title: string;
-  body: string;
-  children: ReactNode;
-}) {
+function StatePanel({ title, body, children }: { title: string; body: string; children: ReactNode }) {
   return (
-    <section className="flex min-h-64 flex-col items-center justify-center rounded-sm border border-mbg-black/10 bg-white px-6 py-12 text-center">
-      <h2 className="text-xl font-bold">{title}</h2>
-      <p className="mt-2 max-w-md text-sm text-mbg-black/60">{body}</p>
-      <div className="mt-6 flex flex-wrap justify-center gap-3">{children}</div>
+    <section className="mt-[21px] flex min-h-[260px] flex-col items-center justify-center rounded-sm border border-[#c5ccc7] bg-[#f7f8f6] px-[21px] py-[55px] text-center">
+      <div className="mb-[21px] h-1 w-[55px] bg-[#00821A]" aria-hidden="true" />
+      <h2 className="text-xl font-black uppercase leading-tight sm:text-[26px]">{title}</h2>
+      <p className="mt-[13px] max-w-[34rem] text-[13px] leading-[1.7] text-[#56605a]">{body}</p>
+      <div className="mt-[21px] flex flex-wrap justify-center gap-[13px]">{children}</div>
     </section>
   );
 }
 
-function SummaryCard({
-  count,
-  label,
-  variant,
-}: {
-  count: number;
-  label: string;
-  variant: "awaiting" | "preparing" | "shipping";
-}) {
-  const color = {
-    awaiting: "bg-mbg-black text-white",
-    preparing: "bg-mbg-darkgrey text-white",
-    shipping: "bg-mbg-green text-white",
+function SummaryCard({ count, label, variant }: { count: number; label: string; variant: "awaiting" | "preparing" | "shipping" }) {
+  const marker = {
+    awaiting: "bg-[#171d19] text-white",
+    preparing: "bg-[#404b44] text-white",
+    shipping: "bg-[#00821A] text-white",
   }[variant];
   return (
-    <div className="relative flex min-h-28 flex-col justify-end rounded-sm border border-mbg-black/10 bg-white px-5 pb-4 pt-8">
-      <span className={"absolute -top-3 left-4 flex h-9 w-9 items-center justify-center rounded-sm " + color}>
-        <StageIcon variant={variant} />
-      </span>
-      <strong className="text-3xl leading-none">{count}</strong>
-      <span className="mt-2 text-[10px] font-medium uppercase tracking-[0.13em] text-mbg-black/60">{label}</span>
+    <div className="relative flex min-h-[130px] min-w-0 flex-col justify-between rounded-sm border border-[#c5ccc7] bg-[#f7f8f6] px-[21px] py-[21px]">
+      <span className={`flex h-[34px] w-[34px] items-center justify-center rounded-sm ${marker}`}><StageIcon variant={variant} /></span>
+      <div className="mt-[13px]">
+        <strong className="block text-[34px] font-black leading-none tabular-nums">{count}</strong>
+        <span className="mt-2 block text-[10px] font-bold uppercase leading-[1.4] tracking-[0.09em] text-[#56605a]">{label}</span>
+      </div>
     </div>
   );
 }
@@ -520,152 +435,75 @@ function StageIcon({ variant }: { variant: "awaiting" | "preparing" | "shipping"
   );
 }
 
-function OrderCard({
-  order,
-  language,
-  t,
-}: {
-  order: StorefrontOrder;
-  language: Language;
-  t: Texts;
-}) {
+function OrderCard({ order, language, t }: { order: StorefrontOrder; language: Language; t: Texts }) {
   const [expanded, setExpanded] = useState(false);
   const status = normalizeStatus(order.fulfillmentStatus);
   const stage = getStage(status);
   const products = order.products ?? [];
-  const quantity = products.reduce(
-    (sum, product) => sum + safeQuantity(product.quantity),
-    0,
-  );
-  const orderId = String(order._id);
+  const quantity = products.reduce((sum, product) => sum + safeQuantity(product.quantity), 0);
+  const id = String(order._id);
+  const detailsHref = `/orders/${encodeURIComponent(id)}?lang=${language}`;
   const reference = getReference(order);
-  const isCancelled = status === "CANCELLED" || status === "CANCELED";
+  const isNeutral = stage === null;
 
   return (
-    <article className="min-w-0 overflow-hidden rounded-sm border border-[#BFBFBF]/60 bg-white transition-all duration-200 hover:border-[#00821A]/40 hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-      <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-4 px-4 py-4 sm:grid-cols-3 sm:px-5 sm:py-5 lg:grid-cols-[1.05fr_.85fr_.95fr_1.05fr_.7fr_auto] lg:items-center lg:gap-3">
-        <div className="min-w-0">
-          <SmallLabel className="lg:hidden">{t.order}</SmallLabel>
-          <Link href={"/orders/" + encodeURIComponent(orderId)} className="block truncate text-xs font-bold uppercase tracking-[0.07em] hover:text-mbg-green">
-            {reference}
-          </Link>
-          <span className="mt-1 block text-[10px] font-medium text-mbg-black/50">
-            {statusLabel(status, t)}
-          </span>
-        </div>
-        <div>
-          <SmallLabel className="lg:hidden">{t.items}</SmallLabel>
-          <span className="text-xs font-semibold">{quantity} {t.items.toLowerCase()}</span>
-        </div>
-        <div>
-          <SmallLabel className="lg:hidden">{t.placedOn}</SmallLabel>
-          <span className="text-xs font-semibold">{formatDate(getCreatedAt(order), language)}</span>
-        </div>
-        <div>
-          <SmallLabel className="lg:hidden">{t.delivery}</SmallLabel>
-          <span className="text-xs font-semibold">{formatShipping(order.shippingMethod, t)}</span>
-        </div>
-        <div>
-          <SmallLabel className="lg:hidden">{t.total}</SmallLabel>
-          <div className="flex flex-col items-start gap-1 lg:items-end"><span className="text-xs font-bold">{formatMoney(order.totalAmount, language)}</span>{order.promotion?.code && <span className="text-[9px] font-bold uppercase text-mbg-green">{order.promotion.code}</span>}</div>
-        </div>
-        <button
-          type="button"
-          aria-expanded={expanded}
-          aria-controls={"order-details-" + orderId}
-          onClick={() => setExpanded((previous) => !previous)}
-          className="col-span-2 inline-flex min-h-11 w-full items-center justify-center gap-3 rounded-sm border border-mbg-black/15 px-3 text-[10px] font-semibold text-mbg-green transition-colors hover:border-mbg-green hover:bg-mbg-green/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green sm:col-span-3 lg:col-span-1 lg:w-32"
-        >
-          {expanded ? t.hideDetails : t.details}
-          <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={"h-3.5 w-3.5 transition-transform " + (expanded ? "rotate-180" : "")}>
-            <path d="m3 6 5 5 5-5" />
-          </svg>
-        </button>
-      </div>
-
-      {stage !== null && !isCancelled ? (
-        <OrderProgress stage={stage} language={language} t={t} />
-      ) : (
-        <div className="border-t border-mbg-black/10 px-5 py-3 text-xs font-semibold text-mbg-darkgrey">
-          {statusLabel(status, t)}
-        </div>
-      )}
-
-      <div id={"order-details-" + orderId} hidden={!expanded} className="border-t border-mbg-black/10 bg-[#fcfcfc] px-5 py-5">
-        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-mbg-black/50">{t.products}</p>
-        {products.length > 0 && (
-          <div className="mt-3 divide-y divide-mbg-black/10">
-            {products.map((product, index) => (
-              <OrderProduct key={product._id ?? index} product={product} language={language} t={t} />
-            ))}
+    <article className="min-w-0 overflow-hidden rounded-sm border border-[#c5ccc7] bg-[#f7f8f6] shadow-[0_8px_24px_rgba(17,23,21,0.04)] transition-all duration-200 hover:border-[#00821A]/60 hover:shadow-[0_13px_34px_rgba(17,23,21,0.07)]">
+      <div className="grid min-w-0 gap-0 lg:grid-cols-[minmax(0,1.618fr)_minmax(0,1fr)]">
+        <div className="min-w-0 border-b border-[#d6dcd7] px-[21px] py-[21px] sm:px-[34px] sm:py-[26px] lg:border-b-0 lg:border-r">
+          <div className="flex flex-wrap items-start justify-between gap-[13px]">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A]">{t.order}</p>
+              <Link href={detailsHref} className="mt-1 block break-all text-[21px] font-black uppercase tracking-[-0.025em] leading-tight hover:text-[#00821A] sm:text-[26px]">{reference}</Link>
+            </div>
+            <span className={`inline-flex min-h-9 items-center rounded-sm border px-[13px] text-[10px] font-bold uppercase leading-tight tracking-[0.05em] ${isNeutral ? "border-[#acb4ae] bg-[#e5e9e6] text-[#323d36]" : "border-[#00821A]/25 bg-[#e6f4e9] text-[#00821A]"}`}>{statusLabel(status,t)}</span>
           </div>
-        )}
-        <div className="mt-4 flex justify-end">
-          <Link href={"/orders/" + encodeURIComponent(orderId)} className="inline-flex min-h-10 items-center rounded-sm bg-mbg-black px-5 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-mbg-green">
-            {t.orderDetails} <span aria-hidden="true" className="ml-2">→</span>
-          </Link>
+          <div className="mt-[21px] grid grid-cols-2 gap-[13px] sm:grid-cols-3">
+            <InfoPiece title={t.placedOn} value={formatDate(getCreatedAt(order), language)} />
+            <InfoPiece title={t.items} value={`${quantity} ${t.items.toLowerCase()}`} />
+            <InfoPiece title={t.delivery} value={formatShipping(order.shippingMethod,t)} />
+          </div>
         </div>
+        <div className="flex min-w-0 flex-col justify-between gap-[21px] bg-[#e9ede9] px-[21px] py-[21px] sm:px-[34px] sm:py-[26px]">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#56605a]">{t.total}</p>
+            <strong className="mt-2 block text-[clamp(1.55rem,3vw,2.4rem)] font-black leading-tight tabular-nums text-[#111715]">{formatMoney(order.totalAmount,language)}</strong>
+            {order.promotion?.code && <span className="mt-2 inline-flex rounded-sm border border-[#00821A]/25 bg-white px-2 py-1 text-[10px] font-bold uppercase text-[#00821A]">{order.promotion.code}</span>}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row">
+            <button type="button" aria-expanded={expanded} aria-controls={`order-details-${id}`} onClick={() => setExpanded(!expanded)} className="min-h-11 flex-1 rounded-sm border border-[#9da8a0] bg-white px-3 text-[11px] font-bold uppercase text-[#111715] hover:border-[#00821A]">{expanded ? t.hideDetails : t.details} <span aria-hidden="true">{expanded ? " ↑" : " ↓"}</span></button>
+            <Link href={detailsHref} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-sm bg-[#111715] px-[13px] text-center text-[11px] font-bold uppercase text-white hover:bg-[#00821A]">{t.orderDetails} <span aria-hidden="true" className="ml-2">↗</span></Link>
+          </div>
+        </div>
+      </div>
+      {!isNeutral ? <OrderProgress stage={stage} language={language} t={t} /> : <div className="border-t border-[#d6dcd7] px-[21px] py-[13px] text-xs font-medium text-[#56605a]">{statusLabel(status,t)}</div>}
+      <div id={`order-details-${id}`} hidden={!expanded} className="border-t border-[#d6dcd7] bg-white px-[21px] py-[21px] sm:px-[34px]">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#00821A]">{t.products}</p>
+        {products.length ? <div className="mt-[13px] divide-y divide-[#d6dcd7]">{products.map((product,index)=><OrderProduct key={product._id ?? index} product={product} language={language} t={t}/>)}</div> : null}
       </div>
     </article>
   );
 }
 
-function SmallLabel({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <span className={"mb-1 block text-[9px] font-bold uppercase tracking-[0.15em] text-mbg-black/45 " + className}>
-      {children}
-    </span>
-  );
+function InfoPiece({title,value}:{title:string;value:string}) {
+  return <div className="min-w-0"><span className="block text-[10px] font-bold uppercase tracking-[0.08em] text-[#647069]">{title}</span><span className="mt-1 block break-words text-[12px] font-semibold leading-[1.4] text-[#111715]">{value}</span></div>;
 }
 
-function OrderProgress({
-  stage,
-  language,
-  t,
-}: {
-  stage: Stage;
-  language: Language;
-  t: Texts;
-}) {
-  const labels = [
-    stage === 0 ? t.awaiting : t.confirmed,
-    stage <= 1 ? t.preparing : t.prepared,
-    stage <= 2 ? t.shipping : t.shipped,
-    t.delivered,
-  ];
+function OrderProgress({ stage, language, t }: { stage: Stage; language: Language; t: Texts }) {
+  const steps = [t.confirmed,t.preparing,t.shipped,t.delivered];
   return (
-    <div className="border-t border-[#BFBFBF]/30 px-2 py-5 sm:px-5" aria-label={t.timeline} lang={language}>
-      <ol className="grid grid-cols-4">
-        {labels.map((label, index) => {
-          const done = index < stage || stage === 3;
-          const active = index === stage && stage !== 3;
+    <div className="border-t border-[#d6dcd7] px-[21px] py-[21px] sm:px-[34px]" aria-label={t.timeline} lang={language}>
+      <ol className="grid grid-cols-2 gap-x-[13px] gap-y-[21px] sm:grid-cols-4 sm:gap-[13px]">
+        {steps.map((label,index)=>{
+          const complete = stage === 3 || index < stage;
+          const active = stage === index && stage !== 3;
           return (
-            <li key={index} className="min-w-0 text-center">
-              <span className={"block min-h-8 px-1 text-[9px] font-semibold leading-tight sm:text-[11px] " +
-                (done || active ? "text-mbg-green" : "text-mbg-black/45")}>
-                {label}
-              </span>
-              <div className="relative mt-2 flex h-5 items-center justify-center">
-                {index > 0 && <span aria-hidden="true" className={"absolute left-0 right-1/2 h-0.5 " + (index <= stage ? "bg-mbg-green" : "bg-mbg-black/15")} />}
-                {index < 3 && <span aria-hidden="true" className={"absolute left-1/2 right-0 h-0.5 " + (index < stage ? "bg-mbg-green" : "bg-mbg-black/15")} />}
-                <span aria-hidden="true" className={"relative z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 text-[10px] leading-none " +
-                  (done
-                    ? "border-mbg-green bg-mbg-green text-white"
-                    : active
-                      ? "border-mbg-green bg-white"
-                      : "border-mbg-black/15 bg-white")}>
-                  {done ? "✓" : ""}
-                </span>
+            <li key={index} aria-current={active ? "step" : undefined} className="min-w-0">
+              <div className="flex items-center gap-[8px]">
+                <span className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border text-[10px] font-black ${complete ? "border-[#00821A] bg-[#00821A] text-white" : active ? "border-[#00821A] bg-white text-[#00821A]" : "border-[#bec8c1] bg-transparent text-[#849088]"}`}>{complete ? "✓" : String(index+1).padStart(2,"0")}</span>
+                <span className={`h-px flex-1 ${index <= stage ? "bg-[#00821A]" : "bg-[#bec8c1]"}`} aria-hidden="true" />
               </div>
-              <span className="sr-only">
-                {done ? (language === "fr" ? "Terminée" : "Complete") : active ? (language === "fr" ? "En cours" : "Current") : (language === "fr" ? "À venir" : "Upcoming")}
-              </span>
+              <span className={`mt-[8px] block text-[11px] font-semibold leading-[1.35] ${complete || active ? "text-[#00821A]" : "text-[#7a857e]"}`}>{label}</span>
+              <span className="sr-only">{complete ? (language === "fr" ? "Terminée" : "Complete") : active ? (language === "fr" ? "En cours" : "Current") : (language === "fr" ? "À venir" : "Upcoming")}</span>
             </li>
           );
         })}
@@ -687,13 +525,13 @@ function OrderProduct({
   const quantity = safeQuantity(product.quantity);
   const unitPrice = Number(product.unitPrice ?? product.product?.price ?? 0);
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-3 py-4 sm:flex-nowrap sm:gap-4">
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-[#BFBFBF]/10 sm:h-20 sm:w-20">
+    <div className="flex min-w-0 flex-wrap items-center gap-[13px] py-[21px] sm:flex-nowrap sm:gap-[21px]">
+      <div className="h-[55px] w-[55px] shrink-0 overflow-hidden rounded-sm bg-[#e9ede9] sm:h-[89px] sm:w-[89px]">
         <Image src={imageSrc} alt={product.product?.title || "Milos BG"} width={80} height={80} className="h-full w-full object-contain" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-bold uppercase">{product.product?.title || "Milos BG"}</p>
-        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-mbg-black/65">
+        <p className="text-[13px] font-black uppercase">{product.product?.title || "Milos BG"}</p>
+        <div className="mt-[8px] flex flex-wrap gap-x-[13px] gap-y-1 text-[11px] text-[#56605a]">
           {product.color && <span>{t.color}: {product.color}</span>}
           {product.size && <span>{t.size}: {product.size}</span>}
           <span>{t.quantity}: {quantity}</span>

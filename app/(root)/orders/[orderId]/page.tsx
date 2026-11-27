@@ -1,1104 +1,426 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
 
 import Container from "@/components/mbg-components/Container";
-import { H2 } from "@/components/mbg-components/H2";
-import Separator from "@/components/mbg-components/Separator";
-
-import { StatusBadge } from "@/components/orders/StatusBadge";
-import { OrderTimeline } from "@/components/orders/OrderTimeline";
-
 import { getOrderDetails } from "@/lib/actions/actions";
 import { buildMetadata } from "@/lib/seo";
 
-import Image from "next/image";
-import Link from "next/link";
-
-import { auth } from "@clerk/nextjs/server";
-
-/* =========================================================
-   TYPES
-========================================================= */
-
+type Language = "en" | "fr";
 type PageProps = {
-  params: Promise<{
-    orderId: string;
-  }>;
+  params: Promise<{ orderId: string }>;
+  searchParams: Promise<{ lang?: string | string[] }>;
 };
-
-type ResolvedOrder = NonNullable<
-  Awaited<ReturnType<typeof getOrderDetails>>
->;
-
-type OrderLine = NonNullable<
-  ResolvedOrder["products"]
->[number];
-
-/* =========================================================
-   FALLBACK
-========================================================= */
+type ResolvedOrder = NonNullable<Awaited<ReturnType<typeof getOrderDetails>>>;
+type OrderLine = NonNullable<ResolvedOrder["products"]>[number];
 
 const FALLBACK_IMAGE =
   "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 
-/* =========================================================
-   METADATA
-========================================================= */
+const copy = {
+  en: {
+    eyebrow: "YOUR JOURNEY / ORDER DETAILS",
+    title: "Your order",
+    description: "From the first step to the final delivery, follow your Milos BG journey.",
+    shortJourney: "FIVE CHAPTERS. ONE JOURNEY.",
+    breadcrumb: "Orders",
+    back: "All orders",
+    reference: "Order reference",
+    summary: "Order overview",
+    status: "Current status",
+    total: "Order total",
+    shipping: "Shipping",
+    item: "Item",
+    items: "Items",
+    journey: "Your order journey",
+    progressDesc: "Each step brings your piece closer to you.",
+    received: "Received",
+    preparing: "Preparing",
+    sent: "On the way",
+    delivered: "Delivered",
+    products: "Your pieces",
+    piecesTitle: "Items in this order",
+    product: "Product",
+    color: "Color",
+    size: "Size",
+    qty: "Qty",
+    unitPrice: "Unit price",
+    lineTotal: "Line total",
+    financials: "Order summary",
+    subtotal: "Subtotal",
+    promotion: "Promotion",
+    shippingCost: "Shipping",
+    includingDelivery: "Including delivery",
+    placedOn: "Placed on",
+    language: "Language",
+    signInEyebrow: "Account required",
+    signInTitle: "Sign in to view your order",
+    signInBody: "For your privacy, your order is accessible only through your Milos BG account.",
+    signIn: "Sign in",
+    missingEyebrow: "Order unavailable",
+    missingTitle: "Order not found",
+    missingBody: "We couldn't find this order or it isn't associated with your account.",
+    pending: "Awaiting confirmation",
+    processing: "In preparation",
+    confirmed: "Confirmed",
+    packed: "Packed",
+    shipped: "Shipped",
+    outForDelivery: "Out for delivery",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    refunded: "Refunded",
+    returned: "Returned",
+    standard: "Standard delivery",
+    express: "Express delivery",
+    free: "Free delivery",
+    messagePending: "Your order has been received. The journey has begun.",
+    messagePreparing: "Your piece is being prepared with care.",
+    messageShipped: "Your order is on its way.",
+    messageDelivered: "Your order has reached its destination.",
+    messageCompleted: "Journey completed. Thank you for being part of Milos BG.",
+    messageCancelled: "This order has been cancelled.",
+    messageRefunded: "This order has been refunded.",
+    messageReturned: "This order has been returned.",
+    step: "Step",
+    parcel: "Shipment tracking",
+    trackingNumber: "Tracking number",
+    carrier: "Carrier",
+    trackParcel: "Track your parcel",
+  },
+  fr: {
+    eyebrow: "VOTRE PARCOURS / DÉTAIL DE COMMANDE",
+    title: "Votre commande",
+    description: "De la première étape à la livraison, suivez le parcours de votre pièce Milos BG.",
+    shortJourney: "CINQ CHAPITRES. UN SEUL PARCOURS.",
+    breadcrumb: "Commandes",
+    back: "Toutes les commandes",
+    reference: "Référence de commande",
+    summary: "Vue d’ensemble",
+    status: "Statut actuel",
+    total: "Total de la commande",
+    shipping: "Livraison",
+    item: "Article",
+    items: "Articles",
+    journey: "Le parcours de votre commande",
+    progressDesc: "Chaque étape rapproche votre pièce de vous.",
+    received: "Reçue",
+    preparing: "Préparation",
+    sent: "En route",
+    delivered: "Livrée",
+    products: "Vos pièces",
+    piecesTitle: "Articles de cette commande",
+    product: "Produit",
+    color: "Couleur",
+    size: "Taille",
+    qty: "Qté",
+    unitPrice: "Prix unitaire",
+    lineTotal: "Total de l’article",
+    financials: "Récapitulatif",
+    subtotal: "Sous-total",
+    promotion: "Réduction",
+    shippingCost: "Livraison",
+    includingDelivery: "Livraison incluse",
+    placedOn: "Passée le",
+    language: "Langue",
+    signInEyebrow: "Connexion nécessaire",
+    signInTitle: "Connectez-vous pour voir votre commande",
+    signInBody: "Pour votre confidentialité, la commande est accessible uniquement depuis votre compte Milos BG.",
+    signIn: "Se connecter",
+    missingEyebrow: "Commande indisponible",
+    missingTitle: "Commande introuvable",
+    missingBody: "Nous ne trouvons pas cette commande ou elle n’est pas associée à votre compte.",
+    pending: "En attente de validation",
+    processing: "En préparation",
+    confirmed: "Confirmée",
+    packed: "Emballée",
+    shipped: "Expédiée",
+    outForDelivery: "En cours de livraison",
+    completed: "Terminée",
+    cancelled: "Annulée",
+    refunded: "Remboursée",
+    returned: "Retournée",
+    standard: "Livraison standard",
+    express: "Livraison express",
+    free: "Livraison gratuite",
+    messagePending: "Votre commande a été reçue. Le parcours commence.",
+    messagePreparing: "Votre pièce est préparée avec soin.",
+    messageShipped: "Votre commande est en route.",
+    messageDelivered: "Votre commande est arrivée à destination.",
+    messageCompleted: "Parcours terminé. Merci de faire partie de Milos BG.",
+    messageCancelled: "Cette commande a été annulée.",
+    messageRefunded: "Cette commande a été remboursée.",
+    messageReturned: "Cette commande a été retournée.",
+    step: "Étape",
+    parcel: "Suivi de l’expédition",
+    trackingNumber: "Numéro de suivi",
+    carrier: "Transporteur",
+    trackParcel: "Suivre le colis",
+  },
+} as const;
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+type Texts = (typeof copy)[Language];
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { orderId } = await params;
-
-  const encodedId =
-    encodeURIComponent(orderId);
-
   return buildMetadata({
     title: `Order ${orderId}`,
-
-    description:
-      "Securely review the timeline and fulfillment status for your Milos BG order.",
-
-    path: `/orders/${encodedId}`,
-
+    description: "Securely review your Milos BG order and delivery progress.",
+    path: `/orders/${encodeURIComponent(orderId)}`,
     image: "/Grinder.png",
-
-    keywords: [
-      "orders",
-      "order status",
-      "Milos BG",
-    ],
-
+    keywords: ["Milos BG", "orders", "delivery status"],
     robotsIndex: false,
   });
 }
 
-/* =========================================================
-   PAGE
-========================================================= */
-
-export default async function OrderDetailsPage({
-  params,
-}: PageProps) {
-  const { orderId } = await params;
-
+export default async function OrderDetailsPage({ params, searchParams }: PageProps) {
+  const [{ orderId }, query] = await Promise.all([params, searchParams]);
+  const rawLang = Array.isArray(query.lang) ? query.lang[0] : query.lang;
+  const language: Language = rawLang === "fr" ? "fr" : "en";
+  const t = copy[language];
+  const backHref = `/orders?lang=${language}`;
+  const currentHref = `/orders/${encodeURIComponent(orderId)}`;
   const { userId } = await auth();
-
-  /* =======================================================
-     AUTH
-  ======================================================= */
 
   if (!userId) {
     return (
-      <Container className="mt-8 min-h-[60vh]">
-        <div className="mb-6">
-          <H2>Your Order</H2>
-
-          <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-mbg-black/45">
-            Review your order details and delivery
-            progress.
-          </p>
-        </div>
-
-        <Separator className="mb-8 bg-mbg-black" />
-
-        <section
-          className="
-            flex
-            min-h-[280px]
-            flex-col
-            items-center
-            justify-center
-            border
-            border-mbg-black/10
-            bg-mbg-black/[0.025]
-            px-6
-            py-14
-            text-center
-          "
-        >
-          <span className="mb-4 text-[9px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
-            Account required
-          </span>
-
-          <h3 className="text-xl font-extrabold uppercase tracking-tight text-mbg-black md:text-2xl">
-            Sign in to view your order
-          </h3>
-
-          <p className="mt-3 max-w-sm text-[11px] leading-relaxed text-mbg-black/50">
-            Your order information is securely
-            associated with your Milos BG account.
-          </p>
-
-          <Link
-            href="/sign-in"
-            className="
-              mt-7
-              inline-flex
-              min-h-11
-              items-center
-              justify-center
-              bg-mbg-black
-              px-7
-              text-[10px]
-              font-extrabold
-              uppercase
-              tracking-[0.18em]
-              text-white
-              transition-colors
-              duration-300
-              hover:bg-mbg-green
-            "
-          >
-            Sign In
-          </Link>
-        </section>
-      </Container>
+      <PageFrame language={language} title={t.title} eyebrow={t.eyebrow} description={t.description}>
+        <LanguageSwitch baseHref={currentHref} language={language} title={t.language} />
+        <EmptyPage eyebrow={t.signInEyebrow} title={t.signInTitle} body={t.signInBody} button={t.signIn} href="/sign-in" />
+      </PageFrame>
     );
   }
 
-  /* =======================================================
-     GET ORDER
-  ======================================================= */
-
-  const orderDetails =
-    await getOrderDetails(orderId, {
-      customerId: userId,
-    });
-
-  /* =======================================================
-     NOT FOUND
-  ======================================================= */
-
-  if (!orderDetails) {
+  const order = await getOrderDetails(orderId, { customerId: userId });
+  if (!order) {
     return (
-      <Container className="mt-8 min-h-[60vh]">
-        <div className="mb-6">
-          <H2>Your Order</H2>
-        </div>
-
-        <Separator className="mb-8 bg-mbg-black" />
-
-        <section
-          className="
-            flex
-            min-h-[280px]
-            flex-col
-            items-center
-            justify-center
-            border
-            border-mbg-black/10
-            bg-mbg-black/[0.025]
-            px-6
-            py-14
-            text-center
-          "
-        >
-          <span className="mb-4 text-[9px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
-            Order unavailable
-          </span>
-
-          <h3 className="text-xl font-extrabold uppercase tracking-tight text-mbg-black">
-            Order not found
-          </h3>
-
-          <p className="mt-3 max-w-sm text-[11px] leading-relaxed text-mbg-black/50">
-            We couldn&apos;t find this order or it
-            isn&apos;t associated with your account.
-          </p>
-
-          <Link
-            href="/orders"
-            className="
-              mt-7
-              inline-flex
-              min-h-11
-              items-center
-              justify-center
-              bg-mbg-black
-              px-7
-              text-[10px]
-              font-extrabold
-              uppercase
-              tracking-[0.18em]
-              text-white
-              transition-colors
-              duration-300
-              hover:bg-mbg-green
-            "
-          >
-            View My Orders
-          </Link>
-        </section>
-      </Container>
+      <PageFrame language={language} title={t.title} eyebrow={t.eyebrow} description={t.description}>
+        <LanguageSwitch baseHref={currentHref} language={language} title={t.language} />
+        <EmptyPage eyebrow={t.missingEyebrow} title={t.missingTitle} body={t.missingBody} button={t.back} href={backHref} />
+      </PageFrame>
     );
   }
 
-  /* =======================================================
-     DATA
-  ======================================================= */
-
-  const status = String(
-    orderDetails.fulfillmentStatus ||
-      "PENDING"
-  ).toUpperCase();
-
-  const products =
-    orderDetails.products ?? [];
-
-  const totalQuantity =
-    products.reduce(
-      (
-        total: number,
-        orderItem: OrderLine
-      ) =>
-        total +
-        Number(
-          orderItem.quantity ?? 1
-        ),
-      0
-    );
-
-  /* =======================================================
-     SUBTOTAL
-  ======================================================= */
-
-  const subtotal = products.reduce(
-    (
-      total: number,
-      orderItem: OrderLine
-    ) => {
-      const unitPrice = Number(
-        orderItem.unitPrice ??
-          orderItem.product?.price ??
-          0
-      );
-
-      const quantity = Number(
-        orderItem.quantity ?? 1
-      );
-
-      return (
-        total +
-        unitPrice * quantity
-      );
-    },
-    0
-  );
-
-  /* =======================================================
-     TOTAL
-  ======================================================= */
-
-  const totalAmount = Number(
-    orderDetails.totalAmount ??
-      subtotal
-  );
-
-  /* =======================================================
-     SHIPPING
-  ======================================================= */
-
-  const discountAmount = Number(orderDetails.promotion?.discountCents ?? 0) / 100;
-  const shippingAmount = typeof orderDetails.shippingAmount === "number"
-    ? orderDetails.shippingAmount
-    : resolveShippingAmount({
-        shippingMethod: orderDetails.shippingMethod,
-        subtotal,
-        totalAmount: totalAmount + discountAmount,
-      });
-
-  /* =======================================================
-     RENDER
-  ======================================================= */
+  const status = String(order.fulfillmentStatus || "PENDING").toUpperCase();
+  const products = order.products ?? [];
+  const totalQuantity = products.reduce((sum, item) => sum + safeNumber(item.quantity ?? 1), 0);
+  const subtotal = products.reduce((sum, item) => {
+    const price = safeNumber(item.unitPrice ?? item.product?.price ?? 0);
+    const quantity = safeNumber(item.quantity ?? 1);
+    return sum + price * quantity;
+  }, 0);
+  // Preserve the saved server-side promotion and total; never recompute a coupon here.
+  const discount = safeNumber(order.promotion?.discountCents ?? 0) / 100;
+  const total = safeNumber(order.totalAmount ?? subtotal);
+  const shipping = typeof order.shippingAmount === "number"
+    ? order.shippingAmount
+    : resolveShippingAmount(order.shippingMethod, subtotal, total + discount);
+  const createdAt = order.createdAt;
+  const stage = stageFromStatus(status);
+  const statusText = translateStatus(status,t);
+  const isNeutralStatus = stage === null;
+  const trackingUrl = safeTrackingUrl(order.trackingUrl);
 
   return (
-    <Container className="min-w-0 pt-6 pb-12 sm:pt-10 sm:pb-16">
-      {/* ===================================================
-          PAGE TOP
-      ==================================================== */}
-
-      <div
-        className="
-          mb-6
-          flex
-          flex-col
-          gap-5
-          sm:flex-row
-          sm:items-end
-          sm:justify-between
-        "
-      >
-        <div>
-          <span className="text-[9px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
-            Order Details
-          </span>
-
-          <H2>Your Order</H2>
-
-          <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-mbg-black/40">
-            Follow your order from confirmation
-            to delivery.
-          </p>
-        </div>
-
-        <Link
-          href="/orders"
-          className="
-            group
-            inline-flex
-            w-fit
-            items-center
-            gap-2
-            text-[9px]
-            font-extrabold
-            uppercase
-            tracking-[0.18em]
-            text-mbg-black/55
-            transition-colors
-            duration-200
-            hover:text-mbg-green
-          "
-        >
-          <span
-            className="
-              transition-transform
-              duration-300
-              group-hover:-translate-x-1
-            "
-          >
-            ←
-          </span>
-
-          All Orders
+    <PageFrame language={language} title={t.title} eyebrow={t.eyebrow} description={t.description}>
+      <div className="mt-[21px] flex flex-wrap items-center justify-between gap-[13px]">
+        <Link href={backHref} className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-[#9fa9a2] bg-white px-[21px] text-[11px] font-bold uppercase text-[#111715] transition-colors hover:border-[#00821A] hover:text-[#00821A]">
+          <span aria-hidden="true">←</span> {t.back}
         </Link>
+        <LanguageSwitch baseHref={currentHref} language={language} title={t.language} />
       </div>
 
-      <Separator className="mb-8 bg-mbg-black" />
-
-      {/* ===================================================
-          MAIN ORDER CARD
-      ==================================================== */}
-
-      <section
-        className="
-          overflow-hidden
-          border
-          border-mbg-black/10
-          bg-white
-          shadow-[0_12px_45px_rgba(0,0,0,0.04)]
-        "
-      >
-        {/* =================================================
-            ORDER HEADER
-        ================================================== */}
-
-        <header className="border-b-2 border-[#00821A] bg-[#BFBFBF]/10 px-4 py-5 sm:px-7 sm:py-7 lg:px-8">
-          <div
-            className="
-              flex
-              flex-col
-              gap-5
-              sm:flex-row
-              sm:items-start
-              sm:justify-between
-            "
-          >
-            <div className="min-w-0">
-              <p className="text-[8px] font-extrabold uppercase tracking-[0.25em] text-mbg-black/40">
-                Order ID
-              </p>
-
-              <p
-                className="
-                  mt-2
-                  break-all
-                  text-[11px]
-                  font-extrabold
-                  uppercase
-                  tracking-[0.08em]
-                  text-mbg-black
-                  sm:text-xs
-                "
-              >
-                #{orderId}
-              </p>
-            </div>
-
-            <StatusBadge
-              status={status}
-            />
+      <section className="mt-[21px] overflow-hidden rounded-sm border border-[#c6cec8] bg-[#f7f8f6] shadow-[0_13px_34px_rgba(17,23,21,0.05)]" aria-label={t.summary}>
+        {/* The ink-dark section is deliberately short: a light reading area dominates. */}
+        <div className="relative grid gap-[21px] bg-[#161e19] px-[21px] py-[34px] text-white sm:px-[34px] sm:py-[34px] lg:grid-cols-[minmax(0,1.618fr)_minmax(0,1fr)]">
+          <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[#00821A]" />
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#61d477]">{t.reference}</p>
+            <h2 className="mt-[8px] break-all text-[clamp(1.35rem,3vw,2.1rem)] font-black uppercase leading-[1.13] tracking-[-0.025em]">#{orderId}</h2>
+            {formatDate(createdAt,language) && <p className="mt-[13px] text-[11px] text-white/65">{t.placedOn} · {formatDate(createdAt,language)}</p>}
           </div>
-        </header>
-
-        {/* =================================================
-            ORDER STATS
-        ================================================== */}
-
-        <div
-          className="
-            grid
-            grid-cols-1
-            border-y
-            border-mbg-black/10
-            grid-cols-2
-          sm:grid-cols-3
-          "
-        >
-          <OrderStat
-            label="Total Amount"
-            value={`€ ${formatAmount(
-              totalAmount
-            )}`}
-          />
-
-          <OrderStat
-            label="Shipping"
-            value={getShippingLabel(
-              orderDetails.shippingMethod
-            )}
-            border
-          />
-
-          <OrderStat
-            label={
-              totalQuantity === 1
-                ? "Item"
-                : "Items"
-            }
-            value={String(
-              totalQuantity
-            )}
-            border
-          />
-        </div>
-
-        {/* =================================================
-            ORDER PROGRESS
-        ================================================== */}
-
-        <div className="min-w-0 px-3 py-5 sm:px-7 sm:py-8 lg:px-8">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <span className="text-[8px] font-extrabold uppercase tracking-[0.25em] text-mbg-black/40">
-              Order Progress
+          <div className="flex flex-col justify-center border-t border-white/15 pt-[21px] lg:border-l lg:border-t-0 lg:pl-[34px] lg:pt-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">{t.status}</p>
+            <span className={`mt-[8px] inline-flex w-fit items-center gap-2 rounded-sm border px-[13px] py-[8px] text-[12px] font-bold ${isNeutralStatus ? "border-white/25 bg-white/10 text-[#e4e9e5]" : "border-[#61d477]/30 bg-[#00821A]/20 text-[#88ed9b]"}`}>
+              <span className={`h-2 w-2 rounded-full ${isNeutralStatus ? "bg-white/60" : "bg-[#61d477]"}`} aria-hidden="true" />{statusText}
             </span>
-
-            <span className="text-[8px] font-extrabold uppercase tracking-[0.18em] text-mbg-green">
-              {formatStatus(status)}
-            </span>
-          </div>
-
-          <OrderTimeline
-            order={orderDetails}
-          />
-
-          <div
-            className="
-              mt-7
-              border-l-2
-              border-mbg-green
-              bg-white/45
-              px-4
-              py-3
-            "
-          >
-            <p className="text-[11px] font-medium leading-relaxed text-mbg-black/65">
-              {getOrderMessage(status)}
-            </p>
           </div>
         </div>
 
-        {/* =================================================
-            PRODUCTS HEADER
-        ================================================== */}
+        <div className="grid grid-cols-2 gap-0 border-b border-[#d1d8d2] sm:grid-cols-3">
+          <Metric label={t.total} value={money(total,language)} />
+          <Metric label={t.shipping} value={shippingLabel(order.shippingMethod,t)} />
+          <Metric label={totalQuantity === 1 ? t.item : t.items} value={String(totalQuantity)} last />
+        </div>
 
-        <div className="border-t border-mbg-black/10 px-4 pt-6 sm:px-7 sm:pt-7 lg:px-8">
-          <div
-            className="
-              flex
-              items-end
-              justify-between
-              gap-4
-            "
-          >
+        <div className="px-[21px] py-[34px] sm:px-[34px] sm:py-[55px]">
+          <div className="flex flex-wrap items-end justify-between gap-[13px]">
             <div>
-              <span className="text-[8px] font-extrabold uppercase tracking-[0.25em] text-mbg-green">
-                Your Pieces
-              </span>
-
-              <h3 className="mt-1 text-base font-extrabold uppercase tracking-tight text-mbg-black">
-                Items in this order
-              </h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">01 / {t.step}</p>
+              <h3 className="mt-[8px] text-[clamp(1.4rem,3vw,2.125rem)] font-black uppercase tracking-[-0.025em]">{t.journey}</h3>
+              <p className="mt-[8px] max-w-xl text-[12px] leading-[1.65] text-[#626c65]">{t.progressDesc}</p>
             </div>
-
-            <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-mbg-black/40">
-              {totalQuantity}{" "}
-              {totalQuantity === 1
-                ? "Item"
-                : "Items"}
-            </span>
           </div>
-        </div>
-
-        {/* =================================================
-            PRODUCTS
-        ================================================== */}
-
-        <div className="min-w-0 px-3 sm:px-7 lg:px-8">
-          <div className="mt-3 divide-y divide-mbg-black/10 sm:mt-5">
-            {products.map(
-              (
-                orderItem: OrderLine
-              ) => {
-                const unitPrice =
-                  Number(
-                    orderItem.unitPrice ??
-                      orderItem.product
-                        ?.price ??
-                      0
-                  );
-
-                const quantity =
-                  Number(
-                    orderItem.quantity ??
-                      1
-                  );
-
-                const lineTotal =
-                  unitPrice *
-                  quantity;
-
-                return (
-                  <OrderProduct
-                    key={
-                      orderItem._id ??
-                      `${
-                        orderItem.product
-                          ?._id ??
-                        "item"
-                      }-${
-                        orderItem.size ??
-                        ""
-                      }-${
-                        orderItem.color ??
-                        ""
-                      }`
-                    }
-                    orderItem={
-                      orderItem
-                    }
-                    unitPrice={
-                      unitPrice
-                    }
-                    quantity={
-                      quantity
-                    }
-                    lineTotal={
-                      lineTotal
-                    }
-                  />
-                );
-              }
-            )}
-          </div>
-        </div>
-
-        {/* =================================================
-            PRICE SUMMARY
-        ================================================== */}
-
-        <div
-          className="
-            mt-4
-            border-t
-            border-mbg-black/10
-            bg-[#BFBFBF]/10
-            px-5
-            py-7
-            sm:px-7
-            sm:py-8
-            lg:px-8
-          "
-        >
-          <div className="ml-auto w-full sm:max-w-sm">
-            <div className="flex flex-col gap-4">
-              <PriceRow
-                label="Subtotal"
-                value={subtotal}
-              />
-
-              {discountAmount > 0 && <PriceRow label={`Promotion ${orderDetails.promotion?.code ?? ""}`} value={-discountAmount} />}
-              <PriceRow
-                label="Shipping"
-                value={shippingAmount}
-              />
-            </div>
-
-            <div className="my-6 h-px w-full bg-mbg-black/15" />
-
-            <div className="flex items-end justify-between gap-5">
-              <div>
-                <p className="text-[8px] font-extrabold uppercase tracking-[0.23em] text-mbg-black/40">
-                  Order Total
-                </p>
-
-                <p className="mt-1 text-[10px] font-medium text-mbg-black/45">
-                  Including delivery
-                </p>
+          {stage !== null ? <OrderProgress stage={stage} order={order} language={language} t={t} /> : <p className="mt-[21px] rounded-sm border border-[#d1d8d2] bg-[#e7eae8] px-[21px] py-[13px] text-[12px] font-bold text-[#48564d]">{statusText}</p>}
+          <div className="mt-[21px] border-l-[3px] border-[#00821A] bg-[#e7ebe7] px-[21px] py-[13px] text-[12px] leading-[1.65] text-[#39463d]">{statusMessage(status,t)}</div>
+          {(order.trackingNumber || order.transporter || trackingUrl) && (
+            <div className="mt-[21px] grid gap-[13px] rounded-sm border border-[#c6cec8] bg-white p-[21px] sm:grid-cols-2">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A]">{t.parcel}</p>
+                {order.transporter && <p className="mt-[8px] break-words text-[11px] text-[#56605a]">{t.carrier} · <strong className="text-[#111715]">{order.transporter}</strong></p>}
+                {order.trackingNumber && <p className="mt-[8px] break-all text-[11px] text-[#56605a]">{t.trackingNumber} · <strong className="text-[#111715]">{order.trackingNumber}</strong></p>}
               </div>
-
-              <span className="text-xl font-extrabold uppercase tracking-tight text-mbg-green sm:text-2xl">
-                €{" "}
-                {formatAmount(
-                  totalAmount
-                )}
-              </span>
+              {trackingUrl && <a href={trackingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center self-center rounded-sm bg-[#111715] px-[21px] text-[11px] font-bold uppercase text-white hover:bg-[#00821A]">{t.trackParcel} ↗</a>}
             </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* ===================================================
-          BOTTOM NAVIGATION
-      ==================================================== */}
-
-      <div className="mt-6">
-        <Link
-          href="/orders"
-          className="
-            group
-            inline-flex
-            items-center
-            gap-3
-            text-[9px]
-            font-extrabold
-            uppercase
-            tracking-[0.18em]
-            text-mbg-black
-            transition-colors
-            duration-200
-            hover:text-mbg-green
-          "
-        >
-          <span
-            className="
-              transition-transform
-              duration-300
-              group-hover:-translate-x-1
-            "
-          >
-            ←
-          </span>
-
-          Back to Orders
-        </Link>
-      </div>
-    </Container>
-  );
-}
-
-/* =========================================================
-   ORDER PRODUCT
-========================================================= */
-
-function OrderProduct({
-  orderItem,
-  unitPrice,
-  quantity,
-  lineTotal,
-}: {
-  orderItem: OrderLine;
-  unitPrice: number;
-  quantity: number;
-  lineTotal: number;
-}) {
-  const image =
-    orderItem.product?.media?.[0] ||
-    FALLBACK_IMAGE;
-
-  const title =
-    orderItem.product?.title ||
-    "Product";
-
-  return (
-    <div
-      className="
-        flex
-        gap-4
-        py-6
-        sm:gap-6
-        min-w-0
-        flex-wrap
-        sm:flex-nowrap
-        sm:py-7
-      "
-    >
-      {/* IMAGE */}
-
-      <div
-        className="
-          flex
-          h-[92px]
-          w-[92px]
-          shrink-0
-          items-center
-          justify-center
-          overflow-hidden
-          bg-white
-          sm:h-[115px]
-          sm:w-[115px]
-        "
-      >
-        <Image
-          src={image}
-          alt={title}
-          width={115}
-          height={115}
-          className="h-full w-full object-contain p-1"
-        />
-      </div>
-
-      {/* DETAILS */}
-
-      <div
-        className="
-          flex
-          min-w-0
-          flex-1
-          flex-col
-          justify-between
-          gap-4
-        "
-      >
-        <div>
-          <p className="text-[8px] font-extrabold uppercase tracking-[0.22em] text-mbg-black/35">
-            Product
-          </p>
-
-          <h4
-            className="
-              mt-1
-              line-clamp-2
-              text-[11px]
-              font-extrabold
-              uppercase
-              tracking-[0.08em]
-              text-mbg-black
-              sm:text-xs
-            "
-          >
-            {title}
-          </h4>
-
-          {/* ATTRIBUTES */}
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {orderItem.color && (
-              <ProductAttribute
-                label="Color"
-                value={
-                  orderItem.color
-                }
-              />
-            )}
-
-            {orderItem.size && (
-              <ProductAttribute
-                label="Size"
-                value={
-                  orderItem.size
-                }
-              />
-            )}
-
-            <ProductAttribute
-              label="Qty"
-              value={String(
-                quantity
-              )}
-            />
+      {/* 61.8% product story / 38.2% invoice summary on wide displays. */}
+      <div className="mt-[21px] grid items-start gap-[21px] lg:grid-cols-[minmax(0,1.618fr)_minmax(0,1fr)]">
+        <section className="min-w-0 rounded-sm border border-[#c6cec8] bg-[#f7f8f6] px-[21px] py-[21px] sm:px-[34px] sm:py-[34px]" aria-labelledby="order-pieces-title">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">02 / {t.products}</p>
+          <div className="mt-[8px] flex items-baseline justify-between gap-3">
+            <h3 id="order-pieces-title" className="text-[clamp(1.35rem,2.5vw,2rem)] font-black uppercase tracking-[-0.025em]">{t.piecesTitle}</h3>
+            <span className="whitespace-nowrap text-[11px] font-bold text-[#626c65]">{totalQuantity} {totalQuantity === 1 ? t.item : t.items}</span>
           </div>
-        </div>
-
-        {/* PRICE */}
-
-        <div
-          className="
-            flex
-            flex-wrap
-            items-end
-            justify-between
-            gap-3
-          "
-        >
-          <div>
-            <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-mbg-black/35">
-              Unit Price
-            </p>
-
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.1em] text-mbg-black/65">
-              €{" "}
-              {formatAmount(
-                unitPrice
-              )}
-            </p>
+          <div className="mt-[13px] divide-y divide-[#d4dad5]">
+            {products.map((item, index) => <OrderPiece key={String(item._id ?? index)} item={item} language={language} t={t} />)}
           </div>
-
-          <div className="text-right">
-            <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-mbg-black/35">
-              Line Total
-            </p>
-
-            <p className="mt-1 text-xs font-extrabold uppercase tracking-[0.08em] text-mbg-green">
-              €{" "}
-              {formatAmount(
-                lineTotal
-              )}
-            </p>
+        </section>
+        <aside className="min-w-0 rounded-sm border border-[#c6cec8] bg-[#e9ede9] px-[21px] py-[21px] sm:px-[34px] sm:py-[34px] lg:sticky lg:top-[21px]" aria-label={t.financials}>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">03 / {t.financials}</p>
+          <h3 className="mt-[8px] text-[clamp(1.35rem,2.5vw,2rem)] font-black uppercase tracking-[-0.025em]">{t.financials}</h3>
+          <div className="mt-[21px] space-y-[13px]">
+            <MoneyRow label={t.subtotal} amount={subtotal} language={language} />
+            {discount > 0 && <MoneyRow label={`${t.promotion} ${order.promotion?.code ?? ""}`} amount={-discount} language={language} accent />}
+            <MoneyRow label={t.shippingCost} amount={shipping} language={language} />
           </div>
-        </div>
+          <div className="mt-[21px] border-t border-[#bcc7be] pt-[21px]">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#626c65]">{t.total}</p>
+            <p className="mt-[8px] break-words text-[clamp(1.9rem,4vw,2.9rem)] font-black leading-none tracking-[-0.045em] tabular-nums text-[#00821A]">{money(total,language)}</p>
+            <p className="mt-[8px] text-[11px] text-[#626c65]">{t.includingDelivery}</p>
+          </div>
+          <Link href={backHref} className="mt-[34px] inline-flex min-h-11 w-full items-center justify-center rounded-sm bg-[#111715] px-[13px] text-center text-[11px] font-black uppercase tracking-[0.08em] text-white transition-colors hover:bg-[#00821A]">← {t.back}</Link>
+        </aside>
       </div>
-    </div>
+      <p className="pb-[21px] pt-[34px] text-center text-[10px] font-bold uppercase tracking-[0.18em] text-[#59645c]">{t.shortJourney}</p>
+    </PageFrame>
   );
 }
 
-/* =========================================================
-   PRODUCT ATTRIBUTE
-========================================================= */
-
-function ProductAttribute({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function PageFrame({language,title,eyebrow,description,children}:{language:Language;title:string;eyebrow:string;description:string;children:ReactNode}) {
   return (
-    <span
-      className="
-        inline-flex
-        items-center
-        gap-1.5
-        border
-        border-mbg-black/10
-        bg-white/60
-        px-2
-        py-1.5
-        text-[8px]
-        font-bold
-        uppercase
-        tracking-[0.13em]
-        text-mbg-black/45
-      "
-    >
-      {label}
-
-      <strong className="font-extrabold text-mbg-black">
-        {value}
-      </strong>
-    </span>
+    <main lang={language} className="min-h-[65vh] bg-[#e7eae8] font-[Kanit] text-[#111715]">
+      <div className="border-b border-white/10 bg-[#111715]">
+        <Container className="py-[21px] sm:py-[34px]">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#65d179]">{eyebrow}</p>
+          <h1 className="mt-[8px] text-[clamp(2rem,4.2vw,3.8rem)] font-black uppercase leading-[1.03] tracking-[-0.035em] text-white">{title}</h1>
+          <p className="mt-[13px] max-w-[42rem] text-[12px] leading-[1.65] text-white/65 sm:text-[14px]">{description}</p>
+        </Container>
+      </div>
+      <Container className="min-w-0 pb-[55px] sm:pb-[89px]">{children}</Container>
+    </main>
   );
 }
 
-/* =========================================================
-   ORDER STAT
-========================================================= */
-
-function OrderStat({
-  label,
-  value,
-  border = false,
-}: {
-  label: string;
-  value: string;
-  border?: boolean;
-}) {
+function LanguageSwitch({baseHref,language,title}:{baseHref:string;language:Language;title:string}) {
   return (
-    <div
-      className={`
-        flex
-        items-center
-        justify-between
-        gap-5
-        last:col-span-2
-        sm:last:col-span-1
-        px-3
-        py-4
-        sm:block
-        sm:px-6
-        sm:py-5
-        ${
-          border
-            ? "border-t border-mbg-black/10 sm:border-l sm:border-t-0"
-            : ""
-        }
-      `}
-    >
-      <p className="text-[8px] font-extrabold uppercase tracking-[0.22em] text-mbg-black/40">
-        {label}
-      </p>
-
-      <p className="mt-0 text-right text-[10px] font-extrabold uppercase tracking-[0.09em] text-mbg-green sm:mt-2 sm:text-left">
-        {value}
-      </p>
-    </div>
+    <nav aria-label={title} className="inline-flex items-center gap-1.5 rounded-sm border border-[#bac5bc] bg-[#f7f8f6] p-1.5">
+      <span className="hidden px-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[#56605a] sm:inline">{title}</span>
+      {(["en","fr"] as const).map((value)=><Link key={value} href={`${baseHref}?lang=${value}`} lang={value} hrefLang={value} aria-current={language === value ? "page" : undefined} className={`inline-flex min-h-10 min-w-11 items-center justify-center rounded-sm px-2 text-[11px] font-black transition-colors ${language===value? "bg-[#00821A] text-white" : "text-[#56605a] hover:bg-[#dfe8df]"}`}>{value.toUpperCase()}</Link>)}
+    </nav>
   );
 }
 
-/* =========================================================
-   PRICE ROW
-========================================================= */
-
-function PriceRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-5">
-      <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-mbg-black/55">
-        {label}
-      </span>
-
-      <span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-mbg-black">
-        € {formatAmount(value)}
-      </span>
-    </div>
-  );
+function EmptyPage({eyebrow,title,body,button,href}:{eyebrow:string;title:string;body:string;button:string;href:string}) {
+  return <section className="mt-[21px] flex min-h-[300px] flex-col items-center justify-center rounded-sm border border-[#c6cec8] bg-[#f7f8f6] p-[34px] text-center"><span className="mb-[13px] h-1 w-[55px] bg-[#00821A]" aria-hidden="true"/><p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{eyebrow}</p><h2 className="mt-[8px] text-[clamp(1.3rem,3vw,2rem)] font-black uppercase">{title}</h2><p className="mt-[13px] max-w-md text-[13px] leading-[1.65] text-[#56605a]">{body}</p><Link href={href} className="mt-[21px] inline-flex min-h-11 items-center rounded-sm bg-[#111715] px-[21px] text-[11px] font-bold uppercase text-white hover:bg-[#00821A]">{button}</Link></section>;
 }
 
-/* =========================================================
-   ORDER STATUS MESSAGE
-========================================================= */
+function Metric({label,value,last=false}:{label:string;value:string;last?:boolean}) {
+  return <div className={`min-w-0 px-[13px] py-[21px] sm:px-[34px] ${last ? "col-span-2 border-t border-[#d1d8d2] sm:col-span-1 sm:border-l sm:border-t-0" : "border-r border-[#d1d8d2]"}`}><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#56605a]">{label}</p><p className="mt-[8px] break-words text-[clamp(1rem,2.1vw,1.35rem)] font-black leading-[1.25] text-[#111715]">{value}</p></div>;
+}
 
-function getOrderMessage(
-  status: string
-): string {
-  switch (status) {
-    case "PROCESSING":
-      return "We're preparing your order.";
+function OrderProgress({stage,order,language,t}:{stage:0|1|2|3;order:ResolvedOrder;language:Language;t:Texts}) {
+  const labels=[t.received,t.preparing,t.sent,t.delivered];
+  const dates=[order.createdAt,order.processingAt,order.shippedAt,order.deliveredAt??order.completedAt];
+  return <ol className="mt-[21px] grid grid-cols-2 gap-x-[13px] gap-y-[21px] sm:grid-cols-4 sm:gap-[13px]" aria-label={t.journey}>{labels.map((label,index)=>{const done=stage===3||index<stage;const active=index===stage&&stage!==3;const date=formatDate(dates[index],language);return <li key={index} aria-current={active?"step":undefined} className="min-w-0"><div className="flex items-center gap-[8px]"><span className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full border text-[11px] font-black ${done?"border-[#00821A] bg-[#00821A] text-white":active?"border-[#00821A] bg-white text-[#00821A]":"border-[#b7c3bb] text-[#77857a]"}`}>{done?"✓":String(index+1).padStart(2,"0")}</span><span className={`h-px flex-1 ${index<=stage?"bg-[#00821A]":"bg-[#c6cec8]"}`} aria-hidden="true"/></div><span className={`mt-[8px] block text-[11px] font-semibold leading-[1.35] ${done||active?"text-[#00821A]":"text-[#647069]"}`}>{label}</span>{date && <time className="mt-[5px] block text-[10px] text-[#677169]">{date}</time>}</li>;})}</ol>;
+}
 
-    case "SHIPPED":
-      return "Your order is on the way.";
+function OrderPiece({item,language,t}:{item:OrderLine;language:Language;t:Texts}) {
+  const title=item.product?.title||"Milos BG";
+  const src=item.product?.media?.[0]||FALLBACK_IMAGE;
+  const quantity=safeNumber(item.quantity??1);
+  const unit=safeNumber(item.unitPrice??item.product?.price??0);
+  return <div className="flex min-w-0 flex-wrap gap-[13px] py-[21px] sm:flex-nowrap sm:gap-[21px]"><div className="h-[89px] w-[89px] shrink-0 overflow-hidden rounded-sm bg-[#e3e7e3] sm:h-[110px] sm:w-[110px]"><Image src={src} width={110} height={110} alt={title} className="h-full w-full object-contain"/></div><div className="flex min-w-0 flex-1 flex-col justify-between gap-[13px]"><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#00821A]">{t.product}</p><h4 className="mt-[5px] break-words text-[14px] font-black uppercase leading-snug">{title}</h4><div className="mt-[8px] flex flex-wrap gap-2">{item.color&&<Attr label={t.color} value={item.color}/>} {item.size&&<Attr label={t.size} value={item.size}/>} <Attr label={t.qty} value={String(quantity)}/></div></div><div className="flex flex-wrap items-end justify-between gap-2"><div><p className="text-[10px] uppercase text-[#677169]">{t.unitPrice}</p><span className="text-[12px] font-semibold">{money(unit,language)}</span></div><div className="text-right"><p className="text-[10px] uppercase text-[#677169]">{t.lineTotal}</p><strong className="text-[15px] font-black text-[#00821A]">{money(unit*quantity,language)}</strong></div></div></div></div>;
+}
 
-    case "DELIVERED":
-      return "Your order has been delivered.";
+function Attr({label,value}:{label:string;value:string}) {
+  return <span className="inline-flex items-center gap-1.5 rounded-sm border border-[#c6cec8] bg-white px-2 py-1 text-[10px] text-[#56605a]">{label}<b className="text-[#111715]">{value}</b></span>;
+}
+function MoneyRow({label,amount,language,accent=false}:{label:string;amount:number;language:Language;accent?:boolean}) {
+  return <div className="flex flex-wrap items-start justify-between gap-[13px] text-[12px]"><span className="min-w-0 text-[#4c5a50]">{label}</span><span className={`shrink-0 font-black tabular-nums ${accent?"text-[#00821A]":"text-[#111715]"}`}>{money(amount,language)}</span></div>;
+}
 
-    case "COMPLETED":
-      return "Order completed. Thank you!";
-
-    case "CANCELLED":
-      return "This order has been cancelled.";
-
-    case "REFUNDED":
-      return "This order has been refunded.";
-
-    default:
-      return "Your order has been received.";
+function safeNumber(value:unknown):number {const number=Number(value);return Number.isFinite(number)?number:0;}
+function money(value:unknown,language:Language):string {return new Intl.NumberFormat(language==="fr"?"fr-FR":"en-GB",{style:"currency",currency:"EUR"}).format(safeNumber(value));}
+function formatDate(value:unknown,language:Language):string|null {
+  if (!(value instanceof Date)&&typeof value!=="string"&&typeof value!=="number")return null;
+  const date=value instanceof Date?value:new Date(value);
+  if(Number.isNaN(date.getTime()))return null;
+  return new Intl.DateTimeFormat(language==="fr"?"fr-FR":"en-GB",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}).format(date);
+}
+function stageFromStatus(status:string):0|1|2|3|null {
+  if(status==="PENDING")return 0;
+  if(["PROCESSING","CONFIRMED","PACKED"].includes(status))return 1;
+  if(["SHIPPED","OUT_FOR_DELIVERY"].includes(status))return 2;
+  if(["DELIVERED","COMPLETED"].includes(status))return 3;
+  return null;
+}
+function translateStatus(status:string,t:Texts):string {
+  switch(status){
+    case "PENDING":return t.pending;
+    case "PROCESSING":return t.processing;
+    case "CONFIRMED":return t.confirmed;
+    case "PACKED":return t.packed;
+    case "SHIPPED":return t.shipped;
+    case "OUT_FOR_DELIVERY":return t.outForDelivery;
+    case "DELIVERED":return t.delivered;
+    case "COMPLETED":return t.completed;
+    case "CANCELLED":case "CANCELED":return t.cancelled;
+    case "REFUNDED":return t.refunded;
+    case "RETURNED":return t.returned;
+    default:return status.replaceAll("_"," ");
   }
 }
-
-/* =========================================================
-   STATUS DISPLAY
-========================================================= */
-
-function formatStatus(
-  status: string
-): string {
-  return status
-    .replaceAll("_", " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) =>
-      letter.toUpperCase()
-    );
-}
-
-/* =========================================================
-   SHIPPING METHOD
-========================================================= */
-
-function getShippingLabel(
-  shippingMethod?: string
-): string {
-  const method = String(
-    shippingMethod || ""
-  )
-    .trim()
-    .toUpperCase();
-
-  switch (method) {
-    case "EXPRESS":
-    case "EXPRESS_DELIVERY":
-      return "Express Delivery";
-
-    case "FREE":
-    case "FREE_DELIVERY":
-      return "Free Delivery";
-
-    case "STANDARD":
-    case "STANDARD_DELIVERY":
-      return "Standard Delivery";
-
-    default:
-      return (
-        shippingMethod ||
-        "Standard Delivery"
-      );
+function statusMessage(status:string,t:Texts):string {
+  switch(status){
+    case "PROCESSING":case "CONFIRMED":case "PACKED":return t.messagePreparing;
+    case "SHIPPED":case "OUT_FOR_DELIVERY":return t.messageShipped;
+    case "DELIVERED":return t.messageDelivered;
+    case "COMPLETED":return t.messageCompleted;
+    case "CANCELLED":case "CANCELED":return t.messageCancelled;
+    case "REFUNDED":return t.messageRefunded;
+    case "RETURNED":return t.messageReturned;
+    default:return t.messagePending;
   }
 }
-
-/* =========================================================
-   SHIPPING AMOUNT
-========================================================= */
-
-function resolveShippingAmount({
-  shippingMethod,
-  subtotal,
-  totalAmount,
-}: {
-  shippingMethod?: string;
-  subtotal: number;
-  totalAmount: number;
-}): number {
-  const method = String(
-    shippingMethod || ""
-  )
-    .trim()
-    .toUpperCase();
-
-  if (
-    method === "FREE" ||
-    method === "FREE_DELIVERY"
-  ) {
-    return 0;
-  }
-
-  return Math.max(
-    totalAmount - subtotal,
-    0
-  );
+function shippingLabel(method:ResolvedOrder["shippingMethod"],t:Texts):string {
+  const code=String(method||"").trim().toUpperCase();
+  if(code.includes("EXPRESS"))return t.express;
+  if(code.includes("FREE"))return t.free;
+  if(code.includes("STANDARD"))return t.standard;
+  return method||t.standard;
+}
+function resolveShippingAmount(method:ResolvedOrder["shippingMethod"],subtotal:number,totalAmount:number):number {
+  const code=String(method||"").trim().toUpperCase();
+  if(code==="FREE"||code==="FREE_DELIVERY")return 0;
+  return Math.max(totalAmount-subtotal,0);
 }
 
-/* =========================================================
-   MONEY FORMAT
-========================================================= */
-
-function formatAmount(
-  value: unknown
-): string {
-  const numeric =
-    typeof value === "number"
-      ? value
-      : Number(value ?? 0);
-
-  if (
-    !Number.isFinite(
-      numeric
-    )
-  ) {
-    return "0.00";
-  }
-
-  return numeric.toFixed(2);
+function safeTrackingUrl(value:unknown):string|null {
+  if(typeof value!=="string")return null;
+  try {const url=new URL(value);return (url.protocol==="https:"||url.protocol==="http:")&&!url.username&&!url.password?url.toString():null;}
+  catch {return null;}
 }

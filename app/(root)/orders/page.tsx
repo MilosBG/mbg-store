@@ -17,7 +17,12 @@ export const metadata = buildMetadata({
   robotsIndex: false,
 });
 
-export default async function Orders() {
+type OrdersProps = { searchParams: Promise<{ lang?: string | string[] }> };
+
+export default async function Orders({ searchParams }: OrdersProps) {
+  const { lang } = await searchParams;
+  const normalized = Array.isArray(lang) ? lang[0] : lang;
+  const initialLanguage = normalized === "fr" ? "fr" : "en";
   const { userId } = await auth();
   let orders: StorefrontOrder[] = [];
   let error: OrdersClientError | null = null;
@@ -50,6 +55,7 @@ export default async function Orders() {
       orders={orders}
       error={error}
       requiresSignIn={!userId}
+      initialLanguage={initialLanguage}
     />
   );
 }

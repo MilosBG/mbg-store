@@ -9,11 +9,11 @@ import type { CheckoutLine } from "@/lib/checkoutClient";
 import useCart from "@/lib/hooks/useCart";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
-import { Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Loader2, Minus, Plus, ShoppingBag, Trash2, Truck, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import {
   extractOrderReference,
   ORDER_PLACED_SESSION_KEY,
@@ -31,21 +31,74 @@ type CheckoutFormState = {
   phone: string;
 };
 
-type CheckoutFormErrors = Partial<Record<keyof CheckoutFormState, string>>;
+type CheckoutFormErrors = Partial<Record<keyof CheckoutFormState, "required" | "invalidEmail">>;
 
-const FIELD_LABELS: Record<keyof CheckoutFormState, string> = {
-  email: "Email",
-  firstName: "First name",
-  lastName: "Last name",
-  address: "Address",
-  city: "City",
-  postalCode: "Postal code",
-  country: "Country",
-  phone: "Phone",
-};
+type Language = "en" | "fr";
 
-const Cart = () => {
+const COPY = {
+  en: {
+    checkout: "Your checkout", intro: "Every piece marks a step in your journey.",
+    pieces: "Your pieces", delivery: "Delivery details", confirmation: "Confirmation",
+    language: "Language", back: "Continue shopping", empty: "Your Hoop is waiting.",
+    emptyText: "Every journey starts with a first piece.", explore: "Explore outfits",
+    item: "item", items: "items", quantity: "Quantity", remove: "Remove", decrease: "Decrease quantity", increase: "Increase quantity", color: "Colour", size: "Size", each: "each",
+    out: "Out of stock", left: "Available stock:", limit: "Stock limit reached", stockError: "Adjust your quantities before placing your order.",
+    contact: "Contact & delivery address", details: "Enter the information needed to deliver your order.",
+    requiredNote: "All fields are required.", required: "This field is required.", invalidEmail: "Enter a valid email address.",
+    fields: { email: "Email address", firstName: "First name", lastName: "Last name", address: "Street address", city: "City", postalCode: "Postal code", country: "Country", phone: "Phone number" },
+    shipping: "Delivery method", standard: "Standard delivery", express: "Express delivery", free: "Free",
+    summary: "Order summary", subtotal: "Subtotal", shippingFee: "Delivery", discount: "Discount", total: "Order total", promo: "Promotion code", apply: "Apply", checking: "Checking…", applied: "Code applied", removePromo: "Remove code", promoInvalid: "Unable to apply this code. Check its validity and try again.", promoChanged: "Your order has changed. Apply your code again.",
+    termsStart: "I have read and agree to the", terms: "Terms & Conditions", termsError: "Please accept the Terms & Conditions to continue.",
+    marketing: "I want to receive Milos BG news, new drops and marketing emails. I can unsubscribe at any time.", optional: "Optional — does not affect your order.",
+    submit: "Place order", processing: "Processing…", signIn: "Sign in to place your order.", emptyError: "Your cart is empty.", success: "Order placed successfully.", orderError: "Unable to create the order. Please try again.",
+    product: "Milos BG item", checkingNotice: "Please wait while the code is checked.",
+  },
+  fr: {
+    checkout: "Votre panier", intro: "Chaque pièce marque une étape de votre parcours.",
+    pieces: "Vos pièces", delivery: "Livraison", confirmation: "Confirmation",
+    language: "Langue", back: "Continuer mes achats", empty: "Votre Hoop vous attend.",
+    emptyText: "Chaque parcours commence par une première pièce.", explore: "Découvrir les tenues",
+    item: "article", items: "articles", quantity: "Quantité", remove: "Retirer", decrease: "Diminuer la quantité", increase: "Augmenter la quantité", color: "Couleur", size: "Taille", each: "l’unité",
+    out: "Rupture de stock", left: "Stock disponible :", limit: "Stock maximum atteint", stockError: "Ajustez vos quantités avant de passer commande.",
+    contact: "Coordonnées et adresse de livraison", details: "Renseignez les informations nécessaires à la livraison de votre commande.",
+    requiredNote: "Tous les champs sont obligatoires.", required: "Ce champ est obligatoire.", invalidEmail: "Saisissez une adresse e-mail valide.",
+    fields: { email: "Adresse e-mail", firstName: "Prénom", lastName: "Nom", address: "Adresse postale", city: "Ville", postalCode: "Code postal", country: "Pays", phone: "Téléphone" },
+    shipping: "Mode de livraison", standard: "Livraison standard", express: "Livraison express", free: "Gratuite",
+    summary: "Récapitulatif", subtotal: "Sous-total", shippingFee: "Livraison", discount: "Remise", total: "Total de la commande", promo: "Code promotionnel", apply: "Appliquer", checking: "Vérification…", applied: "Code appliqué", removePromo: "Retirer le code", promoInvalid: "Impossible d’appliquer ce code. Vérifiez sa validité et réessayez.", promoChanged: "Votre commande a changé. Appliquez de nouveau votre code.",
+    termsStart: "J’ai lu et j’accepte les", terms: "conditions générales de vente", termsError: "Veuillez accepter les conditions générales de vente pour continuer.",
+    marketing: "Je souhaite recevoir les actualités, les nouvelles collections et les e-mails promotionnels de Milos BG. Je peux me désinscrire à tout moment.", optional: "Facultatif — sans incidence sur votre commande.",
+    submit: "Passer commande", processing: "Traitement…", signIn: "Connectez-vous pour passer commande.", emptyError: "Votre panier est vide.", success: "Commande enregistrée avec succès.", orderError: "Impossible de créer la commande. Veuillez réessayer.",
+    product: "Article Milos BG", checkingNotice: "Veuillez patienter pendant la vérification du code.",
+  },
+} as const;
+
+const FIELDS = [
+  { name: "email", type: "email", autoComplete: "email", wide: true },
+  { name: "firstName", type: "text", autoComplete: "given-name" },
+  { name: "lastName", type: "text", autoComplete: "family-name" },
+  { name: "address", type: "text", autoComplete: "street-address", wide: true },
+  { name: "postalCode", type: "text", autoComplete: "postal-code" },
+  { name: "city", type: "text", autoComplete: "address-level2" },
+  { name: "country", type: "text", autoComplete: "country-name" },
+  { name: "phone", type: "tel", autoComplete: "tel" },
+] as const;
+
+const panel = "min-w-0 rounded-sm border border-black/10 bg-white p-4 sm:p-6";
+const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A]";
+
+const CartContent = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const language: Language = searchParams.get("lang") === "fr" ? "fr" : "en";
+  const t = COPY[language];
+  const money = (amount: number) => new Intl.NumberFormat(language === "fr" ? "fr-FR" : "en-IE", { style: "currency", currency: "EUR" }).format(amount);
+  const localized = useCallback((path: string) => `${path}${path.includes("?") ? "&" : "?"}lang=${language}`, [language]);
+  function changeLanguage(next: Language) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", next);
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+  }
+  const submitLock = useRef(false);
   const { user } = useUser();
   const cart = useCart();
   const clearCart = cart.clearCart;
@@ -69,15 +122,15 @@ const Cart = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // T&C agreement state
   const [agreeTC, setAgreeTC] = useState(false);
-  const [tcError, setTcError] = useState<string | null>(null);
+  const [tcError, setTcError] = useState(false);
 
   // Optional marketing consent.
   // Kept separate from the mandatory T&C consent: the customer can order
   // without agreeing to receive marketing communications.
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [promoInput, setPromoInput] = useState("");
-  const [promoQuote, setPromoQuote] = useState<{ code:string; discountCents:number; subtotalCents:number; totalCents:number } | null>(null);
-  const [promoError, setPromoError] = useState("");
+  const [promoQuote, setPromoQuote] = useState<{ code:string; discountCents:number; subtotalCents:number; totalCents:number; key: string } | null>(null);
+  const [promoError, setPromoError] = useState(false);
   const [checkingPromo, setCheckingPromo] = useState(false);
 
   const primaryEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
@@ -104,7 +157,6 @@ const Cart = () => {
   );
   const subtotalRounded = Number(subtotal.toFixed(2));
   const shippingFee = shippingOption === "EXPRESS" ? 10 : 0;
-  const finalTotal = Number((subtotal + shippingFee - (promoQuote?.discountCents ?? 0)/100).toFixed(2));
   // Variant-aware stock check per line
   const lineStock = (ci: { item: any; color?: string; size?: string }) => {
     const vars = ci?.item?.variants ?? [];
@@ -133,17 +185,32 @@ const Cart = () => {
       .filter((line) => line.productId && line.quantity > 0);
   }, [cart.cartItems]);
 
-  // Re-evaluate the code if the cart or shipping option changes.
-  useEffect(() => { setPromoQuote(null); setPromoError(""); }, [checkoutLines, shippingOption]);
+  // A quote is only valid for the exact basket, code and delivery option.
+  const promoKey = JSON.stringify([checkoutLines, shippingOption, promoInput.trim()]);
+  const activePromo = promoQuote?.key === promoKey ? promoQuote : null;
+  const finalTotal = Number((subtotal + shippingFee - (activePromo?.discountCents ?? 0) / 100).toFixed(2));
+  const busy = isSubmitting || checkingPromo;
+  const itemCount = cart.cartItems.reduce((sum, item) => sum + item.quantity, 0);
   async function applyPromo() {
-    setCheckingPromo(true); setPromoError("");
+    if (busy || !promoInput.trim()) return;
+    setCheckingPromo(true);
+    setPromoError(false);
+    setPromoQuote(null);
     try {
-      const res = await fetch("/api/promotions/quote", { method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ code:promoInput.trim(), lines:checkoutLines, shippingOption }) });
+      const res = await fetch("/api/promotions/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoInput.trim(), lines: checkoutLines, shippingOption }),
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error||"Code invalide.");
-      setPromoQuote(data.code?data:null);
-    } catch (e) {setPromoQuote(null);setPromoError(e instanceof Error?e.message:"Impossible de vérifier le code.");}
-    finally {setCheckingPromo(false);}
+      if (!res.ok || !data.code || !Number.isFinite(data.discountCents)) throw new Error("Invalid promotion quote");
+      setPromoQuote({ ...data, key: promoKey });
+    } catch {
+      setPromoQuote(null);
+      setPromoError(true);
+    } finally {
+      setCheckingPromo(false);
+    }
   }
   const checkoutCustomer = useMemo(
     () => ({
@@ -155,43 +222,33 @@ const Cart = () => {
   );
 
   const ensureCheckoutReady = useCallback(() => {
-    if (!agreeTC) {
-      setTcError("Please accept the Terms & Conditions to continue.");
-      return false;
-    }
-    setTcError(null);
-
     if (stockIssues) {
-      toast.error(
-        "Please adjust your cart. Some items exceed the available stock.",
-      );
+      toast.error(t.stockError);
+      document.getElementById("cart-stock-alert")?.focus();
       return false;
     }
-
     if (!user) {
-      toast.error("Please sign in to checkout.");
-      router.push("/sign-in");
+      toast.error(t.signIn);
+      router.push(localized("/sign-in"));
       return false;
     }
-
     if (checkoutLines.length === 0) {
-      toast.error("Your cart is empty.");
+      toast.error(t.emptyError);
       return false;
     }
-
+    if (!agreeTC) {
+      setTcError(true);
+      document.getElementById("agree-tc")?.focus();
+      return false;
+    }
+    setTcError(false);
     return true;
-  }, [agreeTC, checkoutLines, router, stockIssues, user]);
+  }, [agreeTC, checkoutLines, router, stockIssues, user, localized, t]);
 
-  const inputClass = useCallback(
-    (field: keyof CheckoutFormState) =>
-      [
-        "min-h-11 w-full min-w-0 rounded-sm border bg-white px-3 py-2 text-xs text-black transition duration-200 focus:outline-none focus:ring-2",
-        formErrors[field]
-          ? "border-red-500 focus:ring-red-500"
-          : "border-mbg-green focus:ring-mbg-green",
-      ].join(" "),
-    [formErrors],
-  );
+  const inputClass = (field: keyof CheckoutFormState) => [
+    "min-h-12 w-full min-w-0 rounded-sm border bg-white px-3 py-2 text-base text-black transition focus:outline-none focus:ring-2 focus:ring-offset-1 sm:text-sm",
+    formErrors[field] ? "border-red-600 focus:ring-red-600" : "border-black/20 focus:border-[#00821A] focus:ring-[#00821A]/30",
+  ].join(" ");
 
   const handleFieldChange = useCallback(
     (field: keyof CheckoutFormState, value: string) => {
@@ -210,9 +267,9 @@ const Cart = () => {
     const errors: CheckoutFormErrors = {};
     const trimmedEmail = formData.email.trim();
     if (!trimmedEmail) {
-      errors.email = `${FIELD_LABELS.email} is required.`;
+      errors.email = "required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      errors.email = "Enter a valid email address.";
+      errors.email = "invalidEmail";
     }
 
     (
@@ -228,7 +285,7 @@ const Cart = () => {
     ).forEach((field) => {
       const value = formData[field].trim();
       if (!value) {
-        errors[field] = `${FIELD_LABELS[field]} is required.`;
+        errors[field] = "required";
       }
     });
 
@@ -239,23 +296,24 @@ const Cart = () => {
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      if (!ensureCheckoutReady()) {
-        return;
-      }
+      if (submitLock.current || checkingPromo) return;
 
       const validationErrors = validateForm();
 
+      setFormErrors(validationErrors);
       if (Object.keys(validationErrors).length > 0) {
-        setFormErrors(validationErrors);
+        const first = Object.keys(validationErrors)[0];
+        document.getElementById(`checkout-${first}`)?.focus();
         return;
       }
-
+      if (!ensureCheckoutReady()) return;
+      submitLock.current = true;
       setIsSubmitting(true);
 
       try {
         const result = await createCheckoutOrder({
           lines: checkoutLines,
-          promoCode: promoQuote?.code || undefined,
+          promoCode: activePromo?.code || undefined,
 
           shippingOption,
 
@@ -395,7 +453,7 @@ const Cart = () => {
          */
         clearCart();
 
-        toast.success("Order placed successfully.");
+        toast.success(t.success);
 
         /*
          * replace() plutôt que push():
@@ -404,19 +462,15 @@ const Cart = () => {
          */
         if (orderReference) {
           router.replace(
-            `/order_placed?order=${encodeURIComponent(orderReference)}`,
+            localized(`/order_placed?order=${encodeURIComponent(orderReference)}`),
           );
         } else {
-          router.replace("/order_placed");
+          router.replace(localized("/order_placed"));
         }
       } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Unable to create order. Please try again.";
-
-        toast.error(message);
-      } finally {
+        console.warn("[checkout] Order creation failed", error);
+        toast.error(t.orderError);
+        submitLock.current = false;
         setIsSubmitting(false);
       }
     },
@@ -428,7 +482,10 @@ const Cart = () => {
       finalTotal,
       formData,
       marketingOptIn,
-      promoQuote,
+      activePromo,
+      checkingPromo,
+      localized,
+      t,
       router,
       shippingFee,
       shippingOption,
@@ -438,486 +495,196 @@ const Cart = () => {
   );
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <Container className="min-w-0 pb-12 pt-6 sm:pt-10 lg:pb-20">
-      <div className={cart.cartItems.length > 0 ? "grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(330px,0.82fr)] lg:items-start lg:gap-8" : "mx-auto max-w-3xl"}>
-        <section className="min-w-0">
-          <header className="mb-6 border-b border-[#BFBFBF]/60 pb-6 sm:mb-8 sm:pb-8">
-            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.21em] text-[#00821A]">
-              MILOS BG / THE JOURNEY CONTINUES
-            </p>
-            <h1 className="text-[clamp(2rem,7vw,4.5rem)] font-black uppercase leading-[0.98] tracking-[-0.045em] text-black">
-              THE <span className="text-[#00821A]">HOOP.</span>
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-[#404040]">
-              Your pieces are ready for the next chapter. Review your selection, choose your delivery and complete the journey.
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#404040]">
-              <span><span className="text-[#00821A]">01</span> YOUR PIECES</span>
-              <span><span className="text-[#00821A]">02</span> DELIVERY</span>
-              <span><span className="text-[#00821A]">03</span> CONFIRMATION</span>
-            </div>
-          </header>
-
-          {cart.cartItems.length === 0 ? (
-            <>
-              <div className="border border-[#BFBFBF]/60 bg-white px-5 py-10 text-center sm:px-8 sm:py-14">
-                <p className="text-sm font-bold uppercase tracking-[0.1em] text-[#404040]">Your Hoop is waiting.</p>
-                <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-[#404040]">Every journey starts with a first piece.</p>
-                <Image
-                  src={MBG}
-                  alt="Grind Until Achieve"
-                  className="
-    mx-auto
-    h-auto
-    w-[46%]
-    max-w-[460px]
-    object-center
-    py-8
-    sm:w-[68%]
-    md:w-[64%]
-    lg:w-[60%]
-  "
-                />
-                <Link href="/products" className="mx-auto mt-3 inline-flex min-h-11 items-center justify-center rounded-sm bg-[#00821A] px-7 text-xs font-black uppercase tracking-[0.12em] text-white transition-colors hover:bg-black">
-                  EXPLORE OUTFITS
-                </Link>
-              </div>
-            </>
-          ) : (
-            <div>
-              {cart.cartItems.map((cartItem) => {
-                const key = `${cartItem.item._id}-${cartItem.color ?? ""}-${cartItem.size ?? ""}`;
-                const { _id, title, media, price } = cartItem.item;
-
-                return (
-                  <div
-                    key={key}
-                    className="mb-3 min-w-0 border border-[#BFBFBF]/60 bg-white p-3 transition-colors hover:border-[#00821A]/40 sm:p-5"
-                  >
-                    <div className="flex min-w-0 items-start gap-3 sm:gap-5">
-                      <div className="relative shrink-0">
-                        <Image
-                          src={media?.[0] ?? "/placeholder.png"}
-                          alt={title ?? "Item"}
-                          width={100}
-                          height={100}
-                          className="h-20 w-20 rounded-sm bg-[#BFBFBF]/10 object-contain sm:h-28 sm:w-28"
-                        />
-                        <button
-                          type="button"
-                          aria-label={`Remove ${title ?? "item"} from cart`}
-                          title="Remove item"
-                          className="absolute -right-2 -top-2 inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[#BFBFBF]/60 bg-white text-[#404040] transition-colors hover:border-red-500 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-[#00821A]"
-                          onClick={() => cart.removeItem(_id, cartItem.color, cartItem.size)}
-                        >
-                          <Trash2 size={15} aria-hidden="true" />
-                        </button>
-                      </div>
-
-                      <div className="min-w-0 flex-1 pl-1 sm:pl-0">
-                        <Link href={`/products/${_id}`}>
-                          <p className="break-words text-sm font-black uppercase tracking-[0.05em] text-black sm:text-base">
-                            {title}
-                          </p>
-                        </Link>
-                        <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-[#404040]">
-                          {cartItem.color || ""} {cartItem.size || ""}
-                        </p>
-                        <p className="mt-2 text-sm font-black uppercase text-[#00821A]">
-                          € {price}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex w-full items-center justify-between gap-3 border-t border-[#BFBFBF]/30 pt-3">
-                      <button
-                        type="button"
-                        aria-label={`Decrease quantity of ${title ?? "item"}`}
-                        onClick={() => cart.decreaseQuantity(_id, cartItem.color, cartItem.size)}
-                        className="flex h-11 w-11 items-center justify-center rounded-sm border border-[#BFBFBF]/60 bg-white text-lg font-bold transition hover:border-[#00821A] hover:text-[#00821A] focus-visible:outline-2 focus-visible:outline-[#00821A]"
-                      >
-                        −
-                      </button>
-                      <output className="min-w-8 text-center text-sm font-black text-[#00821A]" aria-live="polite">
-                        {cartItem.quantity}
-                      </output>
-                      <button
-                        type="button"
-                        aria-label={`Increase quantity of ${title ?? "item"}`}
-                        onClick={() => cart.increaseQuantity(_id, cartItem.color, cartItem.size)}
-                        className="flex h-11 w-11 items-center justify-center rounded-sm border border-[#BFBFBF]/60 bg-white text-lg font-bold transition hover:border-[#00821A] hover:text-[#00821A] focus-visible:outline-2 focus-visible:outline-[#00821A]"
-                      >
-                        +
-                      </button>
-                    </div>
-                    {lineStock(cartItem) <= 0 && (
-                      <p className="text-[10px] text-red-600 mt-1">
-                        Out of stock
-                      </p>
-                    )}
-                    {lineStock(cartItem) > 0 &&
-                      cartItem.quantity > lineStock(cartItem) && (
-                        <p className="text-[10px] text-red-600 mt-1">
-                          Only {lineStock(cartItem)} left
-                        </p>
-                      )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {cart.cartItems.length > 0 && (
-        <aside className="min-w-0 self-start rounded-sm border border-[#BFBFBF]/60 bg-white p-4 shadow-[0_6px_28px_rgba(0,0,0,0.04)] sm:p-6 lg:mt-1">
-          <p className="mb-1 text-[10px] font-black uppercase tracking-[0.19em] text-[#00821A]">02 / CHECKOUT</p>
-          <p className="mb-3 text-xl font-black uppercase tracking-tight text-black">
-            Order summary{" "}
-            <span className="text-mbg-green font-medium">{`${
-              cart.cartItems.length
-            } ${cart.cartItems.length > 1 ? "items" : "item"}`}</span>
-          </p>
-
-          {/* Subtotal */}
-          <div className="mbg-p-between">
-            <span className="text-xs uppercase font-bold text-mbg-black/46">
-              Subtotal
-            </span>
-            <span className="text-xs text-mbg-green uppercase font-bold">
-              € {subtotalRounded}
-            </span>
-          </div>
-
-          {/* Shipping selector (FREE vs EXPRESS) */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <label className="text-xs uppercase font-bold text-mbg-black/46">
-              Shipping
-            </label>
-            <select
-              value={shippingOption}
-              onChange={(e) =>
-                setShippingOption(e.target.value as "FREE" | "EXPRESS")
-              }
-              className="min-h-11 w-full min-w-0 rounded-sm border border-[#BFBFBF]/60 bg-white px-3 text-xs font-bold text-[#00821A] transition focus:border-[#00821A] focus:outline-none focus:ring-2 focus:ring-[#00821A]/20 sm:w-auto"
-            >
-              <option value="FREE">FREE DELIVERY (0€)</option>
-              <option value="EXPRESS">EXPRESS DELIVERY (10€)</option>
-            </select>
-          </div>
-
-          <div className="space-y-2 border-t border-mbg-black/10 pt-3">
-            <label htmlFor="promo-code" className="block text-[10px] font-black uppercase tracking-wide text-mbg-black">Promotion code</label>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input id="promo-code" type="text" maxLength={24} placeholder="GRIND10" value={promoInput} onChange={(e)=>{setPromoInput(e.target.value.toUpperCase());setPromoQuote(null);setPromoError("");}} className="min-h-11 w-full min-w-0 rounded-sm border border-mbg-black/20 bg-white px-3 text-xs font-bold tracking-widest" />
-              <button type="button" disabled={checkingPromo || !promoInput.trim()} onClick={()=>void applyPromo()} className="min-h-11 w-full shrink-0 rounded-sm bg-black px-5 text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-[#00821A] disabled:opacity-50 sm:w-auto">{checkingPromo?"CHECKING…":"APPLY"}</button>
-            </div>
-            {promoError && <p role="alert" className="text-[11px] text-red-700">{promoError}</p>}
-            {promoQuote && <p role="status" className="text-xs font-bold text-mbg-green">{promoQuote.code} − € {(promoQuote.discountCents/100).toFixed(2)}</p>}
-          </div>
-
-          {/* Final total (subtotal + shipping - validated discount) */}
-          <div className="mt-2 flex items-center justify-between gap-4 rounded-sm bg-[#00821A]/10 px-3 py-4">
-            <span className="text-xs uppercase font-black tracking-[0.07em] text-black">
-              Total
-            </span>
-            <span className="text-xl font-black text-[#00821A]">
-              € {finalTotal.toFixed(2)}
-            </span>
-          </div>
-          <hr className=" border-mbg-green" />
-          <p className="text-[9px] uppercase text-mbg-green">
-            All taxes included
-          </p>
-          <p className="text-[9px] uppercase text-mbg-green">VAT 20%</p>
-
-          {/* NEW: Terms & Conditions agreement */}
-          <div className="mt-1 flex items-start gap-2">
-            <input
-              id="agree-tc"
-              type="checkbox"
-              checked={agreeTC}
-              onChange={(e) => {
-                setAgreeTC(e.target.checked);
-                if (e.target.checked) setTcError(null);
-              }}
-              className="mt-0.5 h-3 w-3 accent-mbg-black rounded-xs border-mbg-green text-mbg-green focus:ring-mbg-green"
-            />
-            <label
-              htmlFor="agree-tc"
-              className="text-[11px] leading-5 uppercase"
-            >
-              I have read and agree to the{" "}
-              <Link
-                href="/terms-conditions"
-                className="mbg-link"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Terms & Conditions
+    <main lang={language} className="min-h-screen bg-[#BFBFBF]/10 text-black">
+      <Container className="min-w-0 pb-12 pt-5 sm:pt-8 lg:pb-20">
+        <header className="overflow-hidden rounded-sm bg-black text-white">
+          <div className="relative isolate px-4 py-5 sm:px-8 sm:py-8 lg:px-10">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,#00821A45,transparent_60%)]" />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Link href={localized("/products")} className={`inline-flex min-h-11 items-center gap-2 text-xs font-medium text-white/80 transition hover:text-white ${focus}`}>
+                <ArrowLeft size={15} aria-hidden="true" /> {t.back}
               </Link>
-              .
-            </label>
-          </div>
-          {tcError && (
-            <p className="text-[10px] text-red-600 -mt-1" role="alert">
-              {tcError}
-            </p>
-          )}
-
-          {/* Optional marketing consent */}
-          <div className="mt-1 border-t border-mbg-black/10 pt-3">
-            <div className="flex items-start gap-2">
-              <input
-                id="marketing-opt-in"
-                type="checkbox"
-                checked={marketingOptIn}
-                onChange={(event) => setMarketingOptIn(event.target.checked)}
-                className="mt-0.5 h-3 w-3 rounded-xs border-mbg-green accent-mbg-green text-mbg-green focus:ring-mbg-green"
-              />
-              <label
-                htmlFor="marketing-opt-in"
-                className="cursor-pointer text-[11px] leading-5 uppercase"
-              >
-                I want to receive Milos BG news, new drops and{" "}
-                <span className="font-bold text-mbg-green">
-                  marketing emails
-                </span>
-                . I can unsubscribe at any time.
-              </label>
-            </div>
-            <p className="mt-1 pl-5 text-[9px] leading-4 text-mbg-black/46">
-              Optional. This choice does not affect your order.
-            </p>
-          </div>
-
-          <form
-            className="mt-5 flex flex-col gap-5 border-t border-[#BFBFBF]/30 pt-5"
-            onSubmit={handleSubmit}
-            noValidate
-          >
-            <div>
-              <p className="text-xs uppercase font-bold text-mbg-black/46">
-                Contact Details
-              </p>
-              <div className="mt-2 flex flex-col gap-2">
-                <label
-                  htmlFor="checkout-email"
-                  className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
-                >
-                  {FIELD_LABELS.email}
-                </label>
-                <input
-                  id="checkout-email"
-                  type="email"
-                  autoComplete="email"
-                  value={formData.email}
-                  placeholder="you@example.com"
-                  onChange={(event) =>
-                    handleFieldChange("email", event.target.value)
-                  }
-                  className={inputClass("email")}
-                />
-                {formErrors.email && (
-                  <p className="text-[10px] text-red-600" role="alert">
-                    {formErrors.email}
-                  </p>
-                )}
+              <div role="group" aria-label={t.language} className="inline-flex rounded-sm border border-white/25 p-0.5">
+                {(["en", "fr"] as const).map((lang) => (
+                  <button key={lang} type="button" disabled={isSubmitting} aria-pressed={language === lang} onClick={() => changeLanguage(lang)} className={`min-h-10 min-w-[48px] rounded-sm px-3 text-xs font-bold uppercase transition ${focus} ${language === lang ? "bg-white text-black" : "text-white/70 hover:bg-white/10"}`}>
+                    {lang}
+                  </button>
+                ))}
               </div>
             </div>
-
-            <div>
-              <p className="text-xs uppercase font-bold text-mbg-black/46">
-                Delivery
-              </p>
-              <div className="mt-2 grid grid-cols-1 gap-2">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="checkout-first-name"
-                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
-                    >
-                      {FIELD_LABELS.firstName}
-                    </label>
-                    <input
-                      id="checkout-first-name"
-                      type="text"
-                      autoComplete="given-name"
-                      value={formData.firstName}
-                      onChange={(event) =>
-                        handleFieldChange("firstName", event.target.value)
-                      }
-                      className={inputClass("firstName")}
-                    />
-                    {formErrors.firstName && (
-                      <p className="text-[10px] text-red-600" role="alert">
-                        {formErrors.firstName}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="checkout-last-name"
-                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
-                    >
-                      {FIELD_LABELS.lastName}
-                    </label>
-                    <input
-                      id="checkout-last-name"
-                      type="text"
-                      autoComplete="family-name"
-                      value={formData.lastName}
-                      onChange={(event) =>
-                        handleFieldChange("lastName", event.target.value)
-                      }
-                      className={inputClass("lastName")}
-                    />
-                    {formErrors.lastName && (
-                      <p className="text-[10px] text-red-600" role="alert">
-                        {formErrors.lastName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="checkout-address"
-                    className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
-                  >
-                    {FIELD_LABELS.address}
-                  </label>
-                  <input
-                    id="checkout-address"
-                    type="text"
-                    autoComplete="street-address"
-                    value={formData.address}
-                    onChange={(event) =>
-                      handleFieldChange("address", event.target.value)
-                    }
-                    className={inputClass("address")}
-                  />
-                  {formErrors.address && (
-                    <p className="text-[10px] text-red-600" role="alert">
-                      {formErrors.address}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="checkout-city"
-                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
-                    >
-                      {FIELD_LABELS.city}
-                    </label>
-                    <input
-                      id="checkout-city"
-                      type="text"
-                      autoComplete="address-level2"
-                      value={formData.city}
-                      onChange={(event) =>
-                        handleFieldChange("city", event.target.value)
-                      }
-                      className={inputClass("city")}
-                    />
-                    {formErrors.city && (
-                      <p className="text-[10px] text-red-600" role="alert">
-                        {formErrors.city}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="checkout-postal-code"
-                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
-                    >
-                      {FIELD_LABELS.postalCode}
-                    </label>
-                    <input
-                      id="checkout-postal-code"
-                      type="text"
-                      autoComplete="postal-code"
-                      value={formData.postalCode}
-                      onChange={(event) =>
-                        handleFieldChange("postalCode", event.target.value)
-                      }
-                      className={inputClass("postalCode")}
-                    />
-                    {formErrors.postalCode && (
-                      <p className="text-[10px] text-red-600" role="alert">
-                        {formErrors.postalCode}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="checkout-country"
-                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
-                    >
-                      {FIELD_LABELS.country}
-                    </label>
-                    <input
-                      id="checkout-country"
-                      type="text"
-                      autoComplete="country-name"
-                      value={formData.country}
-                      onChange={(event) =>
-                        handleFieldChange("country", event.target.value)
-                      }
-                      className={inputClass("country")}
-                    />
-                    {formErrors.country && (
-                      <p className="text-[10px] text-red-600" role="alert">
-                        {formErrors.country}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="checkout-phone"
-                      className="text-[11px] font-semibold uppercase tracking-wide text-mbg-black"
-                    >
-                      {FIELD_LABELS.phone}
-                    </label>
-                    <input
-                      id="checkout-phone"
-                      type="tel"
-                      autoComplete="tel"
-                      value={formData.phone}
-                      onChange={(event) =>
-                        handleFieldChange("phone", event.target.value)
-                      }
-                      className={inputClass("phone")}
-                    />
-                    {formErrors.phone && (
-                      <p className="text-[10px] text-red-600" role="alert">
-                        {formErrors.phone}
-                      </p>
-                    )}
-                  </div>
-                </div>
+            <div className="mt-5 sm:mt-8">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">MILOS BG / {t.checkout}</p>
+              <h1 className="mt-2 text-[clamp(2.4rem,8vw,5.5rem)] font-black uppercase leading-[0.95] tracking-[-0.045em]">THE <span className="text-[#00821A]">HOOP.</span></h1>
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80">{t.intro}</p>
+            </div>
+          </div>
+          <nav aria-label={t.checkout} className="grid grid-cols-3 border-t border-white/[0.15]">
+            {[t.pieces, t.delivery, t.confirmation].map((step, index) => (
+              <div key={index} className={`flex min-w-0 items-center gap-1.5 px-2 py-3 sm:gap-3 sm:px-6 sm:py-4 ${index !== 2 ? "border-r border-white/[0.15]" : ""}`}>
+                <span className="text-xs font-black text-white sm:text-base">0{index + 1}</span>
+                <span className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-white/80 sm:text-xs">{step}</span>
               </div>
+            ))}
+          </nav>
+        </header>
+
+        {cart.cartItems.length === 0 ? (
+          <section className={`${panel} mx-auto mt-5 flex max-w-2xl flex-col items-center py-10 text-center sm:mt-8 sm:py-14`}>
+            <ShoppingBag size={24} className="text-[#00821A]" aria-hidden="true" />
+            <h2 className="mt-4 text-2xl font-black uppercase tracking-tight sm:text-3xl">{t.empty}</h2>
+            <p className="mt-2 text-sm text-[#404040]">{t.emptyText}</p>
+            <Image src={MBG} alt="Milos BG" className="my-7 h-auto w-2/5 max-w-[190px] object-contain" />
+            <Link href={localized("/products")} className={`inline-flex min-h-12 items-center justify-center gap-3 rounded-sm bg-black px-6 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#00821A] ${focus}`}>
+              {t.explore}<ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </section>
+        ) : (
+          <form id="checkout-form" noValidate onSubmit={handleSubmit} className="mt-5 grid min-w-0 items-start gap-5 lg:mt-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)] lg:gap-7">
+            <div className="min-w-0 space-y-5">
+              <section className={panel} aria-labelledby="cart-items-title">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#00821A]">01 / THE HOOP</p>
+                    <h2 id="cart-items-title" className="mt-1 text-xl font-black uppercase tracking-tight sm:text-2xl">{t.pieces}</h2>
+                  </div>
+                  <span className="rounded-sm bg-black/5 px-3 py-1.5 text-xs font-semibold tabular-nums">{itemCount} {itemCount === 1 ? t.item : t.items}</span>
+                </div>
+                <div className="divide-y divide-black/10">
+                  {cart.cartItems.map((cartItem) => {
+                    const { _id, title, media, price } = cartItem.item;
+                    const translated = cartItem.item as typeof cartItem.item & { titleFr?: string };
+                    const displayTitle = (language === "fr" ? translated.titleFr?.trim() || title : title) || t.product;
+                    const stock = lineStock(cartItem);
+                    const maxReached = cartItem.quantity >= stock;
+                    return (
+                      <article key={`${_id}-${cartItem.color ?? ""}-${cartItem.size ?? ""}`} className="grid min-w-0 grid-cols-[76px_minmax(0,1fr)] items-start gap-3 py-4 sm:grid-cols-[108px_minmax(0,1fr)] sm:gap-5 sm:py-5">
+                        <Link href={localized(`/products/${_id}`)} className={`overflow-hidden rounded-sm bg-[#BFBFBF]/[0.15] ${focus}`}>
+                          <Image src={media?.[0] ?? "/placeholder.png"} alt={displayTitle} width={216} height={216} className="aspect-square h-auto w-full object-contain" />
+                        </Link>
+                        <div className="min-w-0">
+                          <div className="flex items-start justify-between gap-1.5">
+                            <Link href={localized(`/products/${_id}`)} className={`min-w-0 break-words text-sm font-black uppercase leading-snug hover:text-[#00821A] sm:text-base ${focus}`}>{displayTitle}</Link>
+                            <button type="button" disabled={busy} onClick={() => cart.removeItem(_id, cartItem.color, cartItem.size)} aria-label={`${t.remove} ${displayTitle}`} title={t.remove} className={`-mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-sm text-[#404040] hover:bg-red-50 hover:text-red-700 disabled:opacity-40 ${focus}`}><Trash2 size={17} aria-hidden="true" /></button>
+                          </div>
+                          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#404040]">
+                            {cartItem.color && <span>{t.color}: {cartItem.color}</span>}
+                            {cartItem.size && <span>{t.size}: {cartItem.size}</span>}
+                          </div>
+                          <p className="mt-1 text-xs tabular-nums text-[#404040]">{money(price)} / {t.each}</p>
+                          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                            <div role="group" aria-label={`${t.quantity} — ${displayTitle}`} className="inline-flex items-center rounded-sm border border-black/[0.15]">
+                              <button type="button" aria-label={`${t.decrease} ${displayTitle}`} disabled={busy || cartItem.quantity <= 1} onClick={() => cart.decreaseQuantity(_id, cartItem.color, cartItem.size)} className={`flex h-11 w-10 items-center justify-center hover:bg-black/5 disabled:opacity-30 sm:w-11 ${focus}`}><Minus size={15} aria-hidden="true" /></button>
+                              <output aria-live="polite" className="min-w-[28px] text-center text-sm font-bold tabular-nums">{cartItem.quantity}</output>
+                              <button type="button" aria-label={`${t.increase} ${displayTitle}`} title={maxReached ? t.limit : t.increase} disabled={busy || maxReached} onClick={() => cart.increaseQuantity(_id, cartItem.color, cartItem.size)} className={`flex h-11 w-10 items-center justify-center hover:bg-black/5 disabled:opacity-30 sm:w-11 ${focus}`}><Plus size={15} aria-hidden="true" /></button>
+                            </div>
+                            <span className="text-base font-black tabular-nums text-[#00821A] sm:text-lg">{money(price * cartItem.quantity)}</span>
+                          </div>
+                          {(stock <= 0 || cartItem.quantity > stock) && <p role="alert" className="mt-2 text-xs font-medium text-red-700">{stock <= 0 ? t.out : `${t.left} ${stock}`}</p>}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+                {stockIssues && <p id="cart-stock-alert" tabIndex={-1} role="alert" className="rounded-sm border border-red-700/20 bg-red-50 p-3 text-sm text-red-700">{t.stockError}</p>}
+              </section>
+
+              <section className={panel} aria-labelledby="delivery-title">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#00821A]">02 / {t.delivery}</p>
+                <h2 id="delivery-title" className="mt-1 text-xl font-black uppercase tracking-tight sm:text-2xl">{t.contact}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-[#404040]">{t.details}</p>
+                <p className="mt-2 text-xs text-[#404040]">{t.requiredNote}</p>
+                <fieldset disabled={busy} className="mt-5 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                  <legend className="sr-only">{t.contact}</legend>
+                  {FIELDS.map((field) => {
+                    const name = field.name;
+                    const id = `checkout-${name}`;
+                    const error = formErrors[name];
+                    return (
+                      <div key={name} className={`min-w-0 ${"wide" in field && field.wide ? "sm:col-span-2" : ""}`}>
+                        <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-[#404040]">{t.fields[name]} <span aria-hidden="true" className="text-[#00821A]">*</span></label>
+                        <input id={id} name={name} type={field.type} autoComplete={field.autoComplete} required aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} value={formData[name]} onChange={(event) => handleFieldChange(name, event.target.value)} className={inputClass(name)} />
+                        {error && <p id={`${id}-error`} role="alert" className="mt-1 text-xs text-red-700">{t[error]}</p>}
+                      </div>
+                    );
+                  })}
+                </fieldset>
+                <fieldset disabled={busy} className="mt-6 min-w-0 border-t border-black/10 pt-5">
+                  <legend className="sr-only">{t.shipping}</legend>
+                  <h3 className="text-sm font-bold uppercase tracking-wide">{t.shipping}</h3>
+                  <div className="mt-3 grid gap-2">
+                    {(["FREE", "EXPRESS"] as const).map((option) => {
+                      const selected = shippingOption === option;
+                      const DeliveryIcon = option === "FREE" ? Truck : Zap;
+                      return (
+                        <label key={option} className={`flex min-h-16 cursor-pointer items-center gap-3 rounded-sm border p-3 transition focus-within:ring-2 focus-within:ring-[#00821A]/30 ${selected ? "border-[#00821A] bg-[#00821A]/5" : "border-black/[0.15] hover:border-black/40"}`}>
+                          <input type="radio" name="shipping" value={option} checked={selected} onChange={() => {setShippingOption(option); setPromoError(false);}} className="h-4 w-4 shrink-0 accent-[#00821A]" />
+                          <DeliveryIcon size={20} className={selected ? "shrink-0 text-[#00821A]" : "shrink-0 text-[#404040]"} aria-hidden="true" />
+                          <span className="min-w-0 flex-1 text-sm font-semibold">{option === "FREE" ? t.standard : t.express}</span>
+                          <span className="shrink-0 text-xs font-bold tabular-nums text-[#00821A] sm:text-sm">{option === "FREE" ? t.free : money(10)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              </section>
             </div>
 
-            <button
-              type="submit"
-              className="mt-2 flex min-h-12 w-full items-center justify-center rounded-sm bg-[#00821A] px-5 py-3 text-[11px] font-black uppercase tracking-[0.12em] text-white transition hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Processing..." : "Submit order"}
-            </button>
+            <aside className="min-w-0 space-y-4 lg:sticky lg:top-4" aria-labelledby="summary-title">
+              <section className={`${panel} shadow-[0_8px_32px_rgba(0,0,0,0.05)]`}>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#00821A]">03 / {t.confirmation}</p>
+                <h2 id="summary-title" className="mt-1 text-xl font-black uppercase tracking-tight sm:text-2xl">{t.summary}</h2>
+                <dl className="mt-5 space-y-3 border-y border-black/10 py-4 text-sm">
+                  <div className="flex justify-between gap-3"><dt className="text-[#404040]">{t.subtotal}</dt><dd className="font-semibold tabular-nums">{money(subtotalRounded)}</dd></div>
+                  <div className="flex justify-between gap-3"><dt className="text-[#404040]">{t.shippingFee}</dt><dd className="font-semibold tabular-nums">{shippingFee === 0 ? t.free : money(shippingFee)}</dd></div>
+                  {activePromo && <div className="flex justify-between gap-3 text-[#00821A]"><dt>{t.discount}</dt><dd className="font-semibold tabular-nums">−{money(activePromo.discountCents / 100)}</dd></div>}
+                </dl>
+                <fieldset disabled={busy} className="mt-5 min-w-0">
+                  <legend className="sr-only">{t.promo}</legend>
+                  <label htmlFor="promo-code" className="mb-2 block text-xs font-bold">{t.promo}</label>
+                  <div className="flex gap-2">
+                    <input id="promo-code" type="text" maxLength={24} autoComplete="off" placeholder="GRIND10" value={promoInput} onChange={(event) => {setPromoInput(event.target.value.toUpperCase()); setPromoQuote(null); setPromoError(false);}} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void applyPromo(); } }} className={`min-h-12 w-full min-w-0 rounded-sm border border-black/20 px-3 text-base uppercase sm:text-sm ${focus}`} />
+                    <button type="button" disabled={busy || !promoInput.trim()} onClick={() => void applyPromo()} className={`inline-flex min-h-12 shrink-0 items-center justify-center rounded-sm bg-black px-3 text-xs font-bold text-white hover:bg-[#00821A] disabled:opacity-40 sm:px-4 ${focus}`}>{checkingPromo ? <Loader2 className="animate-spin" size={17} aria-label={t.checking} /> : t.apply}</button>
+                  </div>
+                  {promoError && <p role="alert" className="mt-2 text-xs text-red-700">{t.promoInvalid}</p>}
+                  {promoQuote && !activePromo && <p role="status" className="mt-2 text-xs text-[#404040]">{t.promoChanged}</p>}
+                  {activePromo && <div role="status" className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-[#00821A]"><span className="inline-flex items-center gap-1"><Check size={14} aria-hidden="true" />{t.applied}: {activePromo.code}</span><button type="button" onClick={() => {setPromoInput("");setPromoQuote(null);setPromoError(false);}} className={`min-h-10 underline ${focus}`}>{t.removePromo}</button></div>}
+                </fieldset>
+                <div aria-live="polite" className="mt-5 rounded-sm bg-black px-4 py-5 text-white sm:px-5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/[0.75]">{t.total}</p>
+                  <p className="mt-1 break-words text-3xl font-black tabular-nums tracking-tight sm:text-4xl">{money(finalTotal)}</p>
+                </div>
+                <fieldset disabled={busy} className="mt-5 min-w-0 space-y-4">
+                  <legend className="sr-only">{t.confirmation}</legend>
+                  <div>
+                    <div className="flex items-start gap-3">
+                      <input id="agree-tc" type="checkbox" required checked={agreeTC} aria-invalid={tcError} aria-describedby={tcError ? "tc-error" : undefined} onChange={(event) => {setAgreeTC(event.target.checked); if (event.target.checked) setTcError(false);}} className="mt-1 h-5 w-5 shrink-0 accent-[#00821A]" />
+                      <label htmlFor="agree-tc" className="cursor-pointer text-sm leading-relaxed">{t.termsStart}{" "}<Link href={localized("/terms-conditions")} target="_blank" rel="noopener noreferrer" className={`font-semibold text-[#00821A] underline underline-offset-2 ${focus}`}>{t.terms}</Link>.</label>
+                    </div>
+                    {tcError && <p id="tc-error" role="alert" className="mt-2 text-xs text-red-700">{t.termsError}</p>}
+                  </div>
+                  <div className="flex items-start gap-3 border-t border-black/10 pt-4">
+                    <input id="marketing-opt-in" type="checkbox" checked={marketingOptIn} onChange={(event) => setMarketingOptIn(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[#00821A]" />
+                    <div><label htmlFor="marketing-opt-in" className="cursor-pointer text-sm leading-relaxed text-[#404040]">{t.marketing}</label><p className="mt-1 text-xs text-[#404040]">{t.optional}</p></div>
+                  </div>
+                </fieldset>
+                <button type="submit" disabled={busy} aria-busy={isSubmitting} className={`mt-5 flex min-h-14 w-full items-center justify-center gap-3 rounded-sm bg-[#00821A] px-4 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 ${focus}`}>
+                  {isSubmitting ? <Loader2 size={19} className="animate-spin" aria-hidden="true" /> : <ChevronRight size={19} aria-hidden="true" />}
+                  {isSubmitting ? t.processing : t.submit}
+                </button>
+                {checkingPromo && <p role="status" className="mt-2 text-xs text-[#404040]">{t.checkingNotice}</p>}
+              </section>
+            </aside>
           </form>
-        </aside>
         )}
-      </div>
       </Container>
     </main>
   );
 };
 
-export default Cart;
+export default function Cart() {
+  return (
+    <Suspense fallback={<div className="min-h-[40vh] bg-white" aria-busy="true" />}>
+      <CartContent />
+    </Suspense>
+  );
+}
