@@ -15,10 +15,10 @@ type GrindUntilAchieveHeroProps = {
 
 const copy = {
   en: {
-    eyebrow: "GRIND UNTIL ACHIEVE",
+    eyebrow: "EMBRACE THE GRIND",
     title: "GRIND UNTIL ACHIEVE",
     description:
-      "Discover the five chapters behind Milos BG: GRIND, RESILIENCE, CONSISTENCY, FOCUS and ACHIEVE.",
+    "Challenge yourself. Build better habits. Learn to return. Keep moving.",
     primary: "ENTER GRIND MODE",
     secondary: "DISCOVER THE JOURNEY",
     chapters: "5 CHAPTERS",

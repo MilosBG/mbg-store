@@ -3,7 +3,7 @@
 "use client";
 
 import Container from "@/components/mbg-components/Container";
-import { MBG } from "@/images";
+import { GrindUntilAchieve2, MBG } from "@/images";
 import { createCheckoutOrder } from "@/lib/checkoutClient";
 import type { CheckoutLine } from "@/lib/checkoutClient";
 import useCart from "@/lib/hooks/useCart";
@@ -514,7 +514,7 @@ const CartContent = () => {
             </div>
             <div className="mt-5 sm:mt-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">MILOS BG / {t.checkout}</p>
-              <h1 className="mt-2 text-[clamp(2.4rem,8vw,5.5rem)] font-black uppercase leading-[0.95] tracking-[-0.045em]">THE <span className="text-[#00821A]">HOOP.</span></h1>
+              <h1 className="mt-2 text-[clamp(2.4rem,8vw,5.5rem)] font-black uppercase leading-[0.95] tracking-[-0.045em]">THE <span className="text-[#00821A]">HOOP</span></h1>
               <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80">{t.intro}</p>
             </div>
           </div>
@@ -530,7 +530,22 @@ const CartContent = () => {
 
         {cart.cartItems.length === 0 ? (
           <section className={`${panel} mx-auto mt-5 flex max-w-2xl flex-col items-center py-10 text-center sm:mt-8 sm:py-14`}>
-            <ShoppingBag size={24} className="text-[#00821A]" aria-hidden="true" />
+            <Image
+                                src={GrindUntilAchieve2}
+                                alt="GRIND UNTIL ACHIEVE"
+                                width={32}
+                                height={32}
+                                priority
+                                className="
+                  h-5
+                  w-5
+                  cursor-pointer
+                  object-contain
+                  transition-opacity
+                  duration-300
+                  group-hover:opacity-80
+                "
+                              />
             <h2 className="mt-4 text-2xl font-black uppercase tracking-tight sm:text-3xl">{t.empty}</h2>
             <p className="mt-2 text-sm text-[#404040]">{t.emptyText}</p>
             <Image src={MBG} alt="Milos BG" className="my-7 h-auto w-2/5 max-w-[190px] object-contain" />

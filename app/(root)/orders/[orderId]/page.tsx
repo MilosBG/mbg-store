@@ -224,37 +224,37 @@ export default async function OrderDetailsPage({ params, searchParams }: PagePro
 
   return (
     <PageFrame language={language} title={t.title} eyebrow={t.eyebrow} description={t.description}>
-      <div className="mt-[21px] flex flex-wrap items-center justify-between gap-[13px]">
-        <Link href={backHref} className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-[#9fa9a2] bg-white px-[21px] text-[11px] font-bold uppercase text-[#111715] transition-colors hover:border-[#00821A] hover:text-[#00821A]">
+      <div className="mt-[13px] flex items-center justify-between gap-[8px] sm:mt-[21px]">
+        <Link href={backHref} className="inline-flex min-h-9 min-w-0 items-center gap-[5px] rounded-sm border border-[#9fa9a2] bg-white px-[10px] text-[9px] sm:min-h-11 sm:gap-2 sm:px-[21px] sm:text-[11px] font-bold uppercase text-[#111715] transition-colors hover:border-[#00821A] hover:text-[#00821A]">
           <span aria-hidden="true">←</span> {t.back}
         </Link>
         <LanguageSwitch baseHref={currentHref} language={language} title={t.language} />
       </div>
 
-      <section className="mt-[21px] overflow-hidden rounded-sm border border-[#c6cec8] bg-[#f7f8f6] shadow-[0_13px_34px_rgba(17,23,21,0.05)]" aria-label={t.summary}>
+      <section className="mt-[13px] min-w-0 overflow-hidden rounded-sm border border-[#c6cec8] bg-[#f7f8f6] shadow-[0_13px_34px_rgba(17,23,21,0.05)]" aria-label={t.summary}>
         {/* The ink-dark section is deliberately short: a light reading area dominates. */}
-        <div className="relative grid gap-[21px] bg-[#161e19] px-[21px] py-[34px] text-white sm:px-[34px] sm:py-[34px] lg:grid-cols-[minmax(0,1.618fr)_minmax(0,1fr)]">
+        <div className="relative grid gap-[8px] bg-[#161e19] px-[13px] py-[21px] text-white sm:gap-[21px] sm:px-[34px] sm:py-[34px] lg:grid-cols-[minmax(0,1.618fr)_minmax(0,1fr)]">
           <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[#00821A]" />
           <div className="min-w-0">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#61d477]">{t.reference}</p>
-            <h2 className="mt-[8px] break-all text-[clamp(1.35rem,3vw,2.1rem)] font-black uppercase leading-[1.13] tracking-[-0.025em]">#{orderId}</h2>
+            <h2 className="mt-[8px] break-all text-[clamp(1.1rem,3vw,2.1rem)] font-black uppercase leading-[1.13] tracking-[-0.025em]">#{orderId}</h2>
             {formatDate(createdAt,language) && <p className="mt-[13px] text-[11px] text-white/65">{t.placedOn} · {formatDate(createdAt,language)}</p>}
           </div>
-          <div className="flex flex-col justify-center border-t border-white/15 pt-[21px] lg:border-l lg:border-t-0 lg:pl-[34px] lg:pt-0">
+          <div className="flex flex-col justify-center border-t border-white/15 pt-[8px] sm:pt-[21px] lg:border-l lg:border-t-0 lg:pl-[34px] lg:pt-0">
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">{t.status}</p>
-            <span className={`mt-[8px] inline-flex w-fit items-center gap-2 rounded-sm border px-[13px] py-[8px] text-[12px] font-bold ${isNeutralStatus ? "border-white/25 bg-white/10 text-[#e4e9e5]" : "border-[#61d477]/30 bg-[#00821A]/20 text-[#88ed9b]"}`}>
+            <span className={`mt-[5px] inline-flex w-fit items-center gap-[6px] rounded-sm border px-[10px] py-[6px] text-[10px] sm:mt-[8px] sm:gap-2 sm:px-[13px] sm:py-[8px] sm:text-[12px] font-bold ${isNeutralStatus ? "border-white/25 bg-white/10 text-[#e4e9e5]" : "border-[#61d477]/30 bg-[#00821A]/20 text-[#88ed9b]"}`}>
               <span className={`h-2 w-2 rounded-full ${isNeutralStatus ? "bg-white/60" : "bg-[#61d477]"}`} aria-hidden="true" />{statusText}
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-0 border-b border-[#d1d8d2] sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-0 border-b border-[#d1d8d2]">
           <Metric label={t.total} value={money(total,language)} />
           <Metric label={t.shipping} value={shippingLabel(order.shippingMethod,t)} />
           <Metric label={totalQuantity === 1 ? t.item : t.items} value={String(totalQuantity)} last />
         </div>
 
-        <div className="px-[21px] py-[34px] sm:px-[34px] sm:py-[55px]">
+        <div className="px-[13px] py-[21px] sm:px-[34px] sm:py-[55px]">
           <div className="flex flex-wrap items-end justify-between gap-[13px]">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">01 / {t.step}</p>
@@ -265,21 +265,21 @@ export default async function OrderDetailsPage({ params, searchParams }: PagePro
           {stage !== null ? <OrderProgress stage={stage} order={order} language={language} t={t} /> : <p className="mt-[21px] rounded-sm border border-[#d1d8d2] bg-[#e7eae8] px-[21px] py-[13px] text-[12px] font-bold text-[#48564d]">{statusText}</p>}
           <div className="mt-[21px] border-l-[3px] border-[#00821A] bg-[#e7ebe7] px-[21px] py-[13px] text-[12px] leading-[1.65] text-[#39463d]">{statusMessage(status,t)}</div>
           {(order.trackingNumber || order.transporter || trackingUrl) && (
-            <div className="mt-[21px] grid gap-[13px] rounded-sm border border-[#c6cec8] bg-white p-[21px] sm:grid-cols-2">
+            <div className="mt-[13px] grid gap-[8px] rounded-sm border border-[#c6cec8] bg-white p-[13px] sm:mt-[21px] sm:grid-cols-2 sm:p-[21px]">
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#00821A]">{t.parcel}</p>
                 {order.transporter && <p className="mt-[8px] break-words text-[11px] text-[#56605a]">{t.carrier} · <strong className="text-[#111715]">{order.transporter}</strong></p>}
                 {order.trackingNumber && <p className="mt-[8px] break-all text-[11px] text-[#56605a]">{t.trackingNumber} · <strong className="text-[#111715]">{order.trackingNumber}</strong></p>}
               </div>
-              {trackingUrl && <a href={trackingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center self-center rounded-sm bg-[#111715] px-[21px] text-[11px] font-bold uppercase text-white hover:bg-[#00821A]">{t.trackParcel} ↗</a>}
+              {trackingUrl && <a href={trackingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center justify-center self-center rounded-sm bg-[#111715] px-[13px] text-[10px] sm:min-h-11 sm:px-[21px] sm:text-[11px] font-bold uppercase text-white hover:bg-[#00821A]">{t.trackParcel} ↗</a>}
             </div>
           )}
         </div>
       </section>
 
       {/* 61.8% product story / 38.2% invoice summary on wide displays. */}
-      <div className="mt-[21px] grid items-start gap-[21px] lg:grid-cols-[minmax(0,1.618fr)_minmax(0,1fr)]">
-        <section className="min-w-0 rounded-sm border border-[#c6cec8] bg-[#f7f8f6] px-[21px] py-[21px] sm:px-[34px] sm:py-[34px]" aria-labelledby="order-pieces-title">
+      <div className="mt-[13px] grid min-w-0 items-start gap-[13px] sm:mt-[21px] sm:gap-[21px] lg:grid-cols-[minmax(0,1.618fr)_minmax(0,1fr)]">
+        <section className="min-w-0 rounded-sm border border-[#c6cec8] bg-[#f7f8f6] px-[13px] py-[21px] sm:px-[34px] sm:py-[34px]" aria-labelledby="order-pieces-title">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">02 / {t.products}</p>
           <div className="mt-[8px] flex items-baseline justify-between gap-3">
             <h3 id="order-pieces-title" className="text-[clamp(1.35rem,2.5vw,2rem)] font-black uppercase tracking-[-0.025em]">{t.piecesTitle}</h3>
@@ -289,7 +289,7 @@ export default async function OrderDetailsPage({ params, searchParams }: PagePro
             {products.map((item, index) => <OrderPiece key={String(item._id ?? index)} item={item} language={language} t={t} />)}
           </div>
         </section>
-        <aside className="min-w-0 rounded-sm border border-[#c6cec8] bg-[#e9ede9] px-[21px] py-[21px] sm:px-[34px] sm:py-[34px] lg:sticky lg:top-[21px]" aria-label={t.financials}>
+        <aside className="min-w-0 rounded-sm border border-[#c6cec8] bg-[#e9ede9] px-[13px] py-[21px] sm:px-[34px] sm:py-[34px] lg:sticky lg:top-[21px]" aria-label={t.financials}>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">03 / {t.financials}</p>
           <h3 className="mt-[8px] text-[clamp(1.35rem,2.5vw,2rem)] font-black uppercase tracking-[-0.025em]">{t.financials}</h3>
           <div className="mt-[21px] space-y-[13px]">
@@ -302,7 +302,7 @@ export default async function OrderDetailsPage({ params, searchParams }: PagePro
             <p className="mt-[8px] break-words text-[clamp(1.9rem,4vw,2.9rem)] font-black leading-none tracking-[-0.045em] tabular-nums text-[#00821A]">{money(total,language)}</p>
             <p className="mt-[8px] text-[11px] text-[#626c65]">{t.includingDelivery}</p>
           </div>
-          <Link href={backHref} className="mt-[34px] inline-flex min-h-11 w-full items-center justify-center rounded-sm bg-[#111715] px-[13px] text-center text-[11px] font-black uppercase tracking-[0.08em] text-white transition-colors hover:bg-[#00821A]">← {t.back}</Link>
+          <Link href={backHref} className="mt-[21px] inline-flex min-h-10 w-full items-center justify-center rounded-sm bg-[#111715] px-[13px] text-center text-[10px] sm:mt-[34px] sm:min-h-11 sm:text-[11px] font-black uppercase tracking-[0.08em] text-white transition-colors hover:bg-[#00821A]">← {t.back}</Link>
         </aside>
       </div>
       <p className="pb-[21px] pt-[34px] text-center text-[10px] font-bold uppercase tracking-[0.18em] text-[#59645c]">{t.shortJourney}</p>
@@ -314,22 +314,22 @@ function PageFrame({language,title,eyebrow,description,children}:{language:Langu
   return (
     <main lang={language} className="min-h-[65vh] bg-[#e7eae8] font-[Kanit] text-[#111715]">
       <div className="border-b border-white/10 bg-[#111715]">
-        <Container className="py-[21px] sm:py-[34px]">
+        <Container className="py-[13px] sm:py-[34px]">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#65d179]">{eyebrow}</p>
-          <h1 className="mt-[8px] text-[clamp(2rem,4.2vw,3.8rem)] font-black uppercase leading-[1.03] tracking-[-0.035em] text-white">{title}</h1>
-          <p className="mt-[13px] max-w-[42rem] text-[12px] leading-[1.65] text-white/65 sm:text-[14px]">{description}</p>
+          <h1 className="mt-[8px] text-[clamp(1.7rem,4.2vw,3.8rem)] font-black uppercase leading-[1.03] tracking-[-0.035em] text-white">{title}</h1>
+          <p className="mt-[8px] max-w-[42rem] text-[12px] leading-[1.5] text-white/65 sm:mt-[13px] sm:text-[14px] sm:leading-[1.65]">{description}</p>
         </Container>
       </div>
-      <Container className="min-w-0 pb-[55px] sm:pb-[89px]">{children}</Container>
+      <Container className="min-w-0 pb-[34px] sm:pb-[89px]">{children}</Container>
     </main>
   );
 }
 
 function LanguageSwitch({baseHref,language,title}:{baseHref:string;language:Language;title:string}) {
   return (
-    <nav aria-label={title} className="inline-flex items-center gap-1.5 rounded-sm border border-[#bac5bc] bg-[#f7f8f6] p-1.5">
+    <nav aria-label={title} className="inline-flex shrink-0 items-center gap-[3px] rounded-sm border border-[#bac5bc] bg-[#f7f8f6] p-[3px] sm:gap-1.5 sm:p-1.5">
       <span className="hidden px-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[#56605a] sm:inline">{title}</span>
-      {(["en","fr"] as const).map((value)=><Link key={value} href={`${baseHref}?lang=${value}`} lang={value} hrefLang={value} aria-current={language === value ? "page" : undefined} className={`inline-flex min-h-10 min-w-11 items-center justify-center rounded-sm px-2 text-[11px] font-black transition-colors ${language===value? "bg-[#00821A] text-white" : "text-[#56605a] hover:bg-[#dfe8df]"}`}>{value.toUpperCase()}</Link>)}
+      {(["en","fr"] as const).map((value)=><Link key={value} href={`${baseHref}?lang=${value}`} lang={value} hrefLang={value} aria-current={language === value ? "page" : undefined} className={`inline-flex min-h-9 min-w-[32px] items-center justify-center rounded-sm px-[6px] text-[10px] sm:min-h-10 sm:min-w-11 sm:px-2 sm:text-[11px] font-black transition-colors ${language===value? "bg-[#00821A] text-white" : "text-[#56605a] hover:bg-[#dfe8df]"}`}>{value.toUpperCase()}</Link>)}
     </nav>
   );
 }
@@ -339,13 +339,13 @@ function EmptyPage({eyebrow,title,body,button,href}:{eyebrow:string;title:string
 }
 
 function Metric({label,value,last=false}:{label:string;value:string;last?:boolean}) {
-  return <div className={`min-w-0 px-[13px] py-[21px] sm:px-[34px] ${last ? "col-span-2 border-t border-[#d1d8d2] sm:col-span-1 sm:border-l sm:border-t-0" : "border-r border-[#d1d8d2]"}`}><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#56605a]">{label}</p><p className="mt-[8px] break-words text-[clamp(1rem,2.1vw,1.35rem)] font-black leading-[1.25] text-[#111715]">{value}</p></div>;
+  return <div className={`min-w-0 px-[13px] py-[21px] sm:px-[34px] ${last ? "" : "border-r border-[#d1d8d2]"}`}><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#56605a]">{label}</p><p className="mt-[8px] break-words text-[clamp(1rem,2.1vw,1.35rem)] font-black leading-[1.25] text-[#111715]">{value}</p></div>;
 }
 
 function OrderProgress({stage,order,language,t}:{stage:0|1|2|3;order:ResolvedOrder;language:Language;t:Texts}) {
   const labels=[t.received,t.preparing,t.sent,t.delivered];
   const dates=[order.createdAt,order.processingAt,order.shippedAt,order.deliveredAt??order.completedAt];
-  return <ol className="mt-[21px] grid grid-cols-2 gap-x-[13px] gap-y-[21px] sm:grid-cols-4 sm:gap-[13px]" aria-label={t.journey}>{labels.map((label,index)=>{const done=stage===3||index<stage;const active=index===stage&&stage!==3;const date=formatDate(dates[index],language);return <li key={index} aria-current={active?"step":undefined} className="min-w-0"><div className="flex items-center gap-[8px]"><span className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full border text-[11px] font-black ${done?"border-[#00821A] bg-[#00821A] text-white":active?"border-[#00821A] bg-white text-[#00821A]":"border-[#b7c3bb] text-[#77857a]"}`}>{done?"✓":String(index+1).padStart(2,"0")}</span><span className={`h-px flex-1 ${index<=stage?"bg-[#00821A]":"bg-[#c6cec8]"}`} aria-hidden="true"/></div><span className={`mt-[8px] block text-[11px] font-semibold leading-[1.35] ${done||active?"text-[#00821A]":"text-[#647069]"}`}>{label}</span>{date && <time className="mt-[5px] block text-[10px] text-[#677169]">{date}</time>}</li>;})}</ol>;
+  return <ol className="mt-[13px] grid grid-cols-4 gap-x-[5px] sm:mt-[21px] sm:gap-x-[13px]" aria-label={t.journey}>{labels.map((label,index)=>{const done=stage===3||index<stage;const active=index===stage&&stage!==3;const date=formatDate(dates[index],language);return <li key={index} aria-current={active?"step":undefined} className="min-w-0"><div className="flex items-center gap-[3px] sm:gap-[8px]"><span className={`flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full border text-[8px] sm:h-[34px] sm:w-[34px] sm:text-[11px] font-black ${done?"border-[#00821A] bg-[#00821A] text-white":active?"border-[#00821A] bg-white text-[#00821A]":"border-[#b7c3bb] text-[#77857a]"}`}>{done?"✓":String(index+1).padStart(2,"0")}</span><span className={`h-px flex-1 ${index<=stage?"bg-[#00821A]":"bg-[#c6cec8]"}`} aria-hidden="true"/></div><span className={`mt-[6px] block text-center text-[9px] font-semibold leading-[1.2] sm:mt-[8px] sm:text-left sm:text-[11px] sm:leading-[1.35] ${done||active?"text-[#00821A]":"text-[#647069]"}`}><span className="sm:hidden">{(language === "fr" ? ["Validée", "Prépar.", "Expédiée", "Livrée"] : ["Confirmed", "Prep.", "Shipped", "Delivered"])[index]}</span><span className="hidden sm:inline">{label}</span></span>{date && <time className="sr-only mt-[5px] text-[10px] text-[#677169] sm:not-sr-only sm:block">{date}</time>}</li>;})}</ol>;
 }
 
 function OrderPiece({item,language,t}:{item:OrderLine;language:Language;t:Texts}) {
