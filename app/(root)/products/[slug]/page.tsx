@@ -184,21 +184,21 @@ const ProductDetails = async ({ params, searchParams }: PageProps) => {
       ? {
           back: "Toutes les tenues",
           note: "Une pièce pensée pour traverser l’effort, le mouvement et le temps.",
-          detailLabel: "DÉCOUVRIR LA PIÈCE",
+          detailLabel: "MAKE IT YOUR LIKED OUTFITS",
           detailText: "Explorez les détails, les matières et les finitions de cette pièce.",
           quest: "UN CHAPITRE À PORTER",
           questText:
-            "Du terrain au quotidien, la pièce entre dans votre parcours. Choisissez vos options et, si nécessaire, demandez une adaptation avant de poursuivre votre parcours.",
+            "Au-delà du terrain, au-delà de l'ordinaire. Chaque pièce est confectionnée pour accompagner ton parcours, incarner ton état d'esprit et refléter ta détermination. Fais-la tienne, personnalise ta coupe lorsque cela est possible et avance vers ton prochain chapitre.",
           discover: "DÉCOUVRIR GRIND UNTIL ACHIEVE",
         }
       : {
           back: "All Outfits",
           note: "A piece designed to move through effort, motion and time.",
-          detailLabel: "DISCOVER THE PIECE",
+          detailLabel: "MAKE IT YOUR LIKED OUTFITS",
           detailText: "Explore the details, materials and finishing touches of this piece.",
           quest: "A CHAPTER TO WEAR",
           questText:
-            "From court to everyday life, the piece becomes part of your path. Choose your options and, where appropriate, request a custom fit before the next chapter.",
+            "Beyond the court, beyond the ordinary. Every piece is crafted to accompany your journey, embody your mindset and reflect your determination. Make it yours, customize your fit when available, and step into your next chapter.",
           discover: "DISCOVER GRIND UNTIL ACHIEVE",
         };
 
