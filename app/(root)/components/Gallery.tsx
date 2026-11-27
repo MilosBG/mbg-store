@@ -53,7 +53,6 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
   );
 
   const [selectedSrc, setSelectedSrc] = useState<string | null>(null);
-  const [imageRatios, setImageRatios] = useState<Record<string, number>>({});
   const [zoomOpen, setZoomOpen] = useState(false);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
@@ -203,11 +202,8 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
 
   return (
     <section aria-label={`Galerie d’images : ${productName}`} className="w-full font-[Kanit,sans-serif]">
-      <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_84px]">
-        <div
-          className={`relative min-w-0 overflow-hidden ${activeImage ? "" : "bg-mbg-black/5"}`}
-          style={{ aspectRatio: String(activeImage ? imageRatios[activeImage] ?? 4 / 5 : 4 / 5) }}
-        >
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className={`relative mx-auto w-full max-h-[690px] min-w-0 overflow-hidden bg-[#121212] aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] 2xl:aspect-[5/4] ${activeImage ? "" : "bg-mbg-black/5"}`}>
           {activeImage ? (
             <>
               <button
@@ -216,9 +212,7 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
                 aria-label={`Agrandir l’image ${activeIndex + 1} sur ${images.length} de ${productName}`}
                 aria-haspopup="dialog"
                 onClick={() => setZoomOpen(true)}
-                className="group absolute inset-0 w-full cursor-zoom-in focus-visible:outline-2
-focus-visible:outline-offset-2
-focus-visible:outline-mbg-green"
+                className="group absolute inset-0 w-full cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green"
               >
                 <Image
                   src={activeImage}
@@ -226,17 +220,9 @@ focus-visible:outline-mbg-green"
                   fill
                   priority={activeIndex === 0}
                   sizes="(min-width: 1024px) 60vw, 100vw"
-                  onLoad={(event) => {
-                    const { naturalWidth, naturalHeight } = event.currentTarget;
-                    if (!naturalHeight) return;
-                    const ratio = naturalWidth / naturalHeight;
-                    setImageRatios((current) =>
-                      current[activeImage] === ratio ? current : { ...current, [activeImage]: ratio },
-                    );
-                  }}
-                  className="object-cover"
+                  className="object-contain object-center"
                 />
-                <span className="absolute right-4 top-4 rounded-full border border-mbg-black/10 bg-mbg-white/95 p-2.5 text-mbg-black shadow-sm transition group-hover:text-mbg-green">
+                <span className="absolute right-3 top-3 rounded-sm border border-mbg-black/10 bg-mbg-white/95 p-2.5 text-mbg-black shadow-sm transition group-hover:text-mbg-green">
                   <Icon name="zoom" className="h-5 w-5" />
                 </span>
               </button>
@@ -258,7 +244,7 @@ focus-visible:outline-mbg-green"
               )}
             </>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-mbg-black/50">
+            <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-white/60">
               <Icon name="image" className="h-10 w-10" />
               <p className="text-sm">Visuel bientôt disponible</p>
             </div>
@@ -266,8 +252,8 @@ focus-visible:outline-mbg-green"
         </div>
 
         {images.length > 1 && (
-          <div className="relative min-w-0 lg:min-h-0">
-            <div role="group" aria-label="Choisir une vue du produit" className="flex gap-2 overflow-x-auto pb-1 lg:absolute lg:inset-0 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto lg:pb-0 lg:pr-1">
+          <div className="min-w-0">
+            <div role="group" aria-label="Choisir une vue du produit" className="flex max-w-full items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
               {images.map((src, index) => (
                 <button
                   key={src}
