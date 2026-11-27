@@ -53,7 +53,6 @@ const COPY = {
     copyEmail: "Or write directly to",
     selected: "Selected",
     unavailable: "Unavailable",
-    sizesReminder: "Other sizes are available on request, not as standard stock.",
     countLabel: "Choose your quantity",
     shopStage: "02 / MAKE YOUR CHOICE",
     beginning: "A small decision. A step forward.",
@@ -92,7 +91,6 @@ const COPY = {
     copyEmail: "Ou écrivez directement à",
     selected: "Sélectionnée",
     unavailable: "Indisponible",
-    sizesReminder: "Les autres tailles se demandent par e-mail et ne constituent pas du stock standard.",
     countLabel: "Choisissez la quantité",
     shopStage: "02 / FAITES VOTRE CHOIX",
     beginning: "Une décision. Un pas de plus.",
@@ -484,45 +482,45 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
     : "—";
 
   return (
-    <section className="relative overflow-hidden border border-black/10 bg-white font-[Kanit,sans-serif] shadow-[0_18px_55px_rgba(0,0,0,0.035)]">
+    <section className="relative overflow-hidden border border-white/10 bg-[#0b0b0b] font-[Kanit,sans-serif] text-white shadow-[0_16px_50px_rgba(0,0,0,0.22)]">
       <div className="h-1 w-full bg-[#00821A]" />
-      <div className="p-4 sm:p-5 lg:p-6">
-        <div className="mb-5 flex items-start justify-between gap-4">
+      <div className="p-3 sm:p-4 lg:p-5">
+        <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.21em] text-[#00821A]">{t.discover}</p>
-            <h2 className="text-[clamp(1.45rem,3vw,2.4rem)] font-bold uppercase leading-[1.05] tracking-[-0.025em] text-black">
+            <h2 className="text-[clamp(1.45rem,3vw,2.4rem)] font-bold uppercase leading-[1.05] tracking-[-0.025em] text-white">
               {productTitle}
             </h2>
             {productCategory && (
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#404040]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#BFBFBF]">
                 {t.category} <span className="ml-2 text-[#00821A]">/ {productCategory}</span>
               </p>
             )}
           </div>
-          <div className="shrink-0 border border-black/10 p-2 text-[#00821A]"><BasketBall product={product} /></div>
+          <div className="shrink-0 border border-[#00821A]/30 bg-[#00821A]/[0.06] p-2 text-[#00821A]"><BasketBall product={product} /></div>
         </div>
-        <div className="mb-4 flex items-center justify-between gap-3 border-y border-black/10 py-3">
+        <div className="mb-4 flex items-center justify-between gap-3 border-y border-white/10 py-3">
           <p className="text-[clamp(1.5rem,3vw,2.1rem)] font-bold tracking-tight text-[#00821A]">{productCurrency}</p>
-          <span className="max-w-[46%] text-right text-[9px] font-semibold uppercase leading-relaxed tracking-[0.06em] text-[#404040]">
+          <span className="max-w-[46%] text-right text-[9px] font-semibold uppercase leading-relaxed tracking-[0.06em] text-[#BFBFBF]/70">
             {t.caption}
           </span>
         </div>
 
         {productDescription && (
           <div className="mb-5 border-l-2 border-[#00821A] pl-3">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/50">{t.description}</p>
-            <p className="whitespace-pre-line text-[13px] leading-[1.75] text-[#404040] sm:text-sm">{productDescription}</p>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#BFBFBF]/60">{t.description}</p>
+            <p className="whitespace-pre-line text-[13px] leading-[1.75] text-[#BFBFBF] sm:text-sm">{productDescription}</p>
           </div>
         )}
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-3">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black">{t.shopStage}</p>
-          <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-black/50">{t.beginning}</span>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white">{t.shopStage}</p>
+          <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-[#BFBFBF]/60">{t.beginning}</span>
         </div>
 
         {colorsArr.length > 0 && (
           <fieldset className="mb-5 min-w-0 space-y-3">
-            <legend className="text-[11px] font-bold uppercase tracking-[0.1em] text-black">{t.colorPrompt}</legend>
+            <legend className="text-[11px] font-bold uppercase tracking-[0.1em] text-white">{t.colorPrompt}</legend>
             <div className="flex flex-wrap gap-2">
               {colorsArr.map((color) => {
                 const stock = stockForColor(color);
@@ -532,7 +530,7 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
                   <button key={color} type="button" aria-pressed={active} disabled={disabled}
                     title={`${color} · ${t.stock}: ${stock}`}
                     onClick={() => handleSelectColor(color)}
-                    className={`min-h-10 rounded-sm border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.055em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] ${active ? "border-black bg-black text-white" : "border-black/20 bg-[#F5F5F2] text-black hover:border-[#00821A]"} ${disabled ? "cursor-not-allowed opacity-35" : ""}`}>
+                    className={`min-h-10 rounded-sm border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.055em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] ${active ? "border-[#00821A] bg-[#00821A]/20 text-white" : "border-white/20 bg-[#171717] text-[#BFBFBF] hover:border-[#00821A] hover:text-white"} ${disabled ? "cursor-not-allowed opacity-35" : ""}`}>
                     {color}<span className={`ml-2 text-[9px] ${active ? "text-[#BFBFBF]" : "text-[#00821A]"}`}>{stock}</span>
                   </button>
                 );
@@ -543,7 +541,7 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
 
         {orderedSizes.length > 0 && (
           <fieldset className="mb-3 min-w-0 space-y-3">
-            <legend className="text-[11px] font-bold uppercase tracking-[0.1em] text-black">{t.sizePrompt}</legend>
+            <legend className="text-[11px] font-bold uppercase tracking-[0.1em] text-white">{t.sizePrompt}</legend>
             <div className="flex flex-wrap items-center gap-2">
               {orderedSizes.map((size) => {
                 const stock = stockForSize(size);
@@ -552,13 +550,13 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
                 return (
                   <button key={size} type="button" aria-pressed={active} disabled={disabled}
                     onClick={() => handleSelectSize(size)}
-                    className={`min-h-10 min-w-12 rounded-sm border px-3 text-[11px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] ${active ? "border-[#00821A] bg-[#00821A] text-white" : "border-black/20 bg-white text-black hover:border-[#00821A]"} ${disabled ? "cursor-not-allowed opacity-35" : ""}`}>
+                    className={`min-h-10 min-w-12 rounded-sm border px-3 text-[11px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] ${active ? "border-[#00821A] bg-[#00821A] text-white" : "border-white/20 bg-[#161616] text-[#BFBFBF] hover:border-[#00821A] hover:text-white"} ${disabled ? "cursor-not-allowed opacity-35" : ""}`}>
                     {sizeLabel(size)}
                   </button>
                 );
               })}
               {!isOneSize && !isAccessory && (
-                <Link href={`/size-guide?lang=${lang}`} className="ml-auto inline-flex min-h-10 items-center gap-1.5 text-[11px] font-semibold text-[#00821A] underline underline-offset-4 hover:text-black">
+                <Link href={`/size-guide?lang=${lang}`} className="ml-auto inline-flex min-h-10 items-center gap-1.5 text-[11px] font-semibold text-[#00821A] underline underline-offset-4 hover:text-white">
                   <Ruler size={14} aria-hidden="true" />{t.sizeGuide}
                 </Link>
               )}
@@ -567,14 +565,14 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
         )}
 
         {canRequestCustomSize && (
-        <div className="my-5 border border-[#00821A]/25 bg-[#F4F7F3]">
+        <div className="my-4 border border-[#00821A]/35 bg-[#00821A]/[0.07]">
           <button type="button" aria-expanded={customRequestOpen} aria-controls="mbg-custom-size-panel"
             onClick={() => setCustomRequestOpen((current) => !current)}
-            className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-[#EAF2E9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A]">
+            className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-[#00821A]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A]">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#00821A] text-white"><Ruler size={19} aria-hidden="true" /></span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[11px] font-black uppercase tracking-[0.07em] text-black">{t.sizeRequestTitle}</span>
-              <span className="mt-1 block text-[11px] leading-relaxed text-[#404040]">{t.sizeRequestSub}</span>
+              <span className="block text-[11px] font-black uppercase tracking-[0.07em] text-white">{t.sizeRequestTitle}</span>
+              <span className="mt-1 block text-[11px] leading-relaxed text-[#BFBFBF]">{t.sizeRequestSub}</span>
             </span>
             <ChevronDown size={17} className={`shrink-0 text-[#00821A] transition-transform duration-300 ${customRequestOpen ? "rotate-180" : ""}`} aria-hidden="true" />
           </button>
@@ -582,9 +580,9 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
             <div id="mbg-custom-size-panel" className="space-y-4 border-t border-[#00821A]/20 p-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wide text-black">{t.requestedSize}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-white">{t.requestedSize}</span>
                   <select value={requestedSize} onChange={(event) => setRequestedSize(event.target.value)}
-                    className="min-h-11 w-full rounded-sm border border-black/20 bg-white px-3 text-xs text-black focus:border-[#00821A] focus:outline-none">
+                    className="min-h-11 w-full rounded-sm border border-white/20 bg-[#141414] px-3 text-xs text-white focus:border-[#00821A] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#00821A]">
                     <option value="">{t.sizeChoose}</option>
                     <option value="XS">XS</option>
                     <option value="XL">XL</option>
@@ -595,57 +593,57 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
                 </label>
                 {requestedSize === "OTHER" && (
                   <label className="block space-y-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-black">{t.specifySize}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-white">{t.specifySize}</span>
                     <input value={specificSize} maxLength={100} onChange={(event) => setSpecificSize(event.target.value)}
-                      className="min-h-11 w-full rounded-sm border border-black/20 bg-white px-3 text-xs focus:border-[#00821A] focus:outline-none"
+                      className="min-h-11 w-full rounded-sm border border-white/20 bg-[#141414] px-3 text-xs text-white placeholder:text-[#BFBFBF]/50 focus:border-[#00821A] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#00821A]"
                       placeholder={lang === "fr" ? "Ex. 4XL, tour de poitrine..." : "E.g. 4XL, chest measurement..."} />
                   </label>
                 )}
               </div>
               <label className="block space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wide text-black">{t.notes}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-white">{t.notes}</span>
                 <textarea value={requestNotes} maxLength={1000} rows={3} onChange={(event) => setRequestNotes(event.target.value)}
                   placeholder={t.notesPlaceholder}
-                  className="w-full resize-y rounded-sm border border-black/20 bg-white px-3 py-2 text-xs leading-relaxed text-black focus:border-[#00821A] focus:outline-none" />
+                  className="w-full resize-y rounded-sm border border-white/20 bg-[#141414] px-3 py-2 text-xs leading-relaxed text-white placeholder:text-[#BFBFBF]/50 focus:border-[#00821A] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#00821A]" />
               </label>
               {mailHref ? (
-                <a href={mailHref} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm bg-black px-4 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-white transition-colors hover:bg-[#00821A] sm:w-auto">
+                <a href={mailHref} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-[#00821A] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-white transition-colors hover:bg-black sm:w-auto">
                   <Mail size={15} aria-hidden="true" />{t.emailRequest}<ArrowUpRight size={15} aria-hidden="true" />
                 </a>
               ) : (
-                <button type="button" disabled className="inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center gap-2 rounded-sm bg-black/30 px-4 py-3 text-[11px] font-bold uppercase text-white sm:w-auto">
+                <button type="button" disabled className="inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center gap-2 rounded-sm bg-white/10 px-4 py-3 text-[11px] font-bold uppercase text-[#BFBFBF]/60 sm:w-auto">
                   <Mail size={15} aria-hidden="true" />{t.emailRequest}
                 </button>
               )}
-              <p className="text-[11px] leading-relaxed text-[#404040]">{t.requestNotice}</p>
-              <p className="text-[10px] text-[#404040]">{t.copyEmail} <a className="font-semibold text-[#00821A] underline underline-offset-2" href="mailto:contact@milos-bg.com">contact@milos-bg.com</a></p>
+              <p className="text-[11px] leading-relaxed text-[#BFBFBF]">{t.requestNotice}</p>
+              <p className="text-[10px] text-[#BFBFBF]">{t.copyEmail} <a className="font-semibold text-[#00821A] underline underline-offset-2" href="mailto:contact@milos-bg.com">contact@milos-bg.com</a></p>
             </div>
           )}
         </div>
 
         )}
 
-        <div className="space-y-4 border-t border-black/10 pt-5">
-          <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#404040]">
+        <div className="space-y-4 border-t border-white/10 pt-5">
+          <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#BFBFBF]">
             {availableStock > 0 ? (
-              <>{t.totalStock}: <span className="text-black">{availableStock}</span>
+              <>{t.totalStock}: <span className="text-white">{availableStock}</span>
                 {selectedSize && selectedColor && (
                   <span className="ml-2 text-[#00821A]">· {t.variantStock}: {currentStock}</span>
                 )}
               </>
-            ) : <span className="text-[#a12e2e]">{t.outOfStock}</span>}
+            ) : <span className="text-[#f18a8a]">{t.outOfStock}</span>}
           </p>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-black">{t.countLabel}</p>
-              <div className="inline-flex h-11 items-center border border-black/15 bg-[#F5F5F2]">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-white">{t.countLabel}</p>
+              <div className="inline-flex h-11 items-center border border-white/15 bg-[#171717]">
                 <button type="button" aria-label={lang === "fr" ? "Diminuer la quantité" : "Decrease quantity"}
                   disabled={quantity <= 1} onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                  className="h-11 w-11 text-lg text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-30">−</button>
-                <output aria-live="polite" className="min-w-10 text-center text-sm font-bold tabular-nums text-black">{quantity}</output>
+                  className="h-11 w-11 text-lg text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-30">−</button>
+                <output aria-live="polite" className="min-w-10 text-center text-sm font-bold tabular-nums text-white">{quantity}</output>
                 <button type="button" aria-label={lang === "fr" ? "Augmenter la quantité" : "Increase quantity"}
                   disabled={currentStock <= 0 || quantity >= currentStock} onClick={() => setQuantity((prev) => Math.min(prev + 1, currentStock))}
-                  className="h-11 w-11 text-lg text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-30">+</button>
+                  className="h-11 w-11 text-lg text-white transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-30">+</button>
               </div>
             </div>
             {currentStock > 0 && currentStock <= 5 && !needsSelection && (
@@ -667,7 +665,7 @@ const ProductInfo = ({ productInfo, lang = "en" }: ProductInfoProps) => {
                 cart.addItem({ item: product, quantity, color: selectedColor, size: selectedSize });
               }
             }}
-            className="flex min-h-14 w-full items-center justify-center gap-3 rounded-sm bg-black px-5 py-4 text-[12px] font-black uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#00821A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] disabled:cursor-not-allowed disabled:bg-black/15 disabled:text-black/45">
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-sm border border-[#00821A] bg-[#00821A] px-4 py-3 text-[11px] font-black uppercase tracking-[0.11em] text-white transition-colors hover:border-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00821A] disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-[#BFBFBF]/55">
             {needsSelection && availableStock > 0 ? t.selectOptions : currentStock > 0 ? t.shoot : t.emptyStock}
             <ArrowUpRight size={19} aria-hidden="true" />
           </button>

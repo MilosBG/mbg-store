@@ -53,6 +53,7 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
   );
 
   const [selectedSrc, setSelectedSrc] = useState<string | null>(null);
+  const [imageRatios, setImageRatios] = useState<Record<string, number>>({});
   const [zoomOpen, setZoomOpen] = useState(false);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
@@ -203,7 +204,11 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
   return (
     <section aria-label={`Galerie d’images : ${productName}`} className="w-full font-[Kanit,sans-serif]">
       <div className="flex min-w-0 flex-col gap-3">
-        <div className={`relative mx-auto w-full max-h-[690px] min-w-0 overflow-hidden bg-[#121212] aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] 2xl:aspect-[5/4] ${activeImage ? "" : "bg-mbg-black/5"}`}>
+        <div
+          className="relative mx-auto w-full min-w-0 overflow-hidden bg-[#101010]"
+          // Match the source image instead of forcing a tall empty frame or cropping it.
+          style={{ aspectRatio: String(activeImage ? imageRatios[activeImage] ?? 4 / 5 : 4 / 5) }}
+        >
           {activeImage ? (
             <>
               <button
@@ -219,7 +224,17 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
                   alt={`Vue ${activeIndex + 1} de ${productName}`}
                   fill
                   priority={activeIndex === 0}
-                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  sizes="(min-width: 1280px) 56vw, (min-width: 1024px) 54vw, 100vw"
+                  onLoad={(event) => {
+                    const { naturalWidth, naturalHeight } = event.currentTarget;
+                    if (!naturalHeight) return;
+                    const sourceRatio = naturalWidth / naturalHeight;
+                    // Guard against pathological panorama ratios without cropping.
+                    const ratio = Math.max(0.65, Math.min(1.8, sourceRatio));
+                    setImageRatios((previous) =>
+                      previous[activeImage] === ratio ? previous : { ...previous, [activeImage]: ratio },
+                    );
+                  }}
                   className="object-contain object-center"
                 />
                 <span className="absolute right-3 top-3 rounded-sm border border-mbg-black/10 bg-mbg-white/95 p-2.5 text-mbg-black shadow-sm transition group-hover:text-mbg-green">
@@ -264,7 +279,7 @@ export default function Gallery({ productMedia, productName = "Milos BG" }: Gall
                   className={`relative h-[76px] w-[76px] shrink-0 overflow-hidden border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mbg-green ${
                     index === activeIndex
                       ? "border-mbg-green ring-1 ring-mbg-green"
-                      : "border-mbg-black/10 hover:border-mbg-black/40"
+                      : "border-white/15 hover:border-white/40"
                   }`}
                 >
                   <Image src={src} alt="" fill sizes="76px" className="object-cover" />
