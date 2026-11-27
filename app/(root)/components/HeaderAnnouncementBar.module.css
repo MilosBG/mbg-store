@@ -1,0 +1,57 @@
+/* MBG — A soft luminous sweep across the announcement surface.
+   The interactive content is kept above this layer. */
+.shimmerBar {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.shimmerBar::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: -38%;
+  width: 36%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(0) skewX(-20deg);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 130, 26, 0.06) 25%,
+    rgba(255, 255, 255, 0.13) 42%,
+    rgba(255, 255, 255, 0.34) 50%,
+    rgba(0, 130, 26, 0.13) 62%,
+    transparent 100%
+  );
+  filter: blur(7px);
+  animation: mbgBannerSweep 8.4s ease-in-out infinite;
+}
+
+@keyframes mbgBannerSweep {
+  0%,
+  59% {
+    opacity: 0;
+    transform: translateX(0) skewX(-20deg);
+  }
+  63% {
+    opacity: 0.85;
+  }
+  82% {
+    opacity: 0.85;
+    transform: translateX(420%) skewX(-20deg);
+  }
+  87%,
+  100% {
+    opacity: 0;
+    transform: translateX(420%) skewX(-20deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmerBar::before {
+    animation: none;
+    opacity: 0;
+  }
+}

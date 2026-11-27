@@ -6,6 +6,7 @@ import Container from "@/components/mbg-components/Container";
 import { GrindUntilAchieve2, MBG } from "@/images";
 import { createCheckoutOrder } from "@/lib/checkoutClient";
 import type { CheckoutLine } from "@/lib/checkoutClient";
+import { normalizePromoInput, promoErrorMessage } from "@/lib/promoClient";
 import useCart from "@/lib/hooks/useCart";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
@@ -130,7 +131,7 @@ const CartContent = () => {
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [promoInput, setPromoInput] = useState("");
   const [promoQuote, setPromoQuote] = useState<{ code:string; discountCents:number; subtotalCents:number; totalCents:number; key: string } | null>(null);
-  const [promoError, setPromoError] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
   const [checkingPromo, setCheckingPromo] = useState(false);
 
   const primaryEmail = user?.emailAddresses?.[0]?.emailAddress ?? "";
@@ -186,32 +187,80 @@ const CartContent = () => {
   }, [cart.cartItems]);
 
   // A quote is only valid for the exact basket, code and delivery option.
-  const promoKey = JSON.stringify([checkoutLines, shippingOption, promoInput.trim()]);
+  const promoKey = JSON.stringify([checkoutLines, shippingOption, normalizePromoInput(promoInput)]);
   const activePromo = promoQuote?.key === promoKey ? promoQuote : null;
   const finalTotal = Number((subtotal + shippingFee - (activePromo?.discountCents ?? 0) / 100).toFixed(2));
   const busy = isSubmitting || checkingPromo;
   const itemCount = cart.cartItems.reduce((sum, item) => sum + item.quantity, 0);
   async function applyPromo() {
-    if (busy || !promoInput.trim()) return;
+    const code = normalizePromoInput(promoInput);
+    if (busy || !code) return;
+
+    if (!checkoutLines.length) {
+      setPromoError(promoErrorMessage("The cart is empty.", 400, language));
+      return;
+    }
+
+    // Snapshot the quote request. The basket can rehydrate or change on mobile
+    // while the network request is in flight; only the matching quote is used.
+    const quoteKey = JSON.stringify([checkoutLines, shippingOption, code]);
     setCheckingPromo(true);
-    setPromoError(false);
+    setPromoError(null);
     setPromoQuote(null);
+
     try {
-      const res = await fetch("/api/promotions/quote", {
+      const response = await fetch("/api/promotions/quote", {
         method: "POST",
+        cache: "no-store",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoInput.trim(), lines: checkoutLines, shippingOption }),
+        body: JSON.stringify({ code, lines: checkoutLines, shippingOption }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.code || !Number.isFinite(data.discountCents)) throw new Error("Invalid promotion quote");
-      setPromoQuote({ ...data, key: promoKey });
+      const data = (await response.json().catch(() => null)) as {
+        code?: unknown;
+        discountCents?: unknown;
+        subtotalCents?: unknown;
+        totalCents?: unknown;
+        error?: unknown;
+      } | null;
+
+      if (!response.ok) {
+        setPromoError(promoErrorMessage(
+          typeof data?.error === "string" ? data.error : "",
+          response.status,
+          language,
+        ));
+        return;
+      }
+
+      if (
+        typeof data?.code !== "string" ||
+        normalizePromoInput(data.code) !== code ||
+        typeof data.discountCents !== "number" ||
+        !Number.isSafeInteger(data.discountCents) ||
+        data.discountCents < 0 ||
+        typeof data.subtotalCents !== "number" ||
+        !Number.isSafeInteger(data.subtotalCents) ||
+        typeof data.totalCents !== "number" ||
+        !Number.isSafeInteger(data.totalCents)
+      ) {
+        setPromoError(promoErrorMessage("", 502, language));
+        return;
+      }
+
+      setPromoQuote({
+        code,
+        discountCents: data.discountCents,
+        subtotalCents: data.subtotalCents,
+        totalCents: data.totalCents,
+        key: quoteKey,
+      });
     } catch {
-      setPromoQuote(null);
-      setPromoError(true);
+      setPromoError(promoErrorMessage("", 502, language));
     } finally {
       setCheckingPromo(false);
     }
   }
+
   const checkoutCustomer = useMemo(
     () => ({
       clerkId: user?.id ?? "",
@@ -554,7 +603,18 @@ const CartContent = () => {
             </Link>
           </section>
         ) : (
-          <form id="checkout-form" noValidate onSubmit={handleSubmit} className="mt-5 grid min-w-0 items-start gap-5 lg:mt-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)] lg:gap-7">
+          <>
+            {/* Separate form owner for the mobile keyboard's Go/Done key. */}
+            <form
+              id="mbg-promo-form"
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void applyPromo();
+              }}
+              className="hidden"
+            />
+            <form id="checkout-form" noValidate onSubmit={handleSubmit} className="mt-5 grid min-w-0 items-start gap-5 lg:mt-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)] lg:gap-7">
             <div className="min-w-0 space-y-5">
               <section className={panel} aria-labelledby="cart-items-title">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-4">
@@ -632,7 +692,7 @@ const CartContent = () => {
                       const DeliveryIcon = option === "FREE" ? Truck : Zap;
                       return (
                         <label key={option} className={`flex min-h-16 cursor-pointer items-center gap-3 rounded-sm border p-3 transition focus-within:ring-2 focus-within:ring-[#00821A]/30 ${selected ? "border-[#00821A] bg-[#00821A]/5" : "border-black/[0.15] hover:border-black/40"}`}>
-                          <input type="radio" name="shipping" value={option} checked={selected} onChange={() => {setShippingOption(option); setPromoError(false);}} className="h-4 w-4 shrink-0 accent-[#00821A]" />
+                          <input type="radio" name="shipping" value={option} checked={selected} onChange={() => {setShippingOption(option); setPromoError(null);}} className="h-4 w-4 shrink-0 accent-[#00821A]" />
                           <DeliveryIcon size={20} className={selected ? "shrink-0 text-[#00821A]" : "shrink-0 text-[#404040]"} aria-hidden="true" />
                           <span className="min-w-0 flex-1 text-sm font-semibold">{option === "FREE" ? t.standard : t.express}</span>
                           <span className="shrink-0 text-xs font-bold tabular-nums text-[#00821A] sm:text-sm">{option === "FREE" ? t.free : money(10)}</span>
@@ -656,13 +716,42 @@ const CartContent = () => {
                 <fieldset disabled={busy} className="mt-5 min-w-0">
                   <legend className="sr-only">{t.promo}</legend>
                   <label htmlFor="promo-code" className="mb-2 block text-xs font-bold">{t.promo}</label>
-                  <div className="flex gap-2">
-                    <input id="promo-code" type="text" maxLength={24} autoComplete="off" placeholder="GRIND10" value={promoInput} onChange={(event) => {setPromoInput(event.target.value.toUpperCase()); setPromoQuote(null); setPromoError(false);}} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void applyPromo(); } }} className={`min-h-12 w-full min-w-0 rounded-sm border border-black/20 px-3 text-base uppercase sm:text-sm ${focus}`} />
-                    <button type="button" disabled={busy || !promoInput.trim()} onClick={() => void applyPromo()} className={`inline-flex min-h-12 shrink-0 items-center justify-center rounded-sm bg-black px-3 text-xs font-bold text-white hover:bg-[#00821A] disabled:opacity-40 sm:px-4 ${focus}`}>{checkingPromo ? <Loader2 className="animate-spin" size={17} aria-label={t.checking} /> : t.apply}</button>
+                  <div className="flex min-w-0 gap-2">
+                    <input
+                      id="promo-code"
+                      name="promoCode"
+                      form="mbg-promo-form"
+                      type="text"
+                      inputMode="text"
+                      enterKeyHint="go"
+                      autoCapitalize="characters"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      maxLength={24}
+                      placeholder="GRIND10"
+                      value={promoInput}
+                      aria-invalid={Boolean(promoError)}
+                      aria-describedby={promoError ? "promo-error" : undefined}
+                      onChange={(event) => {
+                        setPromoInput(normalizePromoInput(event.target.value));
+                        setPromoQuote(null);
+                        setPromoError(null);
+                      }}
+                      className={`min-h-11 w-full min-w-0 rounded-sm border border-black/20 bg-white px-3 text-base uppercase sm:text-sm ${focus}`}
+                    />
+                    <button
+                      type="submit"
+                      form="mbg-promo-form"
+                      disabled={busy || !promoInput.trim()}
+                      className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-sm bg-black px-3 text-xs font-bold text-white hover:bg-[#00821A] disabled:opacity-40 sm:px-4 ${focus}`}
+                    >
+                      {checkingPromo ? <Loader2 className="animate-spin" size={17} aria-label={t.checking} /> : t.apply}
+                    </button>
                   </div>
-                  {promoError && <p role="alert" className="mt-2 text-xs text-red-700">{t.promoInvalid}</p>}
+                  {promoError && <p id="promo-error" role="alert" className="mt-2 text-xs font-medium text-red-700">{promoError}</p>}
                   {promoQuote && !activePromo && <p role="status" className="mt-2 text-xs text-[#404040]">{t.promoChanged}</p>}
-                  {activePromo && <div role="status" className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-[#00821A]"><span className="inline-flex items-center gap-1"><Check size={14} aria-hidden="true" />{t.applied}: {activePromo.code}</span><button type="button" onClick={() => {setPromoInput("");setPromoQuote(null);setPromoError(false);}} className={`min-h-10 underline ${focus}`}>{t.removePromo}</button></div>}
+                  {activePromo && <div role="status" className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-[#00821A]"><span className="inline-flex items-center gap-1"><Check size={14} aria-hidden="true" />{t.applied}: {activePromo.code}</span><button type="button" onClick={() => {setPromoInput("");setPromoQuote(null);setPromoError(null);}} className={`min-h-10 underline ${focus}`}>{t.removePromo}</button></div>}
                 </fieldset>
                 <div aria-live="polite" className="mt-5 rounded-sm bg-black px-4 py-5 text-white sm:px-5">
                   <p className="text-xs font-semibold uppercase tracking-wider text-white/[0.75]">{t.total}</p>
@@ -689,7 +778,8 @@ const CartContent = () => {
                 {checkingPromo && <p role="status" className="mt-2 text-xs text-[#404040]">{t.checkingNotice}</p>}
               </section>
             </aside>
-          </form>
+            </form>
+          </>
         )}
       </Container>
     </main>
