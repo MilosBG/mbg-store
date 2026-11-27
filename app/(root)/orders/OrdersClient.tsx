@@ -352,7 +352,7 @@ export default function OrdersClient({
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00821A]">{t.orderLabel}</p>
                   <h2 className="mt-2 text-[clamp(1.35rem,2.5vw,2.125rem)] font-black uppercase leading-[1.1] tracking-tight">{view === "tracking" ? t.tracking : t.history}</h2>
                 </div>
-                <span className="text-[11px] font-medium text-[#68736b]">{visibleOrders.length} {t.items.toLowerCase()}</span>
+                <span className="text-[11px] font-medium text-[#68736b]">{visibleOrders.length} {t.order.toLowerCase()}</span>
               </div>
               {visibleOrders.length ? (
                 <>
