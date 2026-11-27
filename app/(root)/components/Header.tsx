@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { IoListCircleSharp } from "react-icons/io5";
 
@@ -17,8 +17,12 @@ import { GrindUntilAchieve, MilosBG } from "@/images";
 import Container from "@/components/mbg-components/Container";
 import Input from "@/components/mbg-components/Input";
 import useCart from "@/lib/hooks/useCart";
+import HeaderAnnouncementBar from "./HeaderAnnouncementBar";
+import type { HeaderBannerItem } from "@/lib/header-announcements";
 
-const Header = () => {
+type HeaderProps = { bannerItems?: HeaderBannerItem[] };
+
+const Header = ({ bannerItems = [] }: HeaderProps) => {
   const router = useRouter();
   const { user } = useUser();
 
@@ -548,6 +552,13 @@ const Header = () => {
           )}
         </div>
       </Container>
+      {/* Compact promotion/message ribbon directly beneath the navigation. */}
+      <Suspense fallback={null}>
+        <HeaderAnnouncementBar
+          items={bannerItems}
+          customerName={user?.firstName || user?.fullName || null}
+        />
+      </Suspense>
     </header>
   );
 };

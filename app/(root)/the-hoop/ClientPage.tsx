@@ -537,9 +537,8 @@ const CartContent = () => {
                                 height={32}
                                 priority
                                 className="
-                  h-7
-                  w-7
-                opacity-70
+                  h-10
+                  w-10
                   cursor-pointer
                   object-contain
                   transition-opacity

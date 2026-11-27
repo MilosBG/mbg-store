@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import "../globals.css";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import { getHeaderAnnouncements } from "@/lib/header-announcements";
 import MaintenanceGate from "./components/MaintenanceGate";
 import { ClerkProvider } from "@clerk/nextjs";
 import ToasterProvider from "@/lib/providers/ToasterProvider";
@@ -399,6 +400,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const maintenanceState = await getMaintenanceState();
+  // Fetch public, eligible marketing items once on the server for this request.
+  const bannerItems = maintenanceState.isOnline
+    ? await getHeaderAnnouncements()
+    : [];
 
   return (
     <html lang="en" className={kanit.variable}>
@@ -411,7 +416,7 @@ export default async function RootLayout({
             fallbackHtml={DEFAULT_OFFLINE_MESSAGE}
           >
             <ToasterProvider />
-            <Header />
+            <Header bannerItems={bannerItems} />
             <CookieConsent />
             {children}
             <Footer />
